@@ -1,0 +1,65 @@
+{
+  "id": "fundamentals_01_print",
+  "section": "Python Fundamentals",
+  "section_order": 1,
+  "order": 1,
+  "title": "Print and Comments",
+  "topics": ["variables"],
+  "content": "What problem does this solve?\nYou need a way to see what your program is doing. print() sends text to the console so you can observe values while you learn.\n\nBasic syntax\n  print(value)\n  print(value1, value2)\n\nWhat actually happens\nWhen Python reaches a print() call, it converts each argument to text, joins them with spaces by default, writes that text to standard output, then continues with the next line.\n\nComments start with #. Python ignores them entirely — they are notes for humans, not instructions for the computer.",
+  "concepts": [
+    "print() writes values to the console",
+    "Multiple arguments to print are separated by spaces",
+    "Lines starting with # are comments and do not run"
+  ],
+  "examples": [
+    {
+      "title": "A simple greeting",
+      "code": "print(\"Hello, adventurer!\")",
+      "explanation": "Python evaluates the string, then print writes it followed by a newline."
+    },
+    {
+      "title": "Comments explain intent",
+      "code": "# Show the starting gold amount\nprint(\"Gold:\", 50)",
+      "explanation": "The comment is skipped. print receives two arguments and inserts a space between them."
+    }
+  ],
+  "common_mistakes": [
+    "Forgetting quotes around text: print(Hello) looks for a variable named Hello",
+    "Expecting comments to change program behavior — they never do"
+  ],
+  "exercises": [
+    {
+      "id": "fundamentals_01_ex1",
+      "type": "write_code",
+      "title": "Greet the adventurer",
+      "prompt": "Write a program that prints exactly:\nHello, Adventurer!\n\nUse print and a string.",
+      "starter_code": "# Print the greeting below\n",
+      "topics": ["variables"],
+      "hints": [
+        "print() needs parentheses, and text needs quotes.",
+        "Use double or single quotes around the whole message.",
+        "A working shape is: print(\"Hello, Adventurer!\")"
+      ],
+      "tests": [
+        {
+          "kind": "stdout_equals",
+          "expected": "Hello, Adventurer!\n"
+        }
+      ]
+    },
+    {
+      "id": "fundamentals_01_ex2",
+      "type": "predict_output",
+      "title": "Predict the print",
+      "prompt": "What does the following program print? Type the exact output (no quotes).",
+      "code_to_predict": "print(\"HP:\", 100)",
+      "expected_answer": "HP: 100",
+      "topics": ["variables"],
+      "hints": [
+        "print joins multiple arguments with a single space.",
+        "There is no extra punctuation added between HP: and 100.",
+        "The full output is: HP: 100"
+      ]
+    }
+  ]
+}

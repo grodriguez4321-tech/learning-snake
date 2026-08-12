@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+data/progress.json
+data/progress.tmp
+.pytest_cache/
+.mypy_cache/
+.DS_Store

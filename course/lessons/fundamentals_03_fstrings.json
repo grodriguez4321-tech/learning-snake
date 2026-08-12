@@ -1,0 +1,60 @@
+{
+  "id": "fundamentals_03_fstrings",
+  "section": "Python Fundamentals",
+  "section_order": 1,
+  "order": 3,
+  "title": "Strings and f-strings",
+  "topics": ["variables"],
+  "content": "What problem does this solve?\nYou often need to build readable messages that mix text with live values — a status line, battle log, or inventory note.\n\nBasic syntax\n  f\"Health: {health}\"\n\nWhat actually happens\nAn f-string is evaluated at runtime. Python finds each {expression}, evaluates it, converts the result to text, and inserts it into the surrounding string.\n\nThis is clearer than concatenating many pieces with + because the template stays readable.",
+  "concepts": [
+    "f-strings start with f before the opening quote",
+    "Expressions inside {} are evaluated and embedded",
+    "Prefer f-strings for formatted messages once you know the values' names"
+  ],
+  "examples": [
+    {
+      "title": "Character status line",
+      "code": "name = \"Mira\"\nhealth = 42\nprint(f\"{name} has {health} HP\")",
+      "explanation": "Python substitutes the current values of name and health into the string."
+    }
+  ],
+  "common_mistakes": [
+    "Forgetting the leading f — then {health} prints literally",
+    "Putting quotes incorrectly inside the braces"
+  ],
+  "exercises": [
+    {
+      "id": "fundamentals_03_ex1",
+      "type": "write_code",
+      "title": "Formatted character card",
+      "prompt": "Create variables name=\"Selene\", health=90, level=5.\nPrint exactly one line:\nSelene - Level 5 - HP 90\n\nUse an f-string.",
+      "starter_code": "name = \"Selene\"\nhealth = 90\nlevel = 5\n# Print the formatted summary\n",
+      "topics": ["variables"],
+      "hints": [
+        "Start your string with f and put expressions in braces.",
+        "Keep the hyphens and spaces exactly as shown in the required line.",
+        "print(f\"{name} - Level {level} - HP {health}\")"
+      ],
+      "tests": [
+        {"kind": "globals", "name": "name", "expected": "Selene"},
+        {"kind": "globals", "name": "health", "expected": 90},
+        {"kind": "globals", "name": "level", "expected": 5},
+        {"kind": "stdout_equals", "expected": "Selene - Level 5 - HP 90\n"}
+      ]
+    },
+    {
+      "id": "fundamentals_03_ex2",
+      "type": "predict_output",
+      "title": "Predict the f-string",
+      "prompt": "What does this print?",
+      "code_to_predict": "item = \"Potion\"\ncount = 3\nprint(f\"Inventory: {count}x {item}\")",
+      "expected_answer": "Inventory: 3x Potion",
+      "topics": ["variables"],
+      "hints": [
+        "Substitute the braced expressions with their values.",
+        "Keep the surrounding words and spaces exactly.",
+        "Inventory: 3x Potion"
+      ]
+    }
+  ]
+}
