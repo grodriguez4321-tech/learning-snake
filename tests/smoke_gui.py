@@ -26,7 +26,7 @@ def wait_until(root: tk.Tk, app: CourseApp, timeout: float = 8.0) -> None:
 
 def main() -> None:
     print("building", flush=True)
-    controller, runner = build_controller(ROOT)
+    controller, runner = build_controller(ROOT)[:2]
     # Avoid modal recovery dialogs during automated smoke.
     controller.progress.load_warning = None
     controller.progress.recovered_from_corrupt = False
@@ -41,6 +41,20 @@ def main() -> None:
     app.controller.progress.load_warning = None
     assert app.lesson_view.lesson is not None
     print("lesson", app.lesson_view.lesson.id, flush=True)
+
+    print("toggle panels", flush=True)
+    app.hide_sidebar()
+    root.update()
+    app.hide_editor()
+    root.update()
+    app.show_sidebar()
+    root.update()
+    app.show_editor()
+    root.update()
+    app.toggle_theme()
+    root.update()
+    app.toggle_theme()
+    root.update()
 
     app.editor.set_code('print("Hello, Adventurer!")')
     print("run valid", flush=True)

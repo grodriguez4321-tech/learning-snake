@@ -15,6 +15,17 @@ Requires Python 3.10+ and Tkinter (`python3-tk` on Debian/Ubuntu).
 python3 main.py
 ```
 
+### IDE controls
+
+| Action | Shortcut | Also |
+| --- | --- | --- |
+| Toggle Explorer (TOC) | `Ctrl+B` | Activity bar **TOC**, View menu, ✕ on panel |
+| Toggle Editor | `Ctrl+J` | Activity bar **ED**, View menu, ✕ on panel |
+| Toggle Dark/Light | `Ctrl+Shift+D` | Activity bar **◐**, View menu |
+| Run code | `Ctrl+Enter` | ▶ Run button |
+
+UI preferences (theme + panel visibility) are saved in `data/ui_prefs.json`.
+
 On a headless machine (for smoke-testing the window):
 
 ```bash
@@ -37,11 +48,13 @@ xvfb-run -a python3 tests/smoke_gui.py
 
 ```
 ├── main.py                 # Entry point
-├── app/                    # Tkinter UI (composition of widgets)
-│   ├── course_app.py       # Window layout and event wiring
-│   ├── sidebar.py          # Sections, locks, progress
-│   ├── lesson_view.py      # Lesson text + current exercise
-│   ├── code_editor.py      # Editor, run/check/reset/hint, feedback
+├── app/                    # Tkinter UI (IDE-style shell)
+│   ├── course_app.py       # Layout, activity bar, panel toggles
+│   ├── theme.py            # Light/dark theme tokens + ttk styles
+│   ├── ui_prefs.py         # Persist theme + panel visibility
+│   ├── sidebar.py          # Explorer / table of contents
+│   ├── lesson_view.py      # Lesson document
+│   ├── code_editor.py      # Editor + terminal panel
 │   └── playground.py       # Free experimentation console
 ├── course/                 # Curriculum models + lesson JSON
 │   ├── catalog.py          # Loads/orders lessons

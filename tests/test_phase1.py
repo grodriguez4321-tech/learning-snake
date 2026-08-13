@@ -322,7 +322,7 @@ class EndToEndLessonFlowTests(unittest.TestCase):
 
 class BuildControllerTests(unittest.TestCase):
     def test_build_controller(self) -> None:
-        controller, runner = build_controller(ROOT)
+        controller, runner = build_controller(ROOT)[:2]
         self.assertGreaterEqual(len(controller.catalog.lessons), 5)
         self.assertIsInstance(runner, CodeRunner)
 

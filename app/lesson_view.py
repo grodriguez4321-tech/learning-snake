@@ -1,4 +1,4 @@
-"""Lesson content panel: explanation, examples, concepts, current exercise."""
+"""Lesson document panel — explanation, examples, and current exercise."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import ttk
 from typing import Callable, Optional
 
+from app.theme import Theme
 from course.exercise import Exercise
 from course.lesson import Lesson
 
@@ -21,79 +22,126 @@ class LessonView(ttk.Frame):
         self.on_exercise_changed = on_exercise_changed
         self.lesson: Optional[Lesson] = None
         self.exercise_index = 0
+        self._theme: Optional[Theme] = None
 
         self.title_var = tk.StringVar(value="Select a lesson")
         self.section_var = tk.StringVar(value="")
         self.exercise_title_var = tk.StringVar(value="")
 
         header = ttk.Frame(self)
-        header.pack(fill="x", padx=8, pady=(8, 4))
-        ttk.Label(header, textvariable=self.section_var, foreground="#555").pack(anchor="w")
-        ttk.Label(header, textvariable=self.title_var, font=("Segoe UI", 18, "bold")).pack(
-            anchor="w"
+        header.pack(fill="x", padx=12, pady=(10, 4))
+        self.section_label = ttk.Label(header, textvariable=self.section_var)
+        self.section_label.pack(anchor="w")
+        self.title_label = ttk.Label(header, textvariable=self.title_var)
+        self.title_label.pack(anchor="w")
+
+        body_header = ttk.Frame(self, style="PanelHeader.TFrame")
+        body_header.pack(fill="x", padx=0, pady=(4, 0))
+        ttk.Label(body_header, text="LESSON", style="PanelHeader.TLabel").pack(
+            side="left", padx=10, pady=4
         )
 
-        body_frame = ttk.LabelFrame(self, text="1. Lesson")
-        body_frame.pack(fill="both", expand=True, padx=8, pady=4)
-        body_wrap = ttk.Frame(body_frame)
-        body_wrap.pack(fill="both", expand=True)
+        body_wrap = ttk.Frame(self)
+        body_wrap.pack(fill="both", expand=True, padx=0, pady=0)
         self.body = tk.Text(
             body_wrap,
             wrap="word",
             height=14,
             state="disabled",
-            font=("Segoe UI", 11),
-            background="#ffffff",
             relief="flat",
-            padx=8,
-            pady=8,
+            borderwidth=0,
+            padx=14,
+            pady=10,
+            highlightthickness=0,
         )
         body_scroll = ttk.Scrollbar(body_wrap, command=self.body.yview)
         self.body.configure(yscrollcommand=body_scroll.set)
         self.body.pack(side="left", fill="both", expand=True)
         body_scroll.pack(side="right", fill="y")
-        self.body.tag_configure("heading", font=("Segoe UI", 12, "bold"), spacing1=8, spacing3=4)
-        self.body.tag_configure("body", font=("Segoe UI", 11), spacing3=2)
-        self.body.tag_configure("code", font=("Consolas", 10), background="#f3f4f6", lmargin1=12, lmargin2=12)
-        self.body.tag_configure("bullet", font=("Segoe UI", 11), lmargin1=12, lmargin2=24)
 
-        exercise_frame = ttk.LabelFrame(self, text="2. Current Exercise")
-        exercise_frame.pack(fill="x", padx=8, pady=(4, 8))
-
-        exercise_bar = ttk.Frame(exercise_frame)
-        exercise_bar.pack(fill="x", padx=6, pady=(6, 2))
-        ttk.Label(exercise_bar, textvariable=self.exercise_title_var, font=("Segoe UI", 11, "bold")).pack(
-            side="left"
+        exercise_header = ttk.Frame(self, style="PanelHeader.TFrame")
+        exercise_header.pack(fill="x", pady=(1, 0))
+        ttk.Label(exercise_header, text="EXERCISE", style="PanelHeader.TLabel").pack(
+            side="left", padx=10, pady=4
         )
-        ttk.Button(exercise_bar, text="Prev Exercise", command=self.prev_exercise).pack(side="right")
-        ttk.Button(exercise_bar, text="Next Exercise", command=self.next_exercise).pack(
-            side="right", padx=4
+        ttk.Button(exercise_header, text="Next ›", command=self.next_exercise, width=8).pack(
+            side="right", padx=(0, 8), pady=2
+        )
+        ttk.Button(exercise_header, text="‹ Prev", command=self.prev_exercise, width=8).pack(
+            side="right", pady=2
+        )
+        ttk.Label(exercise_header, textvariable=self.exercise_title_var, style="PanelHeader.TLabel").pack(
+            side="right", padx=8
         )
 
-        prompt_wrap = ttk.Frame(exercise_frame)
-        prompt_wrap.pack(fill="x", padx=6, pady=(2, 6))
+        prompt_wrap = ttk.Frame(self)
+        prompt_wrap.pack(fill="x", padx=0, pady=0)
         self.prompt = tk.Text(
             prompt_wrap,
             wrap="word",
-            height=8,
+            height=7,
             state="disabled",
-            font=("Segoe UI", 11),
-            background="#fffbeb",
-            relief="solid",
-            borderwidth=1,
-            padx=8,
+            relief="flat",
+            borderwidth=0,
+            padx=14,
             pady=8,
+            highlightthickness=0,
         )
         prompt_scroll = ttk.Scrollbar(prompt_wrap, command=self.prompt.yview)
         self.prompt.configure(yscrollcommand=prompt_scroll.set)
         self.prompt.pack(side="left", fill="both", expand=True)
         prompt_scroll.pack(side="right", fill="y")
-        self.prompt.tag_configure("code", font=("Consolas", 10), background="#fef3c7")
+
+    def apply_theme(self, theme: Theme) -> None:
+        self._theme = theme
+        self.section_label.configure(foreground=theme.fg_muted, font=theme.ui_font_small)
+        self.title_label.configure(foreground=theme.fg, font=theme.title_font)
+        self.body.configure(
+            background=theme.bg,
+            foreground=theme.fg,
+            font=theme.ui_font,
+            insertbackground=theme.fg,
+        )
+        self.prompt.configure(
+            background=theme.bg_exercise,
+            foreground=theme.fg,
+            font=theme.ui_font,
+            insertbackground=theme.fg,
+        )
+        self.body.tag_configure(
+            "heading",
+            font=theme.ui_font_bold,
+            foreground=theme.fg,
+            spacing1=10,
+            spacing3=4,
+        )
+        self.body.tag_configure("body", font=theme.ui_font, foreground=theme.fg, spacing3=2)
+        self.body.tag_configure(
+            "code",
+            font=theme.mono_font_small,
+            background=theme.bg_elevated,
+            foreground=theme.fg,
+            lmargin1=12,
+            lmargin2=12,
+        )
+        self.body.tag_configure(
+            "bullet",
+            font=theme.ui_font,
+            foreground=theme.fg,
+            lmargin1=12,
+            lmargin2=24,
+        )
+        self.prompt.tag_configure(
+            "code",
+            font=theme.mono_font_small,
+            background=theme.bg_code,
+            foreground=theme.fg,
+        )
 
     def show_lesson(self, lesson: Lesson, exercise_index: int = 0) -> None:
         self.lesson = lesson
         self.exercise_index = max(0, min(exercise_index, max(0, len(lesson.exercises) - 1)))
-        self.section_var.set(lesson.section)
+        self.section_var.set(lesson.section.upper())
         self.title_var.set(lesson.title)
         self._render_body()
         self._render_exercise()
@@ -157,7 +205,7 @@ class LessonView(ttk.Frame):
             return
 
         total = len(self.lesson.exercises) if self.lesson else 1
-        self.exercise_title_var.set(f"{exercise.title} ({self.exercise_index + 1}/{total})")
+        self.exercise_title_var.set(f"{exercise.title}  ({self.exercise_index + 1}/{total})")
         self.prompt.insert("end", exercise.prompt.strip() + "\n\n")
         if exercise.code_to_predict:
             self.prompt.insert("end", "Code:\n")
