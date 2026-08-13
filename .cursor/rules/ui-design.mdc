@@ -1,0 +1,127 @@
+---
+description: Visual and interaction standards for the course desktop UI
+globs:
+  - "app/**"
+alwaysApply: false
+---
+
+# UI and UX Standards
+
+The application should feel like a modern developer tool.
+
+Visual references:
+- Cursor
+- VS Code
+- GitHub
+- ChatGPT desktop/web interfaces
+
+Do not use default-looking desktop widgets when a styled alternative is practical.
+
+## Visual style
+
+Use a coherent dark theme.
+
+Prefer:
+- charcoal/dark gray surfaces
+- subtle borders
+- restrained blue accent
+- high readability
+- muted secondary text
+- clear success/error/warning states
+
+Avoid:
+- pure black everywhere
+- pure white borders
+- excessive outlines
+- tiny fonts
+- giant unused spaces
+- overly dense information
+- gradients unless there is a strong reason
+- flashy gamer-style UI
+
+## Hierarchy
+
+The learner should immediately understand:
+
+1. current lesson
+2. what is being taught
+3. exercise task
+4. where to write code
+5. how to run/check it
+6. result and feedback
+7. progress and navigation
+
+## Layout
+
+Prefer a modern IDE-style layout.
+
+Use:
+- clear sidebar
+- top navigation/breadcrumb area
+- structured lesson content
+- dedicated code editor
+- output/feedback area
+- cards/sections with consistent spacing
+
+Avoid giant continuous text documents.
+
+## Typography
+
+Use a modern Windows UI font for application text.
+
+Use a high-quality monospace font for code.
+
+Body text must remain comfortably readable at 1080p.
+
+Lesson titles should have obvious hierarchy.
+
+## Code editor
+
+The editor should support:
+- line numbers
+- syntax highlighting
+- visible current line
+- tab inserts four spaces
+- Ctrl+Enter runs code
+- usable selections
+- scrolling
+- readable errors/output
+
+Do not attempt to recreate all of VS Code.
+
+## Responsiveness
+
+Test at approximately:
+- 1920x1080
+- 1440x900
+- 1200x700
+
+No critical controls should become inaccessible.
+
+Panels should stretch intelligently.
+
+## Interaction states
+
+Buttons should visibly communicate:
+- hover
+- disabled
+- running/busy
+- success/failure where appropriate
+
+During learner code execution, prevent accidental duplicate runs without making the entire UI feel frozen.
+
+## Final visual review
+
+Before declaring a UI task complete:
+- launch the application
+- inspect it visually
+- resize it
+- navigate multiple lessons
+- inspect long lesson content
+- inspect long output
+- look for clipping
+- look for inconsistent spacing
+- look for tiny typography
+- look for default-widget artifacts
+
+A functioning interface that looks unfinished is not considered complete.

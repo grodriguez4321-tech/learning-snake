@@ -1,0 +1,95 @@
+---
+description: Standards for exercises, grading, hidden tests, and hints
+globs:
+  - "course/**"
+  - "engine/exercise_checker.py"
+  - "engine/execution_worker.py"
+  - "tests/**"
+alwaysApply: false
+---
+
+# Exercise Quality Rules
+
+Exercises must test understanding rather than exact source text whenever behavior can be evaluated.
+
+## Valid solutions
+
+Accept multiple correct implementations.
+
+Do not require the learner to use a specific expression unless use of that construct is itself the learning objective.
+
+Example:
+
+If the goal is "return twice the input", both of these should normally pass:
+
+return number * 2
+
+return number + number
+
+## Behavioral tests
+
+Prefer tests of observable behavior.
+
+For functions:
+- test multiple inputs
+- include at least one non-obvious input when useful
+- test negative or zero values when relevant
+- avoid a single test that can be trivially hardcoded
+
+For variables:
+- verify required names when naming is part of the task
+- verify type where relevant
+- verify value
+
+For classes:
+- verify class exists
+- instantiate it
+- inspect meaningful attributes
+- call methods where appropriate
+- avoid grading only the class name
+
+## Hidden tests
+
+Hidden tests should catch shallow hardcoded solutions without becoming arbitrary gotchas.
+
+Never test behavior that was not implied by the exercise.
+
+## Failure feedback
+
+Feedback should:
+- identify the failing behavior
+- show useful actual versus expected information when appropriate
+- avoid exposing all hidden cases
+- avoid giving the complete implementation immediately
+
+Do not say merely "Wrong."
+
+## Hints
+
+Each exercise should normally provide multiple progressive hints.
+
+Suggested progression:
+
+Hint 1:
+Remind learner of the relevant concept.
+
+Hint 2:
+Point toward the part of their solution that needs attention.
+
+Hint 3:
+Give a more explicit structural suggestion.
+
+Do not make Hint 1 equivalent to the final solution.
+
+## Difficulty
+
+Within a lesson:
+1. first exercise should confirm basic understanding
+2. middle exercises should require application
+3. final exercise should require more independent reasoning
+
+Avoid huge difficulty jumps.
+
+## Regression tests
+
+Whenever a grading bug is discovered, add an automated test reproducing it before considering the bug fixed.
