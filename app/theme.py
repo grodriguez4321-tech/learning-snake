@@ -1,7 +1,7 @@
-"""IDE-inspired light/dark theme tokens for the course app.
+"""Central dark/light theme tokens and Qt stylesheets.
 
-Colors lean toward a VS Code / JetBrains feel: muted chrome, high-contrast
-editor surfaces, and a distinct status bar — without decorative excess.
+Palette targets a Cursor / VS Code / GitHub dark aesthetic — muted chrome,
+subtle borders, blue accents — not pure black/white defaults.
 """
 
 from __future__ import annotations
@@ -16,215 +16,367 @@ ThemeName = Literal["dark", "light"]
 @dataclass(frozen=True)
 class Theme:
     name: ThemeName
-    # Chrome
     bg: str
-    bg_elevated: str
     bg_sidebar: str
-    bg_activity: str
-    bg_status: str
+    bg_card: str
+    bg_elevated: str
     bg_input: str
-    bg_code: str
-    bg_output: str
-    bg_exercise: str
+    bg_editor: str
+    bg_code_block: str
     border: str
-    # Text
-    fg: str
-    fg_muted: str
-    fg_inverse: str
-    # Accents
+    border_subtle: str
+    text: str
+    text_muted: str
+    text_dim: str
     accent: str
-    accent_fg: str
+    accent_hover: str
+    accent_soft: str
     success: str
-    error: str
-    hint: str
+    success_soft: str
     warning: str
-    # Selection / tree
-    select_bg: str
-    select_fg: str
-    # Fonts
-    ui_font: tuple[str, int]
-    ui_font_bold: tuple[str, int]
-    ui_font_small: tuple[str, int]
-    title_font: tuple[str, int, str]
-    mono_font: tuple[str, int]
-    mono_font_small: tuple[str, int]
+    warning_soft: str
+    error: str
+    error_soft: str
+    nav_active: str
+    select: str
 
 
 DARK = Theme(
     name="dark",
-    bg="#1e1e1e",
-    bg_elevated="#252526",
-    bg_sidebar="#252526",
-    bg_activity="#333333",
-    bg_status="#007acc",
-    bg_input="#3c3c3c",
-    bg_code="#1e1e1e",
-    bg_output="#0d1117",
-    bg_exercise="#2d2a1e",
-    border="#3e3e42",
-    fg="#cccccc",
-    fg_muted="#858585",
-    fg_inverse="#ffffff",
-    accent="#0e639c",
-    accent_fg="#ffffff",
-    success="#89d185",
-    error="#f48771",
-    hint="#75beff",
-    warning="#cca700",
-    select_bg="#094771",
-    select_fg="#ffffff",
-    ui_font=("Segoe UI", 10),
-    ui_font_bold=("Segoe UI", 10, "bold"),
-    ui_font_small=("Segoe UI", 9),
-    title_font=("Segoe UI", 16, "bold"),
-    mono_font=("Consolas", 11),
-    mono_font_small=("Consolas", 10),
+    bg="#0D1117",
+    bg_sidebar="#11161D",
+    bg_card="#161B22",
+    bg_elevated="#1C2330",
+    bg_input="#0D1117",
+    bg_editor="#0D1117",
+    bg_code_block="#0B0F14",
+    border="#30363D",
+    border_subtle="#21262D",
+    text="#E6EDF3",
+    text_muted="#8B949E",
+    text_dim="#6E7681",
+    accent="#2F81F7",
+    accent_hover="#388BFD",
+    accent_soft="#1F3A5F",
+    success="#3FB950",
+    success_soft="#1B4332",
+    warning="#D29922",
+    warning_soft="#3D2E00",
+    error="#F85149",
+    error_soft="#3D1214",
+    nav_active="#1F3A5F",
+    select="#264F78",
 )
 
 
 LIGHT = Theme(
     name="light",
-    bg="#ffffff",
-    bg_elevated="#f3f3f3",
-    bg_sidebar="#f3f3f3",
-    bg_activity="#2c2c2c",
-    bg_status="#007acc",
-    bg_input="#ffffff",
-    bg_code="#ffffff",
-    bg_output="#1e1e1e",
-    bg_exercise="#fff8e1",
-    border="#e0e0e0",
-    fg="#333333",
-    fg_muted="#6e6e6e",
-    fg_inverse="#ffffff",
-    accent="#0e639c",
-    accent_fg="#ffffff",
-    success="#388a34",
-    error="#a1260d",
-    hint="#006ab1",
-    warning="#bf8803",
-    select_bg="#cce8ff",
-    select_fg="#000000",
-    ui_font=("Segoe UI", 10),
-    ui_font_bold=("Segoe UI", 10, "bold"),
-    ui_font_small=("Segoe UI", 9),
-    title_font=("Segoe UI", 16, "bold"),
-    mono_font=("Consolas", 11),
-    mono_font_small=("Consolas", 10),
+    bg="#F6F8FA",
+    bg_sidebar="#FFFFFF",
+    bg_card="#FFFFFF",
+    bg_elevated="#F6F8FA",
+    bg_input="#FFFFFF",
+    bg_editor="#FFFFFF",
+    bg_code_block="#F6F8FA",
+    border="#D0D7DE",
+    border_subtle="#E6E8EB",
+    text="#1F2328",
+    text_muted="#656D76",
+    text_dim="#8C959F",
+    accent="#0969DA",
+    accent_hover="#0860CA",
+    accent_soft="#DDF4FF",
+    success="#1A7F37",
+    success_soft="#DAFBE1",
+    warning="#9A6700",
+    warning_soft="#FFF8C5",
+    error="#CF222E",
+    error_soft="#FFEBE9",
+    nav_active="#DDF4FF",
+    select="#B6E3FF",
 )
 
 
-THEMES: dict[ThemeName, Theme] = {"dark": DARK, "light": LIGHT}
-
-
 def get_theme(name: ThemeName) -> Theme:
-    return THEMES.get(name, DARK)
+    return DARK if name == "dark" else LIGHT
 
 
-def apply_ttk_theme(root: object, theme: Theme) -> None:
-    """Configure ttk styles to match the active theme."""
-    style = __import__("tkinter.ttk", fromlist=["Style"]).Style()
-    try:
-        style.theme_use("clam")
-    except Exception:  # noqa: BLE001
-        pass
-
-    style.configure(".", background=theme.bg, foreground=theme.fg, font=theme.ui_font)
-    style.configure("TFrame", background=theme.bg)
-    style.configure("TLabel", background=theme.bg, foreground=theme.fg)
-    style.configure("TLabelframe", background=theme.bg, foreground=theme.fg)
-    style.configure("TLabelframe.Label", background=theme.bg, foreground=theme.fg_muted)
-    style.configure(
-        "TButton",
-        background=theme.bg_input,
-        foreground=theme.fg,
-        bordercolor=theme.border,
-        focuscolor=theme.accent,
-        padding=(10, 4),
-    )
-    style.map(
-        "TButton",
-        background=[("active", theme.accent), ("disabled", theme.bg_elevated)],
-        foreground=[("active", theme.accent_fg), ("disabled", theme.fg_muted)],
-    )
-    style.configure(
-        "Accent.TButton",
-        background=theme.accent,
-        foreground=theme.accent_fg,
-        padding=(10, 4),
-    )
-    style.map(
-        "Accent.TButton",
-        background=[("active", theme.select_bg)],
-        foreground=[("active", theme.select_fg)],
-    )
-    style.configure(
-        "Tool.TButton",
-        background=theme.bg_activity,
-        foreground=theme.fg_inverse,
-        padding=(6, 8),
-        font=theme.ui_font_small,
-    )
-    style.map(
-        "Tool.TButton",
-        background=[("active", theme.accent), ("pressed", theme.select_bg)],
-    )
-    style.configure(
-        "ToolActive.TButton",
-        background=theme.accent,
-        foreground=theme.accent_fg,
-        padding=(6, 8),
-        font=theme.ui_font_small,
-    )
-    style.configure("TEntry", fieldbackground=theme.bg_input, foreground=theme.fg, insertcolor=theme.fg)
-    style.configure("TNotebook", background=theme.bg, borderwidth=0)
-    style.configure(
-        "TNotebook.Tab",
-        background=theme.bg_elevated,
-        foreground=theme.fg_muted,
-        padding=(12, 6),
-    )
-    style.map(
-        "TNotebook.Tab",
-        background=[("selected", theme.bg)],
-        foreground=[("selected", theme.fg)],
-    )
-    style.configure(
-        "Treeview",
-        background=theme.bg_sidebar,
-        foreground=theme.fg,
-        fieldbackground=theme.bg_sidebar,
-        borderwidth=0,
-        rowheight=24,
-    )
-    style.map(
-        "Treeview",
-        background=[("selected", theme.select_bg)],
-        foreground=[("selected", theme.select_fg)],
-    )
-    style.configure(
-        "Vertical.TScrollbar",
-        background=theme.bg_elevated,
-        troughcolor=theme.bg,
-        arrowcolor=theme.fg_muted,
-    )
-    style.configure(
-        "Horizontal.TScrollbar",
-        background=theme.bg_elevated,
-        troughcolor=theme.bg,
-        arrowcolor=theme.fg_muted,
-    )
-    style.configure("Status.TFrame", background=theme.bg_status)
-    style.configure("Status.TLabel", background=theme.bg_status, foreground=theme.fg_inverse)
-    style.configure("Sidebar.TFrame", background=theme.bg_sidebar)
-    style.configure("Sidebar.TLabel", background=theme.bg_sidebar, foreground=theme.fg)
-    style.configure("Activity.TFrame", background=theme.bg_activity)
-    style.configure("PanelHeader.TFrame", background=theme.bg_elevated)
-    style.configure(
-        "PanelHeader.TLabel",
-        background=theme.bg_elevated,
-        foreground=theme.fg_muted,
-        font=theme.ui_font_small,
-    )
-    style.configure("TPanedwindow", background=theme.border)
-    style.configure("Sash", sashthickness=4)
+def build_stylesheet(theme: Theme) -> str:
+    """Application-wide QSS. Prefer this over per-widget color scattering."""
+    return f"""
+    * {{
+        font-family: "Segoe UI", "Ubuntu", "Noto Sans", sans-serif;
+        font-size: 13px;
+    }}
+    QMainWindow, QDialog {{
+        background-color: {theme.bg};
+        color: {theme.text};
+    }}
+    QWidget {{
+        background-color: transparent;
+        color: {theme.text};
+    }}
+    QScrollArea {{
+        border: none;
+        background: transparent;
+    }}
+    QScrollBar:vertical {{
+        background: {theme.bg};
+        width: 10px;
+        margin: 0;
+    }}
+    QScrollBar::handle:vertical {{
+        background: {theme.border};
+        border-radius: 5px;
+        min-height: 24px;
+    }}
+    QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+        height: 0;
+    }}
+    QScrollBar:horizontal {{
+        background: {theme.bg};
+        height: 10px;
+    }}
+    QScrollBar::handle:horizontal {{
+        background: {theme.border};
+        border-radius: 5px;
+        min-width: 24px;
+    }}
+    QLabel#BrandTitle {{
+        font-size: 16px;
+        font-weight: 700;
+        color: {theme.text};
+    }}
+    QLabel#SectionHeading {{
+        font-size: 11px;
+        font-weight: 600;
+        color: {theme.text_dim};
+        letter-spacing: 0.8px;
+    }}
+    QLabel#LessonTitle {{
+        font-size: 28px;
+        font-weight: 700;
+        color: {theme.text};
+        padding-bottom: 4px;
+    }}
+    QLabel#PageTitle {{
+        font-size: 24px;
+        font-weight: 700;
+        color: {theme.text};
+    }}
+    QLabel#CardTitle {{
+        font-size: 14px;
+        font-weight: 600;
+        color: {theme.text};
+    }}
+    QLabel#BodyText {{
+        color: {theme.text};
+        font-size: 14px;
+        line-height: 1.45;
+    }}
+    QLabel#MutedLabel {{
+        color: {theme.text_muted};
+        font-size: 13px;
+    }}
+    QLabel#Breadcrumb {{
+        color: {theme.text_muted};
+        font-size: 13px;
+    }}
+    QLabel#ProgressPct {{
+        color: {theme.accent};
+        font-weight: 700;
+        font-size: 13px;
+    }}
+    QLabel#TabLabel {{
+        color: {theme.text};
+        font-size: 12px;
+        padding: 6px 10px;
+    }}
+    QFrame#Sidebar {{
+        background-color: {theme.bg_sidebar};
+        border-right: 1px solid {theme.border_subtle};
+    }}
+    QFrame#SidebarFooter {{
+        background-color: {theme.bg_card};
+        border: 1px solid {theme.border_subtle};
+        border-radius: 10px;
+    }}
+    QFrame#TopBar {{
+        background-color: {theme.bg};
+        border-bottom: 1px solid {theme.border_subtle};
+    }}
+    QFrame#Card, QFrame#EditorCard, QFrame#OutputCard, QFrame#FeedbackCard {{
+        background-color: {theme.bg_card};
+        border: 1px solid {theme.border_subtle};
+        border-radius: 10px;
+    }}
+    QFrame#ConceptCard {{
+        background-color: {theme.bg_card};
+        border: 1px solid {theme.accent_soft};
+        border-radius: 10px;
+    }}
+    QFrame#CodeBlock {{
+        background-color: {theme.bg_code_block};
+        border: 1px solid {theme.border_subtle};
+        border-radius: 8px;
+    }}
+    QFrame#EditorChrome {{
+        background-color: {theme.bg_elevated};
+        border-bottom: 1px solid {theme.border_subtle};
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }}
+    QFrame#ProgressPill {{
+        background-color: {theme.bg_card};
+        border: 1px solid {theme.border_subtle};
+        border-radius: 16px;
+    }}
+    QPushButton {{
+        background-color: {theme.bg_elevated};
+        color: {theme.text};
+        border: 1px solid {theme.border};
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-size: 13px;
+    }}
+    QPushButton:hover {{
+        background-color: {theme.border_subtle};
+        border-color: {theme.border};
+    }}
+    QPushButton:pressed {{
+        background-color: {theme.border};
+    }}
+    QPushButton:disabled {{
+        color: {theme.text_dim};
+        background-color: {theme.bg_card};
+        border-color: {theme.border_subtle};
+    }}
+    QPushButton#PrimaryButton {{
+        background-color: {theme.accent};
+        color: #FFFFFF;
+        border: 1px solid {theme.accent};
+        font-weight: 600;
+        padding: 9px 18px;
+    }}
+    QPushButton#PrimaryButton:hover {{
+        background-color: {theme.accent_hover};
+        border-color: {theme.accent_hover};
+    }}
+    QPushButton#SecondaryButton {{
+        background-color: transparent;
+        border: 1px solid {theme.border};
+        color: {theme.text};
+    }}
+    QPushButton#LessonItem {{
+        text-align: left;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: {theme.text_muted};
+        min-height: 20px;
+    }}
+    QPushButton#NavItem {{
+        text-align: left;
+        padding: 10px 12px;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: {theme.text_muted};
+        font-size: 13px;
+        min-height: 18px;
+    }}
+    QPushButton#NavItem:hover {{
+        background-color: {theme.bg_elevated};
+        color: {theme.text};
+    }}
+    QPushButton#NavItem:checked {{
+        background-color: {theme.nav_active};
+        color: {theme.text};
+        font-weight: 600;
+    }}
+    QPushButton#LessonItem:hover {{
+        background-color: {theme.bg_elevated};
+        color: {theme.text};
+    }}
+    QPushButton#LessonItem:checked {{
+        background-color: {theme.nav_active};
+        color: {theme.text};
+        font-weight: 600;
+    }}
+    QPushButton#LessonItem:disabled {{
+        color: {theme.text_dim};
+        background: transparent;
+    }}
+    QLineEdit, QComboBox, QTextEdit#AnswerField {{
+        background-color: {theme.bg_input};
+        border: 1px solid {theme.border};
+        border-radius: 8px;
+        padding: 8px 10px;
+        color: {theme.text};
+        selection-background-color: {theme.select};
+    }}
+    QComboBox::drop-down {{
+        border: none;
+        width: 24px;
+    }}
+    QComboBox QAbstractItemView {{
+        background-color: {theme.bg_card};
+        color: {theme.text};
+        border: 1px solid {theme.border};
+        selection-background-color: {theme.select};
+    }}
+    QPlainTextEdit#CodeEditor, QTextEdit#CodeEditor {{
+        background-color: {theme.bg_editor};
+        color: {theme.text};
+        border: none;
+        font-family: "Cascadia Code", "Consolas", "Courier New", monospace;
+        font-size: 13px;
+        selection-background-color: {theme.select};
+        padding: 8px;
+    }}
+    QPlainTextEdit#OutputView, QTextEdit#OutputView, QTextEdit#ExampleCode {{
+        background-color: {theme.bg_code_block};
+        color: {theme.text};
+        border: 1px solid {theme.border_subtle};
+        border-radius: 8px;
+        font-family: "Cascadia Code", "Consolas", "Courier New", monospace;
+        font-size: 12px;
+        padding: 10px;
+    }}
+    QTextEdit#FeedbackView {{
+        background-color: {theme.bg_elevated};
+        color: {theme.text_muted};
+        border: none;
+        border-radius: 8px;
+        font-size: 13px;
+        padding: 10px;
+    }}
+    QProgressBar {{
+        background-color: {theme.bg_elevated};
+        border: none;
+        border-radius: 4px;
+        text-align: center;
+        color: {theme.text_muted};
+        max-height: 8px;
+    }}
+    QProgressBar::chunk {{
+        background-color: {theme.accent};
+        border-radius: 4px;
+    }}
+    QSplitter::handle {{
+        background-color: {theme.border_subtle};
+    }}
+    QSplitter::handle:horizontal {{
+        width: 1px;
+    }}
+    QToolTip {{
+        background-color: {theme.bg_elevated};
+        color: {theme.text};
+        border: 1px solid {theme.border};
+        padding: 6px;
+    }}
+    QMessageBox {{
+        background-color: {theme.bg_card};
+    }}
+    """

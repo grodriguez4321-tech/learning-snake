@@ -1,28 +1,38 @@
-"""Main Tkinter application — IDE-style shell.
+"""Main PySide6 application — IDE-style course shell.
 
-Layout (inspired by VS Code / JetBrains):
-  activity bar | explorer (TOC) | lesson document
-                                 | editor + terminal
-
-Panels (TOC / Editor) can be toggled from the activity bar, View menu, or
-keyboard shortcuts. Dark/light theme is persisted in ui_prefs.json.
+Presentation only: grading, unlocking, and execution stay in engine/.
 """
 
 from __future__ import annotations
 
-import queue
-import threading
-import tkinter as tk
+import sys
 from pathlib import Path
-from tkinter import messagebox, ttk
 from typing import Callable, Optional, TypeVar
 
-from app.code_editor import CodeEditor
-from app.lesson_view import LessonView
-from app.playground import Playground
-from app.sidebar import Sidebar
-from app.theme import Theme, ThemeName, apply_ttk_theme, get_theme
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QMainWindow,
+    QMessageBox,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget,
+)
+
+from app.pages import (
+    DashboardPage,
+    LessonsPage,
+    PlaygroundPage,
+    ProgressPage,
+    SettingsPage,
+)
+from app.theme import Theme, ThemeName, build_stylesheet, get_theme
 from app.ui_prefs import UiPrefsStore
+from app.widgets.sidebar import Sidebar
+from app.widgets.top_bar import TopBar
+from app.workers import AsyncJobHost
 from course.exercise import Exercise
 from course.lesson import Lesson
 from engine.code_runner import CodeRunner
@@ -33,16 +43,17 @@ from engine.exercise_checker import CheckResult
 T = TypeVar("T")
 
 
-class CourseApp(ttk.Frame):
+class CourseApp(QMainWindow):
+    """Primary window. Also exposes a small API used by smoke_gui."""
+
     def __init__(
         self,
-        master: tk.Tk,
         controller: CourseController,
         runner: CodeRunner,
         prefs_store: Optional[UiPrefsStore] = None,
+        parent: QWidget | None = None,
     ) -> None:
-        super().__init__(master)
-        self.master = master
+        super().__init__(parent)
         self.controller = controller
         self.runner = runner
         self.prefs_store = prefs_store or UiPrefsStore(
@@ -50,200 +61,138 @@ class CourseApp(ttk.Frame):
         )
         self.prefs_store.load()
 
+        self._theme = get_theme(self.prefs_store.prefs.theme)
         self._current_lesson: Optional[Lesson] = None
         self._current_exercise: Optional[Exercise] = None
+        self._exercise_index = 0
         self._loading_exercise = False
         self._busy = False
         self._closing = False
-        self._result_queue: queue.Queue[tuple[Callable[[object], None], object]] = queue.Queue()
-        self._theme = get_theme(self.prefs_store.prefs.theme)
         self._sidebar_visible = self.prefs_store.prefs.sidebar_visible
         self._editor_visible = self.prefs_store.prefs.editor_visible
-        self._sidebar_pane_added = False
-        self._editor_pane_added = False
+        self._jobs = AsyncJobHost(self)
 
-        self.pack(fill="both", expand=True)
-        self._build_menu()
-        self._build_layout()
-        self._apply_theme(self._theme)
-        self._sync_panel_visibility(initial=True)
+        self.setWindowTitle("Python Course")
+        self.resize(1400, 900)
+        self.setMinimumSize(1100, 700)
+
+        self._build_ui()
         self._bind_shortcuts()
+        self.apply_theme(self._theme)
+        self._sync_panel_visibility()
         self._load_initial_lesson()
         self._maybe_warn_progress_recovery()
-        self._poll_async_results()
 
-    # --- chrome -------------------------------------------------------------
+    # Compatibility aliases for smoke tests / older call sites
+    @property
+    def lesson_view(self) -> LessonsPage:
+        return self.lessons_page
 
-    def _build_menu(self) -> None:
-        menubar = tk.Menu(self.master)
-        file_menu = tk.Menu(menubar, tearoff=0)
-        file_menu.add_command(label="Save Progress", command=self._save_progress, accelerator="Ctrl+S")
-        file_menu.add_command(label="Reset Progress…", command=self._reset_progress)
-        file_menu.add_separator()
-        file_menu.add_command(label="Quit", command=self._on_close, accelerator="Ctrl+Q")
-        menubar.add_cascade(label="File", menu=file_menu)
+    @property
+    def editor(self):
+        return self.lessons_page.ide
 
-        view_menu = tk.Menu(menubar, tearoff=0)
-        view_menu.add_command(
-            label="Toggle Explorer", command=self.toggle_sidebar, accelerator="Ctrl+B"
-        )
-        view_menu.add_command(
-            label="Toggle Editor", command=self.toggle_editor, accelerator="Ctrl+J"
-        )
-        view_menu.add_separator()
-        view_menu.add_command(
-            label="Toggle Dark Mode", command=self.toggle_theme, accelerator="Ctrl+Shift+D"
-        )
-        menubar.add_cascade(label="View", menu=view_menu)
+    @property
+    def playground(self):
+        return self.playground_page
 
-        go_menu = tk.Menu(menubar, tearoff=0)
-        go_menu.add_command(label="Previous Lesson", command=self._prev_lesson)
-        go_menu.add_command(label="Next Lesson", command=self._next_lesson)
-        menubar.add_cascade(label="Go", menu=go_menu)
+    def _build_ui(self) -> None:
+        central = QWidget()
+        self.setCentralWidget(central)
+        root = QHBoxLayout(central)
+        root.setContentsMargins(0, 0, 0, 0)
+        root.setSpacing(0)
 
-        self.master.config(menu=menubar)
-        self._menubar = menubar
-        self._file_menu = file_menu
-        self._view_menu = view_menu
-        self._go_menu = go_menu
+        self.sidebar = Sidebar(self.controller.catalog, self.controller)
+        self.sidebar.navChanged.connect(self._on_nav)
+        self.sidebar.lessonSelected.connect(self._on_sidebar_select)
+        root.addWidget(self.sidebar)
 
-    def _build_layout(self) -> None:
-        # Root: body + status bar
-        body = ttk.Frame(self)
-        body.pack(fill="both", expand=True)
+        right = QWidget()
+        right_l = QVBoxLayout(right)
+        right_l.setContentsMargins(0, 0, 0, 0)
+        right_l.setSpacing(0)
 
-        # Activity bar (far left) — VS Code style
-        self.activity = ttk.Frame(body, style="Activity.TFrame", width=48)
-        self.activity.pack(side="left", fill="y")
-        self.activity.pack_propagate(False)
+        self.top_bar = TopBar()
+        self.top_bar.themeChanged.connect(self._on_theme_changed)
+        self.top_bar.set_theme(self._theme.name)
+        right_l.addWidget(self.top_bar)
 
-        self.btn_explorer = ttk.Button(
-            self.activity, text="TOC", style="ToolActive.TButton", command=self.toggle_sidebar
-        )
-        self.btn_explorer.pack(fill="x", padx=4, pady=(8, 4))
-        self.btn_editor = ttk.Button(
-            self.activity, text="ED", style="ToolActive.TButton", command=self.toggle_editor
-        )
-        self.btn_editor.pack(fill="x", padx=4, pady=4)
-        self.btn_theme = ttk.Button(
-            self.activity, text="◐", style="Tool.TButton", command=self.toggle_theme
-        )
-        self.btn_theme.pack(side="bottom", fill="x", padx=4, pady=8)
+        self.stack = QStackedWidget()
+        self.dashboard_page = DashboardPage(self.controller)
+        self.dashboard_page.continueClicked.connect(lambda: self._on_nav("lessons"))
+        self.dashboard_page.playgroundClicked.connect(lambda: self._on_nav("playground"))
 
-        # Main horizontal split: explorer | workspace
-        self.h_paned = ttk.Panedwindow(body, orient="horizontal")
-        self.h_paned.pack(side="left", fill="both", expand=True)
+        self.lessons_page = LessonsPage(self._theme)
+        # smoke: lesson_view.lesson
+        self.lessons_page.lesson = None  # type: ignore[attr-defined]
+        content = self.lessons_page.content
+        content.prevLesson.connect(self._prev_lesson)
+        content.nextLesson.connect(self._next_lesson)
+        content.prevExercise.connect(self._prev_exercise)
+        content.nextExercise.connect(self._next_exercise)
+        ide = self.lessons_page.ide
+        ide.runClicked.connect(self._run_code)
+        ide.checkClicked.connect(self._check_answer)
+        ide.hintClicked.connect(self._show_hint)
+        ide.resetClicked.connect(self._reset_exercise)
 
-        self.sidebar = Sidebar(
-            self.h_paned,
-            self.controller,
-            on_select=self._on_sidebar_select,
-            on_close=self.hide_sidebar,
-        )
+        self.playground_page = PlaygroundPage(self._theme)
+        self.playground_page.runRequested.connect(self._run_playground)
+        self.playground_page.resetEnvRequested.connect(self._reset_playground_env)
 
-        workspace = ttk.Frame(self.h_paned)
-        self.h_paned.add(workspace, weight=4)
+        self.progress_page = ProgressPage(self.controller, self.controller.catalog)
+        self.settings_page = SettingsPage()
+        self.settings_page.resetProgressClicked.connect(self._reset_progress)
+        self.settings_page.saveClicked.connect(self._save_progress)
 
-        # Top nav bar
-        nav = ttk.Frame(workspace)
-        nav.pack(fill="x", padx=4, pady=4)
-        ttk.Button(nav, text="‹ Prev", command=self._prev_lesson, width=8).pack(side="left")
-        ttk.Button(nav, text="Next ›", command=self._next_lesson, width=8).pack(side="left", padx=4)
-        self.lesson_path_var = tk.StringVar(value="")
-        ttk.Label(nav, textvariable=self.lesson_path_var).pack(side="left", padx=12)
-        self.status_var = tk.StringVar(value="")
-        ttk.Label(nav, textvariable=self.status_var).pack(side="right", padx=8)
+        self._page_keys = {
+            "dashboard": 0,
+            "lessons": 1,
+            "playground": 2,
+            "progress": 3,
+            "settings": 4,
+        }
+        for page in (
+            self.dashboard_page,
+            self.lessons_page,
+            self.playground_page,
+            self.progress_page,
+            self.settings_page,
+        ):
+            self.stack.addWidget(page)
 
-        # Tabs: Lesson | Playground
-        self.notebook = ttk.Notebook(workspace)
-        self.notebook.pack(fill="both", expand=True)
-
-        lesson_tab = ttk.Frame(self.notebook)
-        self.notebook.add(lesson_tab, text="Lesson")
-
-        # Vertical split inside Lesson: document | editor
-        self.v_paned = ttk.Panedwindow(lesson_tab, orient="vertical")
-        self.v_paned.pack(fill="both", expand=True)
-
-        self.lesson_view = LessonView(self.v_paned, on_exercise_changed=self._on_exercise_changed)
-        self.v_paned.add(self.lesson_view, weight=3)
-
-        self.editor = CodeEditor(
-            self.v_paned,
-            on_run=self._run_code,
-            on_check=self._check_answer,
-            on_reset=self._reset_exercise,
-            on_hint=self._show_hint,
-            on_close=self.hide_editor,
-        )
-
-        playground_tab = Playground(
-            self.notebook,
-            on_run=self._run_playground,
-            on_clear=lambda: None,
-            on_reset_env=self.runner.reset_playground,
-        )
-        self.notebook.add(playground_tab, text="Playground")
-        self.playground = playground_tab
-
-        # Status bar
-        status = ttk.Frame(self, style="Status.TFrame")
-        status.pack(fill="x", side="bottom")
-        self.status_left = tk.StringVar(value="Ready")
-        self.status_right = tk.StringVar(value="Dark")
-        ttk.Label(status, textvariable=self.status_left, style="Status.TLabel").pack(
-            side="left", padx=10, pady=3
-        )
-        ttk.Label(status, textvariable=self.status_right, style="Status.TLabel").pack(
-            side="right", padx=10, pady=3
-        )
-
-        self.master.protocol("WM_DELETE_WINDOW", self._on_close)
+        right_l.addWidget(self.stack, stretch=1)
+        root.addWidget(right, stretch=1)
 
     def _bind_shortcuts(self) -> None:
-        self.master.bind_all("<Control-b>", lambda e: self.toggle_sidebar())
-        self.master.bind_all("<Control-B>", lambda e: self.toggle_sidebar())
-        self.master.bind_all("<Control-j>", lambda e: self.toggle_editor())
-        self.master.bind_all("<Control-J>", lambda e: self.toggle_editor())
-        self.master.bind_all("<Control-Shift-D>", lambda e: self.toggle_theme())
-        self.master.bind_all("<Control-s>", lambda e: self._save_progress())
-        self.master.bind_all("<Control-q>", lambda e: self._on_close())
+        QShortcut(QKeySequence("Ctrl+B"), self, self.toggle_sidebar)
+        QShortcut(QKeySequence("Ctrl+J"), self, self.toggle_editor)
+        QShortcut(QKeySequence("Ctrl+Shift+D"), self, self.toggle_theme)
+        QShortcut(QKeySequence("Ctrl+S"), self, self._save_progress)
+        QShortcut(QKeySequence("Ctrl+Q"), self, self.close)
 
-    # --- theme & panels -----------------------------------------------------
+    # --- theme / panels -----------------------------------------------------
 
-    def _apply_theme(self, theme: Theme) -> None:
+    def apply_theme(self, theme: Theme) -> None:
         self._theme = theme
-        apply_ttk_theme(self.master, theme)
-        try:
-            self.master.configure(bg=theme.bg)
-        except tk.TclError:
-            pass
-        self.configure(style="TFrame")
-        self.sidebar.apply_theme(theme)
-        self.lesson_view.apply_theme(theme)
-        self.editor.apply_theme(theme)
-        self.playground.apply_theme(theme)
-        self._update_activity_buttons()
-        self.status_right.set("Dark mode" if theme.name == "dark" else "Light mode")
-        self._restyle_menus(theme)
-
-    def _restyle_menus(self, theme: Theme) -> None:
-        for menu in (self._menubar, self._file_menu, self._view_menu, self._go_menu):
-            try:
-                menu.configure(
-                    background=theme.bg_elevated,
-                    foreground=theme.fg,
-                    activebackground=theme.select_bg,
-                    activeforeground=theme.select_fg,
-                    borderwidth=0,
-                )
-            except tk.TclError:
-                pass
+        app = QApplication.instance()
+        if app is not None:
+            app.setStyleSheet(build_stylesheet(theme))
+        self.lessons_page.apply_theme(theme)
+        self.playground_page.apply_theme(theme)
+        self.top_bar.set_theme(theme.name)
 
     def toggle_theme(self) -> None:
         next_name: ThemeName = "light" if self._theme.name == "dark" else "dark"
-        self._apply_theme(get_theme(next_name))
+        self.apply_theme(get_theme(next_name))
         self.prefs_store.update(theme=next_name)
+
+    def _on_theme_changed(self, name: str) -> None:
+        if name not in {"dark", "light"}:
+            return
+        self.apply_theme(get_theme(name))  # type: ignore[arg-type]
+        self.prefs_store.update(theme=name)  # type: ignore[arg-type]
 
     def toggle_sidebar(self) -> None:
         if self._sidebar_visible:
@@ -252,31 +201,14 @@ class CourseApp(ttk.Frame):
             self.show_sidebar()
 
     def show_sidebar(self) -> None:
-        if self._sidebar_visible and self._sidebar_pane_added:
-            return
         self._sidebar_visible = True
-        if not self._sidebar_pane_added:
-            # Insert explorer as first pane.
-            panes = list(self.h_paned.panes())
-            self.h_paned.insert(panes[0] if panes else "end", self.sidebar, weight=1)
-            self._sidebar_pane_added = True
-        self._update_activity_buttons()
+        self.sidebar.setVisible(True)
         self.prefs_store.update(sidebar_visible=True)
-        self.status_left.set("Explorer shown")
 
     def hide_sidebar(self) -> None:
-        if not self._sidebar_visible:
-            return
         self._sidebar_visible = False
-        if self._sidebar_pane_added:
-            try:
-                self.h_paned.forget(self.sidebar)
-            except tk.TclError:
-                pass
-            self._sidebar_pane_added = False
-        self._update_activity_buttons()
+        self.sidebar.setVisible(False)
         self.prefs_store.update(sidebar_visible=False)
-        self.status_left.set("Explorer hidden — Ctrl+B to show")
 
     def toggle_editor(self) -> None:
         if self._editor_visible:
@@ -285,33 +217,17 @@ class CourseApp(ttk.Frame):
             self.show_editor()
 
     def show_editor(self) -> None:
-        if self._editor_visible and self._editor_pane_added:
-            return
         self._editor_visible = True
-        if not self._editor_pane_added:
-            self.v_paned.add(self.editor, weight=3)
-            self._editor_pane_added = True
-        self._update_activity_buttons()
+        self.lessons_page.set_editor_visible(True)
         self.prefs_store.update(editor_visible=True)
-        self.status_left.set("Editor shown")
-        self.editor.focus_editor()
+        self.lessons_page.ide.focus_editor()
 
     def hide_editor(self) -> None:
-        if not self._editor_visible:
-            return
         self._editor_visible = False
-        if self._editor_pane_added:
-            try:
-                self.v_paned.forget(self.editor)
-            except tk.TclError:
-                pass
-            self._editor_pane_added = False
-        self._update_activity_buttons()
+        self.lessons_page.set_editor_visible(False)
         self.prefs_store.update(editor_visible=False)
-        self.status_left.set("Editor hidden — Ctrl+J to show")
 
-    def _sync_panel_visibility(self, *, initial: bool = False) -> None:
-        # Start with neither pane registered, then show per prefs.
+    def _sync_panel_visibility(self) -> None:
         if self.prefs_store.prefs.sidebar_visible:
             self.show_sidebar()
         else:
@@ -320,139 +236,86 @@ class CourseApp(ttk.Frame):
             self.show_editor()
         else:
             self.hide_editor()
-        if initial:
-            self.status_left.set("Ready")
 
-    def _update_activity_buttons(self) -> None:
-        self.btn_explorer.configure(
-            style="ToolActive.TButton" if self._sidebar_visible else "Tool.TButton"
+    # --- navigation ---------------------------------------------------------
+
+    def _on_nav(self, key: str) -> None:
+        idx = self._page_keys.get(key)
+        if idx is None:
+            return
+        self.sidebar.set_active_nav(key)
+        self.stack.setCurrentIndex(idx)
+        if key == "dashboard":
+            self.dashboard_page.refresh()
+            self.top_bar.set_breadcrumb("Dashboard")
+        elif key == "lessons":
+            lesson = self._current_lesson or self.controller.current_lesson()
+            if lesson:
+                self.top_bar.set_breadcrumb(f"📖  {lesson.section}  ›  {lesson.title}")
+        elif key == "playground":
+            self.top_bar.set_breadcrumb("Playground")
+        elif key == "progress":
+            self.progress_page.refresh()
+            self.top_bar.set_breadcrumb("Progress")
+        elif key == "settings":
+            self.top_bar.set_breadcrumb("Settings")
+        self._refresh_progress_pill()
+
+    def _refresh_progress_pill(self) -> None:
+        lessons = self.controller.catalog.lessons
+        completed = sum(
+            1
+            for lesson in lessons
+            if self.controller.progress.is_lesson_complete(lesson.id, lesson.exercise_ids)
         )
-        self.btn_editor.configure(
-            style="ToolActive.TButton" if self._editor_visible else "Tool.TButton"
-        )
-
-    # --- async / progress warnings ------------------------------------------
-
-    def _maybe_warn_progress_recovery(self) -> None:
-        warning = self.controller.progress.load_warning
-        if not warning:
-            return
-
-        def show() -> None:
-            if not self._closing:
-                messagebox.showwarning("Progress recovered", warning)
-
-        try:
-            self.master.after(200, show)
-        except tk.TclError:
-            pass
-
-    def _poll_async_results(self) -> None:
-        if self._closing:
-            return
-        try:
-            while True:
-                callback, payload = self._result_queue.get_nowait()
-                try:
-                    callback(payload)
-                except Exception:  # noqa: BLE001
-                    import traceback
-
-                    traceback.print_exc()
-        except queue.Empty:
-            pass
-        try:
-            self.master.after(50, self._poll_async_results)
-        except tk.TclError:
-            pass
-
-    def _run_background(
-        self,
-        work: Callable[[], T],
-        on_success: Callable[[T], None],
-        *,
-        busy_message: str = "Running…",
-    ) -> None:
-        if self._busy or self._closing:
-            return
-        if not self._editor_visible:
-            self.show_editor()
-        self._busy = True
-        self.editor.set_busy(True, message=busy_message)
-        self.status_left.set(busy_message)
-
-        def worker() -> None:
-            try:
-                result: object = work()
-            except BaseException as exc:  # noqa: BLE001
-                result = exc
-            if self._closing:
-                return
-            self._result_queue.put(
-                (lambda payload: self._finish_background(on_success, payload), result)
-            )
-
-        threading.Thread(target=worker, daemon=True).start()
-
-    def _finish_background(
-        self,
-        on_success: Callable[[T], None],
-        result: object,
-    ) -> None:
-        self._busy = False
-        if self._closing:
-            return
-        self.editor.set_busy(False)
-        self.status_left.set("Ready")
-        if isinstance(result, BaseException):
-            self.editor.set_output(f"{type(result).__name__}: {result}", kind="error")
-            return
-        on_success(result)  # type: ignore[arg-type]
-
-    # --- navigation / lessons -----------------------------------------------
+        self.top_bar.set_progress(completed, len(lessons))
 
     def _load_initial_lesson(self) -> None:
         lesson = self.controller.current_lesson()
         if lesson is None:
-            self.status_var.set("No lessons found.")
+            self.top_bar.set_breadcrumb("No lessons found")
             return
         self._show_lesson(lesson)
+        self._on_nav("lessons")
 
-    def _show_lesson(self, lesson: Lesson) -> None:
+    def _show_lesson(self, lesson: Lesson, exercise_index: int = 0) -> None:
         self._persist_current_draft()
         self._current_lesson = lesson
+        self.lessons_page.lesson = lesson  # smoke compat
         self.controller.progress.data.current_lesson_id = lesson.id
         self.controller.progress.save()
-        self.lesson_view.show_lesson(lesson)
-        self.sidebar.refresh(selected_lesson_id=lesson.id)
-        self.lesson_path_var.set(f"{lesson.section}  /  {lesson.title}")
-        self._update_status()
-        if self._editor_visible:
-            self.editor.focus_editor()
+        self._exercise_index = max(0, min(exercise_index, max(0, len(lesson.exercises) - 1)))
+        exercise = lesson.exercises[self._exercise_index] if lesson.exercises else None
 
-    def _update_status(self) -> None:
-        lesson = self._current_lesson
-        if lesson is None:
-            self.status_var.set("")
-            return
-        unlocked_next = False
-        nxt = self.controller.catalog.next(lesson.id)
-        if nxt and self.controller.is_unlocked(nxt):
-            unlocked_next = True
-        complete = self.controller.progress.is_lesson_complete(lesson.id, lesson.exercise_ids)
-        self.status_var.set(
-            f"{'Complete' if complete else 'In progress'}"
-            + (" · next unlocked" if unlocked_next else "")
+        prev_ok = self.controller.catalog.previous(lesson.id) is not None
+        next_lesson = self.controller.catalog.next(lesson.id)
+        next_ok = next_lesson is not None and self.controller.is_unlocked(next_lesson)
+
+        self.lessons_page.content.show_lesson(
+            lesson,
+            exercise,
+            exercise_index=self._exercise_index,
+            prev_ok=prev_ok,
+            next_ok=next_ok,
         )
+        self.sidebar.refresh_lessons(selected_lesson_id=lesson.id)
+        self.top_bar.set_breadcrumb(f"📖  {lesson.section}  ›  {lesson.title}")
+        self._refresh_progress_pill()
+        if exercise is not None:
+            self._on_exercise_changed(exercise)
+        if self._editor_visible:
+            self.lessons_page.ide.focus_editor()
 
     def _on_sidebar_select(self, lesson_id: str) -> None:
         if self._busy:
             return
         if self._current_lesson is not None and self._current_lesson.id == lesson_id:
+            self._on_nav("lessons")
             return
         lesson = self.controller.set_current_lesson(lesson_id)
         if lesson:
             self._show_lesson(lesson)
+            self._on_nav("lessons")
 
     def _prev_lesson(self) -> None:
         if self._busy:
@@ -469,7 +332,8 @@ class CourseApp(ttk.Frame):
             return
         nxt = self.controller.catalog.next(current.id)
         if nxt and not self.controller.is_unlocked(nxt):
-            messagebox.showinfo(
+            QMessageBox.information(
+                self,
                 "Lesson locked",
                 "Complete all exercises in the current lesson to unlock the next one.",
             )
@@ -478,31 +342,51 @@ class CourseApp(ttk.Frame):
         if lesson:
             self._show_lesson(lesson)
 
+    def _prev_exercise(self) -> None:
+        if self._busy or self._current_lesson is None or self._exercise_index <= 0:
+            return
+        self._show_lesson(self._current_lesson, self._exercise_index - 1)
+
+    def _next_exercise(self) -> None:
+        if self._busy or self._current_lesson is None:
+            return
+        if self._exercise_index >= len(self._current_lesson.exercises) - 1:
+            return
+        self._show_lesson(self._current_lesson, self._exercise_index + 1)
+
     def _on_exercise_changed(self, exercise: Exercise) -> None:
         self._persist_current_draft()
         self._loading_exercise = True
         self._current_exercise = exercise
         record = self.controller.progress.exercise(exercise.id)
         code = record.draft_code if record.draft_code else exercise.starter_code
-        self.editor.set_starter(exercise.starter_code)
-        self.editor.set_code(code)
-        self.editor.set_answer(record.last_answer)
+        ide = self.lessons_page.ide
+        ide.set_starter(exercise.starter_code)
+        ide.set_code(code)
+        ide.set_answer(record.last_answer)
+        needs_answer = exercise.uses_free_text_answer or exercise.is_choice_exercise
+        ide.set_answer_visible(needs_answer)
+        used = record.hints_used
+        ide.set_hint_label(used, len(exercise.hints))
         if record.completed:
-            self.editor.set_output(
+            ide.set_output(
                 "This exercise is already complete. You can still experiment.",
                 kind="success",
             )
+            ide.feedback.set_message("Nice work — this exercise is complete.")
         else:
-            self.editor.clear_output()
+            ide.clear_output()
+            ide.feedback.reset()
         self._loading_exercise = False
 
     def _persist_current_draft(self) -> None:
         if self._loading_exercise or self._current_exercise is None:
             return
+        ide = self.lessons_page.ide
         self.controller.progress.save_draft(
             self._current_exercise.id,
-            self.editor.get_code(),
-            self.editor.get_answer(),
+            ide.get_code(),
+            ide.get_answer(),
         )
         self.controller.progress.save()
 
@@ -511,12 +395,40 @@ class CourseApp(ttk.Frame):
             return []
         return list(self._current_exercise.allowed_modules)
 
-    # --- run / check --------------------------------------------------------
+    # --- async run / check --------------------------------------------------
+
+    def _run_background(
+        self,
+        work: Callable[[], T],
+        on_success: Callable[[T], None],
+        *,
+        busy_message: str = "Running…",
+    ) -> None:
+        if self._busy or self._closing:
+            return
+        if not self._editor_visible:
+            self.show_editor()
+        self._busy = True
+        self.lessons_page.ide.set_busy(True, message=busy_message)
+
+        def done(result: object) -> None:
+            self._busy = False
+            if self._closing:
+                return
+            self.lessons_page.ide.set_busy(False)
+            if isinstance(result, BaseException):
+                self.lessons_page.ide.set_output(
+                    f"{type(result).__name__}: {result}", kind="error"
+                )
+                return
+            on_success(result)  # type: ignore[arg-type]
+
+        self._jobs.run(work, done)
 
     def _run_code(self) -> None:
         if not self._editor_visible:
             self.show_editor()
-        code = self.editor.get_code()
+        code = self.lessons_page.ide.get_code()
         modules = self._allowed_modules()
 
         def work():
@@ -524,12 +436,21 @@ class CourseApp(ttk.Frame):
 
         def done(result) -> None:
             if result.timed_out:
-                self.editor.set_output(result.learner_message, kind="error")
+                self.lessons_page.ide.set_output(result.learner_message, kind="error")
+                self.lessons_page.ide.feedback.set_message(
+                    "Your program timed out. Check for infinite loops."
+                )
             elif result.success:
                 text = result.stdout if result.stdout else "(ran successfully — no output)"
-                self.editor.set_output(text, kind="plain")
+                self.lessons_page.ide.set_output(text, kind="plain")
+                self.lessons_page.ide.feedback.set_message(
+                    "Code ran. Use Check Exercise when you are ready to grade."
+                )
             else:
-                self.editor.set_output(result.learner_message, kind="error")
+                self.lessons_page.ide.set_output(result.learner_message, kind="error")
+                self.lessons_page.ide.feedback.set_message(
+                    "There was an error. Read the Output panel and try again."
+                )
 
         self._run_background(work, done, busy_message="Running code…")
 
@@ -540,8 +461,8 @@ class CourseApp(ttk.Frame):
             self.show_editor()
         lesson = self._current_lesson
         exercise = self._current_exercise
-        code = self.editor.get_code()
-        answer = self.editor.get_answer()
+        code = self.lessons_page.ide.get_code()
+        answer = self.lessons_page.ide.get_answer()
 
         def work() -> CheckResult:
             return self.controller.submit_exercise(
@@ -561,26 +482,32 @@ class CourseApp(ttk.Frame):
                     lines.append("")
                     lines.append(result.run.error)
             kind = "success" if result.passed else "error"
-            self.editor.set_output("\n".join(lines), kind=kind)
-            self.sidebar.refresh(selected_lesson_id=lesson.id)
-            self._update_status()
-            if result.passed:
-                nxt = self.controller.catalog.next(lesson.id)
-                if nxt and self.controller.is_unlocked(nxt):
-                    self.status_var.set("Exercise passed · next unlocked")
-                    self.status_left.set("Exercise passed")
+            self.lessons_page.ide.set_output("\n".join(lines), kind=kind)
+            self.lessons_page.ide.feedback.set_message(result.message)
+            self.sidebar.refresh_lessons(selected_lesson_id=lesson.id)
+            self._refresh_progress_pill()
+            record = self.controller.progress.exercise(exercise.id)
+            self.lessons_page.ide.set_hint_label(record.hints_used, len(exercise.hints))
 
         self._run_background(work, done, busy_message="Checking answer…")
 
     def _reset_exercise(self) -> None:
         if self._busy or self._current_exercise is None:
             return
-        if not messagebox.askyesno("Reset exercise", "Replace your code with the starter template?"):
+        reply = QMessageBox.question(
+            self,
+            "Reset exercise",
+            "Replace your code with the starter template?",
+        )
+        if reply != QMessageBox.StandardButton.Yes:
             return
-        self.editor.reset_to_starter()
-        self.controller.progress.save_draft(self._current_exercise.id, self.editor.get_code(), "")
+        ide = self.lessons_page.ide
+        ide.reset_to_starter()
+        ide.set_answer("")
+        self.controller.progress.save_draft(self._current_exercise.id, ide.get_code(), "")
         self.controller.progress.save()
-        self.editor.clear_output()
+        ide.clear_output()
+        ide.feedback.reset()
 
     def _show_hint(self) -> None:
         if self._busy or self._current_exercise is None:
@@ -588,55 +515,63 @@ class CourseApp(ttk.Frame):
         if not self._editor_visible:
             self.show_editor()
         used, hint = self.controller.request_hint(self._current_exercise)
+        ide = self.lessons_page.ide
         if hint is None:
-            self.editor.append_output(
-                f"Hint {used}: No further hints. Re-read the lesson and try a smaller change.",
-                kind="hint",
+            text = (
+                f"Hint {used}: No further hints. "
+                "Re-read the lesson and try a smaller change."
             )
         else:
-            self.editor.append_output(f"Hint {used}: {hint}", kind="hint")
+            text = f"Hint {used}: {hint}"
+        ide.append_output(text, kind="hint")
+        ide.feedback.set_message(text)
+        ide.set_hint_label(used, len(self._current_exercise.hints))
 
-    def _run_playground(self, code: str, done: Callable[[str], None]) -> None:
-        if self._closing:
+    def _run_playground(self, code: str) -> None:
+        if self._closing or self._busy:
             return
+        self._busy = True
+        self.playground_page.set_busy(True)
 
         def work():
             return self.runner.run_playground(code)
 
-        def finish(result: object) -> None:
+        def done(result: object) -> None:
+            self._busy = False
+            self.playground_page.set_busy(False)
             if isinstance(result, BaseException):
-                done(f"{type(result).__name__}: {result}")
+                self.playground_page.output.set_text(
+                    f"{type(result).__name__}: {result}", kind="error"
+                )
                 return
             if result.success:  # type: ignore[union-attr]
                 text = result.stdout if result.stdout else "(ok — no output)"  # type: ignore[union-attr]
+                self.playground_page.output.set_text(text, kind="plain")
             else:
-                text = result.learner_message  # type: ignore[union-attr]
-            done(text)
+                self.playground_page.output.set_text(
+                    result.learner_message, kind="error"  # type: ignore[union-attr]
+                )
 
-        def worker() -> None:
-            try:
-                result: object = work()
-            except BaseException as exc:  # noqa: BLE001
-                result = exc
-            if self._closing:
-                return
-            self._result_queue.put((finish, result))
+        self._jobs.run(work, done)
 
-        threading.Thread(target=worker, daemon=True).start()
+    def _reset_playground_env(self) -> None:
+        self.runner.reset_playground()
+        self.playground_page.output.set_text("Playground environment reset.", kind="hint")
 
     def _save_progress(self) -> None:
         self._persist_current_draft()
         self.controller.progress.save()
         self.prefs_store.save()
-        self.status_left.set("Progress saved")
 
     def _reset_progress(self) -> None:
         if self._busy:
             return
-        if not messagebox.askyesno(
+        reply = QMessageBox.question(
+            self,
             "Reset progress",
             "Erase all completed lessons, drafts, and mastery scores?",
-        ):
+        )
+        if reply != QMessageBox.StandardButton.Yes:
             return
         self.controller.progress.reset()
         first = self.controller.catalog.first()
@@ -645,16 +580,30 @@ class CourseApp(ttk.Frame):
             self.controller.progress.save()
             self._current_exercise = None
             self._show_lesson(first)
-        messagebox.showinfo("Reset", "Progress has been reset.")
+        self._refresh_progress_pill()
+        self.progress_page.refresh()
+        QMessageBox.information(self, "Reset", "Progress has been reset.")
 
-    def _on_close(self) -> None:
-        if self._closing:
+    def _maybe_warn_progress_recovery(self) -> None:
+        warning = self.controller.progress.load_warning
+        if not warning:
             return
+
+        def show() -> None:
+            if not self._closing:
+                QMessageBox.warning(self, "Progress recovered", warning)
+
+        from PySide6.QtCore import QTimer
+
+        QTimer.singleShot(200, show)
+
+    def closeEvent(self, event) -> None:  # noqa: N802
         self._closing = True
+        self._jobs.stop()
         self._persist_current_draft()
         self.controller.progress.save()
         self.prefs_store.save()
-        self.master.destroy()
+        super().closeEvent(event)
 
 
 def launch_app(
@@ -662,9 +611,12 @@ def launch_app(
     runner: CodeRunner,
     prefs_store: Optional[UiPrefsStore] = None,
 ) -> None:
-    root = tk.Tk()
-    root.title("Python Course — IDE")
-    root.geometry("1280x840")
-    root.minsize(960, 640)
-    CourseApp(root, controller, runner, prefs_store=prefs_store)
-    root.mainloop()
+    app = QApplication.instance()
+    created = False
+    if app is None:
+        app = QApplication(sys.argv)
+        created = True
+    window = CourseApp(controller, runner, prefs_store=prefs_store)
+    window.show()
+    if created:
+        app.exec()

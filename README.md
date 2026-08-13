@@ -9,20 +9,24 @@ persistence — with a small set of sample lessons to prove the loop.
 
 ## How to run
 
-Requires Python 3.10+ and Tkinter (`python3-tk` on Debian/Ubuntu).
+Requires Python 3.10+ and **PySide6**.
 
 ```bash
+python3 -m pip install -r requirements.txt
 python3 main.py
 ```
+
+On Debian/Ubuntu you may also need Qt platform libraries (for example
+`libxcb-cursor0`) if the window fails to open.
 
 ### IDE controls
 
 | Action | Shortcut | Also |
 | --- | --- | --- |
-| Toggle Explorer (TOC) | `Ctrl+B` | Activity bar **TOC**, View menu, ✕ on panel |
-| Toggle Editor | `Ctrl+J` | Activity bar **ED**, View menu, ✕ on panel |
-| Toggle Dark/Light | `Ctrl+Shift+D` | Activity bar **◐**, View menu |
-| Run code | `Ctrl+Enter` | ▶ Run button |
+| Toggle sidebar | `Ctrl+B` | — |
+| Toggle editor column | `Ctrl+J` | — |
+| Toggle Dark/Light | `Ctrl+Shift+D` | Theme control in the top bar |
+| Run code | `Ctrl+Enter` | **Run Code** button |
 
 UI preferences (theme + panel visibility) are saved in `data/ui_prefs.json`.
 
@@ -48,14 +52,14 @@ xvfb-run -a python3 tests/smoke_gui.py
 
 ```
 ├── main.py                 # Entry point
-├── app/                    # Tkinter UI (IDE-style shell)
-│   ├── course_app.py       # Layout, activity bar, panel toggles
-│   ├── theme.py            # Light/dark theme tokens + ttk styles
+├── requirements.txt        # PySide6
+├── app/                    # PySide6 UI (IDE-style shell)
+│   ├── course_app.py       # Main window, navigation, async run/check
+│   ├── theme.py            # Dark/light tokens + QSS stylesheet
 │   ├── ui_prefs.py         # Persist theme + panel visibility
-│   ├── sidebar.py          # Explorer / table of contents
-│   ├── lesson_view.py      # Lesson document
-│   ├── code_editor.py      # Editor + terminal panel
-│   └── playground.py       # Free experimentation console
+│   ├── workers.py          # Background job host (non-blocking UI)
+│   ├── pages/              # Dashboard, Lessons, Playground, Progress, Settings
+│   └── widgets/            # Sidebar, TopBar, LessonContent, CodeEditor, …
 ├── course/                 # Curriculum models + lesson JSON
 │   ├── catalog.py          # Loads/orders lessons
 │   ├── lesson.py
