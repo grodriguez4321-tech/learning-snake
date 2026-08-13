@@ -1,32 +1,31 @@
-"""Feedback panel for learner guidance."""
+"""Feedback strip for learner guidance."""
 
 from __future__ import annotations
 
-from PySide6.QtWidgets import QFrame, QLabel, QTextEdit, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QFrame, QLabel, QVBoxLayout, QWidget
 
 
 class FeedbackPanel(QFrame):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setObjectName("FeedbackCard")
+        self.setObjectName("PanelSection")
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(14, 12, 14, 12)
-        layout.setSpacing(8)
+        layout.setContentsMargins(0, 4, 0, 0)
+        layout.setSpacing(6)
 
-        header = QLabel("Feedback")
-        header.setObjectName("CardTitle")
-        layout.addWidget(header)
+        title = QLabel("Feedback")
+        title.setObjectName("CardTitle")
+        layout.addWidget(title)
 
-        self._view = QTextEdit()
-        self._view.setObjectName("FeedbackView")
-        self._view.setReadOnly(True)
-        self._view.setMaximumHeight(90)
-        self._view.setPlainText("Run your code and check your solution!")
+        self._view = QLabel("Run your code and check your solution!")
+        self._view.setObjectName("FeedbackStrip")
+        self._view.setWordWrap(True)
+        self._view.setMinimumHeight(40)
         layout.addWidget(self._view)
 
     def set_message(self, text: str) -> None:
-        self._view.setPlainText(text)
+        self._view.setText(text)
 
     def reset(self) -> None:
         self.set_message("Run your code and check your solution!")

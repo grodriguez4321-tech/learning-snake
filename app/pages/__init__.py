@@ -94,21 +94,23 @@ class LessonsPage(QWidget):
     def __init__(self, theme: Theme, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(0, 0, 12, 12)
         layout.setSpacing(0)
 
         self.splitter = QSplitter()
         self.splitter.setChildrenCollapsible(False)
-        self.content = LessonContent()
+        self.splitter.setHandleWidth(12)
+        self.content = LessonContent(theme)
         self.ide = IdePanel(theme)
         self.splitter.addWidget(self.content)
         self.splitter.addWidget(self.ide)
         self.splitter.setStretchFactor(0, 5)
         self.splitter.setStretchFactor(1, 5)
-        self.splitter.setSizes([640, 560])
+        self.splitter.setSizes([620, 580])
         layout.addWidget(self.splitter)
 
     def apply_theme(self, theme: Theme) -> None:
+        self.content.apply_theme(theme)
         self.ide.apply_theme(theme)
 
     def set_editor_visible(self, visible: bool) -> None:
@@ -125,8 +127,8 @@ class PlaygroundPage(QWidget):
         from app.widgets.output_panel import OutputPanel
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 20, 24, 20)
-        layout.setSpacing(12)
+        layout.setContentsMargins(28, 22, 24, 20)
+        layout.setSpacing(14)
 
         header = QHBoxLayout()
         title = QLabel("Playground")
@@ -146,28 +148,35 @@ class PlaygroundPage(QWidget):
 
         chrome = QFrame()
         chrome.setObjectName("EditorChrome")
+        chrome.setFixedHeight(36)
         ch = QHBoxLayout(chrome)
-        ch.setContentsMargins(12, 8, 12, 8)
-        ch.addWidget(QLabel("🐍  playground.py"))
+        ch.setContentsMargins(14, 0, 12, 0)
+        tab = QLabel("🐍  playground.py")
+        tab.setObjectName("TabLabel")
+        ch.addWidget(tab)
         cl.addWidget(chrome)
 
-        inner = QVBoxLayout()
-        inner.setContentsMargins(12, 12, 12, 12)
-        inner.setSpacing(12)
+        inner_host = QWidget()
+        inner = QVBoxLayout(inner_host)
+        inner.setContentsMargins(12, 10, 12, 12)
+        inner.setSpacing(10)
         self.editor = CodeEditorWidget(theme)
         self.editor.set_text("x = 2 + 2\nprint(x)\n")
         self.editor.runRequested.connect(self._emit_run)
-        inner.addWidget(self.editor, stretch=3)
+        inner.addWidget(self.editor, stretch=1)
 
         actions = QHBoxLayout()
         run = QPushButton("▶  Run")
         run.setObjectName("PrimaryButton")
+        run.setFixedHeight(34)
         run.clicked.connect(self._emit_run)
         clear = QPushButton("Clear Output")
-        clear.setObjectName("SecondaryButton")
+        clear.setObjectName("GhostButton")
+        clear.setFixedHeight(34)
         clear.clicked.connect(lambda: self.output.clear())
         reset = QPushButton("Reset Environment")
-        reset.setObjectName("SecondaryButton")
+        reset.setObjectName("GhostButton")
+        reset.setFixedHeight(34)
         reset.clicked.connect(self.resetEnvRequested.emit)
         actions.addWidget(run)
         actions.addWidget(clear)
@@ -177,7 +186,7 @@ class PlaygroundPage(QWidget):
 
         self.output = OutputPanel(theme)
         inner.addWidget(self.output)
-        cl.addLayout(inner)
+        cl.addWidget(inner_host, stretch=1)
         layout.addWidget(card, stretch=1)
         self._theme = theme
 

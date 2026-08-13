@@ -106,7 +106,7 @@ def build_stylesheet(theme: Theme) -> str:
     return f"""
     * {{
         font-family: "Segoe UI", "Ubuntu", "Noto Sans", sans-serif;
-        font-size: 13px;
+        font-size: 14px;
     }}
     QMainWindow, QDialog {{
         background-color: {theme.bg};
@@ -121,7 +121,7 @@ def build_stylesheet(theme: Theme) -> str:
         background: transparent;
     }}
     QScrollBar:vertical {{
-        background: {theme.bg};
+        background: transparent;
         width: 10px;
         margin: 0;
     }}
@@ -134,7 +134,7 @@ def build_stylesheet(theme: Theme) -> str:
         height: 0;
     }}
     QScrollBar:horizontal {{
-        background: {theme.bg};
+        background: transparent;
         height: 10px;
     }}
     QScrollBar::handle:horizontal {{
@@ -143,24 +143,25 @@ def build_stylesheet(theme: Theme) -> str:
         min-width: 24px;
     }}
     QLabel#BrandTitle {{
-        font-size: 16px;
+        font-size: 17px;
         font-weight: 700;
         color: {theme.text};
+        letter-spacing: 0.2px;
     }}
     QLabel#SectionHeading {{
         font-size: 11px;
         font-weight: 600;
         color: {theme.text_dim};
-        letter-spacing: 0.8px;
+        letter-spacing: 0.9px;
     }}
     QLabel#LessonTitle {{
-        font-size: 28px;
+        font-size: 30px;
         font-weight: 700;
         color: {theme.text};
-        padding-bottom: 4px;
+        padding-bottom: 2px;
     }}
     QLabel#PageTitle {{
-        font-size: 24px;
+        font-size: 26px;
         font-weight: 700;
         color: {theme.text};
     }}
@@ -169,10 +170,33 @@ def build_stylesheet(theme: Theme) -> str:
         font-weight: 600;
         color: {theme.text};
     }}
+    QLabel#ExerciseTitle {{
+        font-size: 15px;
+        font-weight: 600;
+        color: {theme.text};
+    }}
+    QLabel#ExampleTitle {{
+        font-size: 13px;
+        font-weight: 600;
+        color: {theme.text_muted};
+    }}
+    QLabel#LangBadge {{
+        font-size: 11px;
+        font-weight: 600;
+        color: {theme.text_dim};
+        background-color: {theme.bg_elevated};
+        border: 1px solid {theme.border_subtle};
+        border-radius: 6px;
+        padding: 2px 8px;
+    }}
     QLabel#BodyText {{
         color: {theme.text};
         font-size: 14px;
-        line-height: 1.45;
+    }}
+    QLabel#LeadText {{
+        color: {theme.text_muted};
+        font-size: 15px;
+        padding-bottom: 4px;
     }}
     QLabel#MutedLabel {{
         color: {theme.text_muted};
@@ -190,7 +214,23 @@ def build_stylesheet(theme: Theme) -> str:
     QLabel#TabLabel {{
         color: {theme.text};
         font-size: 12px;
-        padding: 6px 10px;
+        font-weight: 500;
+    }}
+    QLabel#FeedbackStrip {{
+        color: {theme.text_muted};
+        font-size: 13px;
+        background-color: {theme.bg_elevated};
+        border: 1px solid {theme.border_subtle};
+        border-radius: 8px;
+        padding: 10px 12px;
+    }}
+    QLabel#LessonRowIcon {{
+        color: {theme.text_muted};
+        font-size: 12px;
+    }}
+    QLabel#LessonRowLabel {{
+        color: {theme.text_muted};
+        font-size: 13px;
     }}
     QFrame#Sidebar {{
         background-color: {theme.bg_sidebar};
@@ -205,7 +245,7 @@ def build_stylesheet(theme: Theme) -> str:
         background-color: {theme.bg};
         border-bottom: 1px solid {theme.border_subtle};
     }}
-    QFrame#Card, QFrame#EditorCard, QFrame#OutputCard, QFrame#FeedbackCard {{
+    QFrame#Card, QFrame#EditorCard {{
         background-color: {theme.bg_card};
         border: 1px solid {theme.border_subtle};
         border-radius: 10px;
@@ -215,13 +255,17 @@ def build_stylesheet(theme: Theme) -> str:
         border: 1px solid {theme.accent_soft};
         border-radius: 10px;
     }}
-    QFrame#CodeBlock {{
-        background-color: {theme.bg_code_block};
-        border: 1px solid {theme.border_subtle};
-        border-radius: 8px;
+    QFrame#ExampleBlock {{
+        background: transparent;
+        border: none;
+    }}
+    QFrame#PanelSection {{
+        background: transparent;
+        border: none;
     }}
     QFrame#EditorChrome {{
         background-color: {theme.bg_elevated};
+        border: none;
         border-bottom: 1px solid {theme.border_subtle};
         border-top-left-radius: 10px;
         border-top-right-radius: 10px;
@@ -231,12 +275,39 @@ def build_stylesheet(theme: Theme) -> str:
         border: 1px solid {theme.border_subtle};
         border-radius: 16px;
     }}
+    QFrame#LessonRow {{
+        background: transparent;
+        border: none;
+        border-radius: 8px;
+    }}
+    QFrame#LessonRow:hover {{
+        background-color: {theme.bg_elevated};
+    }}
+    QFrame#LessonRow[active="true"] {{
+        background-color: {theme.nav_active};
+        border-left: 3px solid {theme.accent};
+        border-top-left-radius: 8px;
+        border-bottom-left-radius: 8px;
+    }}
+    QFrame#LessonRow[active="true"] QLabel#LessonRowLabel {{
+        color: {theme.text};
+        font-weight: 600;
+    }}
+    QFrame#LessonRow[active="true"] QLabel#LessonRowIcon {{
+        color: {theme.accent};
+    }}
+    QFrame#LessonRow[locked="true"] QLabel#LessonRowLabel {{
+        color: {theme.text_dim};
+    }}
+    QFrame#LessonRow[locked="true"] QLabel#LessonRowIcon {{
+        color: {theme.warning};
+    }}
     QPushButton {{
         background-color: {theme.bg_elevated};
         color: {theme.text};
         border: 1px solid {theme.border};
         border-radius: 8px;
-        padding: 8px 14px;
+        padding: 7px 14px;
         font-size: 13px;
     }}
     QPushButton:hover {{
@@ -256,35 +327,42 @@ def build_stylesheet(theme: Theme) -> str:
         color: #FFFFFF;
         border: 1px solid {theme.accent};
         font-weight: 600;
-        padding: 9px 18px;
+        padding: 8px 16px;
     }}
     QPushButton#PrimaryButton:hover {{
         background-color: {theme.accent_hover};
         border-color: {theme.accent_hover};
     }}
-    QPushButton#SecondaryButton {{
+    QPushButton#GhostButton, QPushButton#SecondaryButton {{
         background-color: transparent;
         border: 1px solid {theme.border};
         color: {theme.text};
+        padding: 7px 12px;
     }}
-    QPushButton#LessonItem {{
+    QPushButton#GhostButton:hover, QPushButton#SecondaryButton:hover {{
+        background-color: {theme.bg_elevated};
+        border-color: {theme.border};
+    }}
+    QPushButton#IconButton {{
+        background: transparent;
+        border: 1px solid {theme.border_subtle};
+        border-radius: 6px;
+        padding: 0;
+        color: {theme.text_muted};
+        font-size: 16px;
+    }}
+    QPushButton#IconButton:hover {{
+        background-color: {theme.bg_elevated};
+        color: {theme.text};
+    }}
+    QPushButton#NavItem {{
         text-align: left;
         padding: 8px 12px;
         border: none;
         border-radius: 8px;
         background: transparent;
         color: {theme.text_muted};
-        min-height: 20px;
-    }}
-    QPushButton#NavItem {{
-        text-align: left;
-        padding: 10px 12px;
-        border: none;
-        border-radius: 8px;
-        background: transparent;
-        color: {theme.text_muted};
         font-size: 13px;
-        min-height: 18px;
     }}
     QPushButton#NavItem:hover {{
         background-color: {theme.bg_elevated};
@@ -295,26 +373,14 @@ def build_stylesheet(theme: Theme) -> str:
         color: {theme.text};
         font-weight: 600;
     }}
-    QPushButton#LessonItem:hover {{
-        background-color: {theme.bg_elevated};
-        color: {theme.text};
-    }}
-    QPushButton#LessonItem:checked {{
-        background-color: {theme.nav_active};
-        color: {theme.text};
-        font-weight: 600;
-    }}
-    QPushButton#LessonItem:disabled {{
-        color: {theme.text_dim};
-        background: transparent;
-    }}
     QLineEdit, QComboBox, QTextEdit#AnswerField {{
         background-color: {theme.bg_input};
         border: 1px solid {theme.border};
         border-radius: 8px;
-        padding: 8px 10px;
+        padding: 7px 10px;
         color: {theme.text};
         selection-background-color: {theme.select};
+        font-size: 13px;
     }}
     QComboBox::drop-down {{
         border: none;
@@ -333,23 +399,25 @@ def build_stylesheet(theme: Theme) -> str:
         font-family: "Cascadia Code", "Consolas", "Courier New", monospace;
         font-size: 13px;
         selection-background-color: {theme.select};
-        padding: 8px;
+        padding: 6px;
     }}
-    QPlainTextEdit#OutputView, QTextEdit#OutputView, QTextEdit#ExampleCode {{
+    QPlainTextEdit#ExampleCode, QTextEdit#ExampleCode {{
         background-color: {theme.bg_code_block};
         color: {theme.text};
         border: 1px solid {theme.border_subtle};
         border-radius: 8px;
         font-family: "Cascadia Code", "Consolas", "Courier New", monospace;
         font-size: 12px;
-        padding: 10px;
+        padding: 10px 12px;
+        selection-background-color: {theme.select};
     }}
-    QTextEdit#FeedbackView {{
-        background-color: {theme.bg_elevated};
-        color: {theme.text_muted};
-        border: none;
+    QPlainTextEdit#OutputView, QTextEdit#OutputView {{
+        background-color: {theme.bg_code_block};
+        color: {theme.text};
+        border: 1px solid {theme.border_subtle};
         border-radius: 8px;
-        font-size: 13px;
+        font-family: "Cascadia Code", "Consolas", "Courier New", monospace;
+        font-size: 12px;
         padding: 10px;
     }}
     QProgressBar {{
@@ -369,6 +437,7 @@ def build_stylesheet(theme: Theme) -> str:
     }}
     QSplitter::handle:horizontal {{
         width: 1px;
+        margin: 8px 0;
     }}
     QToolTip {{
         background-color: {theme.bg_elevated};

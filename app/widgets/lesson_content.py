@@ -8,13 +8,16 @@ from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QPlainTextEdit,
     QPushButton,
     QScrollArea,
-    QTextEdit,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
 
+from app.theme import Theme
+from app.widgets.code_editor import PythonHighlighter
 from course.exercise import Exercise
 from course.lesson import CodeExample, Lesson
 
@@ -29,20 +32,38 @@ def _escape(text: str) -> str:
 
 
 def _mono_font(point_size: int = 12) -> QFont:
-    for family in ("Cascadia Code", "Consolas", "Courier New", "monospace"):
-        font = QFont(family, point_size)
-        font.setStyleHint(QFont.StyleHint.Monospace)
-        return font
-    return QFont("monospace", point_size)
+    font = QFont("Cascadia Code", point_size)
+    if not font.exactMatch():
+        font = QFont("Consolas", point_size)
+    font.setStyleHint(QFont.StyleHint.Monospace)
+    return font
 
 
 def _intro_from_content(content: str) -> str:
-    """First paragraph of lesson content as a concise description."""
     text = (content or "").strip()
     if not text:
         return ""
-    parts = text.split("\n\n")
-    return parts[0].replace("\n", " ").strip()
+    # Prefer the first short block; keep hierarchy light.
+    parts = [p.strip() for p in text.split("\n\n") if p.strip()]
+    if not parts:
+        return ""
+    first = parts[0].replace("\n", " ")
+    if first.lower().startswith("what problem"):
+        # Drop the heading phrase if present for a cleaner lead.
+        if "\n" in parts[0]:
+            lines = [ln.strip() for ln in parts[0].split("\n") if ln.strip()]
+            if len(lines) >= 2:
+                return lines[1]
+        # Single paragraph after the label
+        cleaned = first
+        for prefix in (
+            "What problem does this solve? ",
+            "What problem does this solve?",
+        ):
+            if cleaned.startswith(prefix):
+                cleaned = cleaned[len(prefix) :].strip()
+        return cleaned
+    return first
 
 
 class ConceptCard(QFrame):
@@ -50,8 +71,8 @@ class ConceptCard(QFrame):
         super().__init__(parent)
         self.setObjectName("ConceptCard")
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 14, 16, 14)
-        layout.setSpacing(8)
+        layout.setContentsMargins(18, 14, 18, 14)
+        layout.setSpacing(10)
 
         header = QLabel("💡  Key Concepts")
         header.setObjectName("CardTitle")
@@ -67,31 +88,77 @@ class ConceptCard(QFrame):
         if not concepts:
             self._body.setText("—")
             return
-        lines = "".join(f"<li style='margin:4px 0;'>{_escape(c)}</li>" for c in concepts)
+        lines = "".join(
+            f"<li style='margin:5px 0;'>{_escape(c)}</li>" for c in concepts
+        )
         self._body.setText(f"<ul style='margin:0; padding-left:18px;'>{lines}</ul>")
 
 
-class ExampleCard(QFrame):
+class ExampleBlock(QFrame):
+    def __init__(self, example: CodeExample, theme: Theme, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setObjectName("ExampleBlock")
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(8)
+
+        head = QHBoxLayout()
+        head.setContentsMargins(0, 0, 0, 0)
+        title = QLabel(example.title or "Example")
+        title.setObjectName("ExampleTitle")
+        head.addWidget(title)
+        head.addStretch(1)
+        lang = QLabel("Python")
+        lang.setObjectName("LangBadge")
+        head.addWidget(lang)
+        layout.addLayout(head)
+
+        code = QPlainTextEdit()
+        code.setObjectName("ExampleCode")
+        code.setReadOnly(True)
+        code.setFrameShape(QFrame.Shape.NoFrame)
+        code.setFont(_mono_font(12))
+        code.setPlainText((example.code or "").rstrip() + "\n")
+        code.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        code.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self._highlighter = PythonHighlighter(code.document(), theme)
+        # Fit height to content
+        doc_h = int(code.document().size().height()) + 18
+        line_count = max(1, code.blockCount())
+        code.setFixedHeight(min(160, max(44, line_count * 20 + 16, doc_h)))
+        layout.addWidget(code)
+
+        expl = (example.explanation or "").strip()
+        if expl:
+            el = QLabel(expl)
+            el.setWordWrap(True)
+            el.setObjectName("MutedLabel")
+            layout.addWidget(el)
+
+
+class ExampleSection(QFrame):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setObjectName("Card")
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 14, 16, 14)
-        layout.setSpacing(10)
+        layout.setContentsMargins(18, 14, 18, 16)
+        layout.setSpacing(14)
 
         title = QLabel("Examples")
         title.setObjectName("CardTitle")
         layout.addWidget(title)
 
         self._host = QVBoxLayout()
-        self._host.setSpacing(12)
+        self._host.setSpacing(16)
         layout.addLayout(self._host)
 
-    def set_examples(self, examples: list[CodeExample]) -> None:
+    def set_examples(self, examples: list[CodeExample], theme: Theme) -> None:
         while self._host.count():
             item = self._host.takeAt(0)
             w = item.widget()
             if w is not None:
+                w.hide()
+                w.setParent(None)
                 w.deleteLater()
 
         if not examples:
@@ -101,30 +168,7 @@ class ExampleCard(QFrame):
             return
 
         for ex in examples:
-            block = QFrame()
-            block.setObjectName("CodeBlock")
-            bl = QVBoxLayout(block)
-            bl.setContentsMargins(12, 10, 12, 10)
-            bl.setSpacing(6)
-            title = QLabel(ex.title or "Example")
-            title.setObjectName("MutedLabel")
-            bl.addWidget(title)
-            code = QTextEdit()
-            code.setObjectName("ExampleCode")
-            code.setReadOnly(True)
-            code.setPlainText(ex.code or "")
-            code.setFont(_mono_font(12))
-            doc_h = int(code.document().size().height()) + 28
-            code.setFixedHeight(min(200, max(72, doc_h)))
-            code.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-            bl.addWidget(code)
-            expl = (ex.explanation or "").strip()
-            if expl:
-                el = QLabel(expl)
-                el.setWordWrap(True)
-                el.setObjectName("MutedLabel")
-                bl.addWidget(el)
-            self._host.addWidget(block)
+            self._host.addWidget(ExampleBlock(ex, theme))
 
 
 class ExerciseCard(QFrame):
@@ -135,7 +179,7 @@ class ExerciseCard(QFrame):
         super().__init__(parent)
         self.setObjectName("Card")
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 14, 16, 14)
+        layout.setContentsMargins(18, 14, 18, 16)
         layout.setSpacing(10)
 
         header = QHBoxLayout()
@@ -147,19 +191,19 @@ class ExerciseCard(QFrame):
         self._ex_meta.setObjectName("MutedLabel")
         header.addWidget(self._ex_meta)
         self._prev_ex = QPushButton("‹")
-        self._prev_ex.setObjectName("SecondaryButton")
-        self._prev_ex.setFixedWidth(36)
+        self._prev_ex.setObjectName("IconButton")
+        self._prev_ex.setFixedSize(32, 28)
         self._prev_ex.clicked.connect(self.prevExercise.emit)
         self._next_ex = QPushButton("›")
-        self._next_ex.setObjectName("SecondaryButton")
-        self._next_ex.setFixedWidth(36)
+        self._next_ex.setObjectName("IconButton")
+        self._next_ex.setFixedSize(32, 28)
         self._next_ex.clicked.connect(self.nextExercise.emit)
         header.addWidget(self._prev_ex)
         header.addWidget(self._next_ex)
         layout.addLayout(header)
 
         self._title = QLabel()
-        self._title.setObjectName("CardTitle")
+        self._title.setObjectName("ExerciseTitle")
         layout.addWidget(self._title)
 
         self._prompt = QLabel()
@@ -172,11 +216,12 @@ class ExerciseCard(QFrame):
         self._predict_label.setObjectName("MutedLabel")
         layout.addWidget(self._predict_label)
 
-        self._predict = QTextEdit()
+        self._predict = QPlainTextEdit()
         self._predict.setObjectName("ExampleCode")
         self._predict.setReadOnly(True)
-        self._predict.setMaximumHeight(100)
-        self._predict.setFont(_mono_font(11))
+        self._predict.setFrameShape(QFrame.Shape.NoFrame)
+        self._predict.setMaximumHeight(88)
+        self._predict.setFont(_mono_font(12))
         layout.addWidget(self._predict)
 
         self._instructions = QLabel()
@@ -212,7 +257,7 @@ class ExerciseCard(QFrame):
         if exercise.code_to_predict:
             self._predict_label.setVisible(True)
             self._predict.setVisible(True)
-            self._predict.setPlainText(exercise.code_to_predict)
+            self._predict.setPlainText(exercise.code_to_predict.strip())
         else:
             self._predict_label.setVisible(False)
             self._predict.setVisible(False)
@@ -220,10 +265,10 @@ class ExerciseCard(QFrame):
         tips: list[str] = []
         if exercise.is_code_exercise:
             tips.append("Write your solution in the editor on the right.")
-            tips.append("Use Run Code to try it, then Check Exercise to grade.")
+            tips.append("Use Run Code to try it, then Check to grade.")
         elif exercise.uses_free_text_answer or exercise.is_choice_exercise:
             tips.append("Enter your answer in the answer box above the action buttons.")
-            tips.append("Then click Check Exercise.")
+            tips.append("Then click Check.")
         if tips:
             items = "".join(f"<li style='margin:4px 0;'>{_escape(t)}</li>" for t in tips)
             self._instructions.setText(
@@ -234,16 +279,15 @@ class ExerciseCard(QFrame):
 
 
 class LessonContent(QWidget):
-    """Left instructional column for a lesson."""
-
     prevLesson = Signal()
     nextLesson = Signal()
     prevExercise = Signal()
     nextExercise = Signal()
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, theme: Theme, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.lesson: Lesson | None = None
+        self._theme = theme
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -256,8 +300,8 @@ class LessonContent(QWidget):
 
         body = QWidget()
         layout = QVBoxLayout(body)
-        layout.setContentsMargins(24, 20, 20, 16)
-        layout.setSpacing(16)
+        layout.setContentsMargins(28, 22, 20, 20)
+        layout.setSpacing(18)
 
         self._title = QLabel()
         self._title.setObjectName("LessonTitle")
@@ -266,13 +310,13 @@ class LessonContent(QWidget):
 
         self._intro = QLabel()
         self._intro.setWordWrap(True)
-        self._intro.setObjectName("BodyText")
+        self._intro.setObjectName("LeadText")
         layout.addWidget(self._intro)
 
         self._concepts = ConceptCard()
         layout.addWidget(self._concepts)
 
-        self._examples = ExampleCard()
+        self._examples = ExampleSection()
         layout.addWidget(self._examples)
 
         self._exercise = ExerciseCard()
@@ -284,11 +328,14 @@ class LessonContent(QWidget):
 
         nav = QHBoxLayout()
         nav.setSpacing(12)
+        nav.setContentsMargins(0, 8, 0, 0)
         self._prev = QPushButton("← Previous")
-        self._prev.setObjectName("SecondaryButton")
+        self._prev.setObjectName("GhostButton")
+        self._prev.setFixedHeight(36)
         self._prev.clicked.connect(self.prevLesson.emit)
         self._next = QPushButton("Next →")
         self._next.setObjectName("PrimaryButton")
+        self._next.setFixedHeight(36)
         self._next.clicked.connect(self.nextLesson.emit)
         nav.addWidget(self._prev)
         nav.addStretch(1)
@@ -297,6 +344,11 @@ class LessonContent(QWidget):
 
         scroll.setWidget(body)
         outer.addWidget(scroll)
+
+    def apply_theme(self, theme: Theme) -> None:
+        self._theme = theme
+        if self.lesson is not None:
+            self._examples.set_examples(list(self.lesson.examples), theme)
 
     def show_lesson(
         self,
@@ -311,8 +363,8 @@ class LessonContent(QWidget):
         self._title.setText(lesson.title)
         self._intro.setText(_intro_from_content(lesson.content))
         self._concepts.set_concepts(list(lesson.concepts))
-        self._examples.set_examples(list(lesson.examples))
+        self._examples.set_examples(list(lesson.examples), self._theme)
         total = len(lesson.exercises)
         self._exercise.set_exercise(exercise, index=exercise_index, total=total)
         self._prev.setEnabled(prev_ok)
-        self._next.setEnabled(True)  # always clickable; lock handled by controller
+        self._next.setEnabled(True)

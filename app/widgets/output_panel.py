@@ -1,9 +1,9 @@
-"""Output panel for run/check results."""
+"""Output strip for run/check results."""
 
 from __future__ import annotations
 
 from PySide6.QtGui import QColor, QTextCharFormat
-from PySide6.QtWidgets import QFrame, QLabel, QTextEdit, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QTextEdit, QVBoxLayout, QWidget
 
 from app.theme import Theme
 
@@ -11,36 +11,35 @@ from app.theme import Theme
 class OutputPanel(QFrame):
     def __init__(self, theme: Theme, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setObjectName("OutputCard")
+        self.setObjectName("PanelSection")
         self._theme = theme
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(14, 12, 14, 12)
-        layout.setSpacing(8)
+        layout.setContentsMargins(0, 4, 0, 0)
+        layout.setSpacing(6)
 
-        header = QLabel("Output")
-        header.setObjectName("CardTitle")
-        layout.addWidget(header)
-
+        header = QHBoxLayout()
+        header.setContentsMargins(0, 0, 0, 0)
+        header.setSpacing(10)
+        title = QLabel("Output")
+        title.setObjectName("CardTitle")
+        header.addWidget(title)
         self._status = QLabel("Ready to run your code…")
         self._status.setObjectName("MutedLabel")
-        layout.addWidget(self._status)
+        header.addWidget(self._status, stretch=1)
+        layout.addLayout(header)
 
         self._view = QTextEdit()
         self._view.setObjectName("OutputView")
         self._view.setReadOnly(True)
-        self._view.setMinimumHeight(100)
-        self._view.setMaximumHeight(180)
+        self._view.setFixedHeight(96)
         layout.addWidget(self._view)
 
     def apply_theme(self, theme: Theme) -> None:
         self._theme = theme
 
     def set_busy(self, busy: bool, message: str = "Running…") -> None:
-        if busy:
-            self._status.setText(message)
-        else:
-            self._status.setText("Ready to run your code…")
+        self._status.setText(message if busy else "Ready to run your code…")
 
     def clear(self) -> None:
         self._view.clear()

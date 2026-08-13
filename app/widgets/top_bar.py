@@ -1,9 +1,9 @@
-"""Top application bar: breadcrumb, progress, theme."""
+"""Top application bar: breadcrumb, progress, theme toggle."""
 
 from __future__ import annotations
 
 from PySide6.QtCore import Signal
-from PySide6.QtWidgets import QComboBox, QFrame, QHBoxLayout, QLabel, QWidget
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QWidget
 
 from app.widgets.progress_widget import ProgressWidget
 
@@ -14,11 +14,11 @@ class TopBar(QFrame):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setObjectName("TopBar")
-        self.setFixedHeight(52)
+        self.setFixedHeight(48)
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(20, 0, 16, 0)
-        layout.setSpacing(16)
+        layout.setSpacing(12)
 
         self._breadcrumb = QLabel("Python Fundamentals")
         self._breadcrumb.setObjectName("Breadcrumb")
@@ -27,16 +27,12 @@ class TopBar(QFrame):
         self._progress = ProgressWidget()
         layout.addWidget(self._progress)
 
-        theme_label = QLabel("Theme")
-        theme_label.setObjectName("MutedLabel")
-        layout.addWidget(theme_label)
-
-        self._theme = QComboBox()
-        self._theme.addItem("Dark", "dark")
-        self._theme.addItem("Light", "light")
-        self._theme.setMinimumWidth(110)
-        self._theme.currentIndexChanged.connect(self._on_theme)
-        layout.addWidget(self._theme)
+        self._theme_btn = QPushButton("Theme · Dark")
+        self._theme_btn.setObjectName("GhostButton")
+        self._theme_btn.setFixedHeight(30)
+        self._theme_btn.clicked.connect(self._toggle_theme)
+        layout.addWidget(self._theme_btn)
+        self._theme = "dark"
 
     def set_breadcrumb(self, text: str) -> None:
         self._breadcrumb.setText(text)
@@ -45,13 +41,11 @@ class TopBar(QFrame):
         self._progress.set_progress(completed, total)
 
     def set_theme(self, theme: str) -> None:
-        idx = self._theme.findData(theme)
-        if idx >= 0:
-            self._theme.blockSignals(True)
-            self._theme.setCurrentIndex(idx)
-            self._theme.blockSignals(False)
+        self._theme = theme
+        label = "Dark" if theme == "dark" else "Light"
+        self._theme_btn.setText(f"Theme · {label}")
 
-    def _on_theme(self) -> None:
-        data = self._theme.currentData()
-        if data:
-            self.themeChanged.emit(str(data))
+    def _toggle_theme(self) -> None:
+        nxt = "light" if self._theme == "dark" else "dark"
+        self.set_theme(nxt)
+        self.themeChanged.emit(nxt)

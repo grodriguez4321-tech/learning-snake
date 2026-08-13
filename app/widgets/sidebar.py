@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QFontMetrics
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
@@ -26,6 +28,56 @@ NAV_ITEMS = (
 )
 
 
+class LessonRow(QFrame):
+    """Single-line lesson row — avoids QPushButton emoji/wrap painting bugs."""
+
+    clicked = Signal(str)
+
+    def __init__(self, lesson_id: str, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.lesson_id = lesson_id
+        self.setObjectName("LessonRow")
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setFixedHeight(34)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self._active = False
+        self._enabled = True
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(10, 0, 10, 0)
+        layout.setSpacing(8)
+
+        self._icon = QLabel("○")
+        self._icon.setObjectName("LessonRowIcon")
+        self._icon.setFixedWidth(16)
+        self._icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self._icon)
+
+        self._label = QLabel()
+        self._label.setObjectName("LessonRowLabel")
+        self._label.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
+        layout.addWidget(self._label, stretch=1)
+
+    def set_row(self, *, icon: str, text: str, enabled: bool, active: bool) -> None:
+        self._enabled = enabled
+        self._active = active
+        self._icon.setText(icon)
+        self.setEnabled(enabled)
+        self.setProperty("active", "true" if active else "false")
+        self.setProperty("locked", "true" if not enabled else "false")
+        self.style().unpolish(self)
+        self.style().polish(self)
+        # Elide inside available width (~sidebar 260 - padding - icon)
+        metrics = QFontMetrics(self._label.font())
+        self._label.setText(metrics.elidedText(text, Qt.TextElideMode.ElideRight, 190))
+        self.setToolTip(text if enabled else f"Locked — {text}")
+
+    def mousePressEvent(self, event) -> None:  # noqa: N802
+        if self._enabled and event.button() == Qt.MouseButton.LeftButton:
+            self.clicked.emit(self.lesson_id)
+        super().mousePressEvent(event)
+
+
 class Sidebar(QFrame):
     navChanged = Signal(str)
     lessonSelected = Signal(str)
@@ -38,47 +90,48 @@ class Sidebar(QFrame):
     ) -> None:
         super().__init__(parent)
         self.setObjectName("Sidebar")
-        self.setFixedWidth(260)
+        self.setFixedWidth(256)
         self._catalog = catalog
         self._controller = controller
         self._nav_buttons: dict[str, QPushButton] = {}
-        self._lesson_buttons: dict[str, QPushButton] = {}
+        self._lesson_rows: dict[str, LessonRow] = {}
         self._active_nav = "lessons"
         self._active_lesson_id: str | None = None
 
         root = QVBoxLayout(self)
-        root.setContentsMargins(12, 16, 12, 12)
-        root.setSpacing(8)
+        root.setContentsMargins(14, 18, 14, 14)
+        root.setSpacing(4)
 
-        title_row = QHBoxLayout()
         brand = QLabel("Python Course")
         brand.setObjectName("BrandTitle")
-        title_row.addWidget(brand)
-        title_row.addStretch(1)
-        root.addLayout(title_row)
+        brand.setContentsMargins(6, 0, 0, 8)
+        root.addWidget(brand)
 
         for key, label, icon in NAV_ITEMS:
             btn = QPushButton(f"  {icon}   {label}")
             btn.setObjectName("NavItem")
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.setCheckable(True)
+            btn.setFixedHeight(36)
             btn.clicked.connect(lambda checked=False, k=key: self._on_nav(k))
             self._nav_buttons[key] = btn
             root.addWidget(btn)
 
         heading = QLabel("LESSONS")
         heading.setObjectName("SectionHeading")
-        heading.setContentsMargins(8, 16, 0, 4)
+        heading.setContentsMargins(8, 18, 0, 6)
         root.addWidget(heading)
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+
         self._lesson_host = QWidget()
         self._lesson_layout = QVBoxLayout(self._lesson_host)
         self._lesson_layout.setContentsMargins(0, 0, 0, 0)
-        self._lesson_layout.setSpacing(2)
+        self._lesson_layout.setSpacing(3)
         self._lesson_layout.addStretch(1)
         scroll.setWidget(self._lesson_host)
         root.addWidget(scroll, stretch=1)
@@ -109,12 +162,15 @@ class Sidebar(QFrame):
         if selected_lesson_id is not None:
             self._active_lesson_id = selected_lesson_id
 
+        # Immediate remove to avoid ghost-overlap with deleteLater.
         while self._lesson_layout.count() > 1:
             item = self._lesson_layout.takeAt(0)
             w = item.widget()
             if w is not None:
+                w.hide()
+                w.setParent(None)
                 w.deleteLater()
-        self._lesson_buttons.clear()
+        self._lesson_rows.clear()
 
         for index, lesson in enumerate(self._catalog.lessons, start=1):
             unlocked = self._controller.is_unlocked(lesson)
@@ -124,26 +180,19 @@ class Sidebar(QFrame):
             if completed:
                 icon = "✓"
             elif not unlocked:
-                icon = "🔒"
+                icon = "⊘"
             else:
                 icon = "○"
-            label = f"{icon}  {index}. {lesson.title}"
-            btn = QPushButton(label)
-            btn.setObjectName("LessonItem")
-            btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.setCheckable(True)
-            btn.setEnabled(unlocked)
-            btn.setMinimumHeight(36)
-            btn.setToolTip(
-                lesson.title if unlocked else "Complete the previous lesson to unlock"
+            row = LessonRow(lesson.id)
+            row.set_row(
+                icon=icon,
+                text=f"{index}. {lesson.title}",
+                enabled=unlocked,
+                active=lesson.id == self._active_lesson_id,
             )
-            lid = lesson.id
-            btn.clicked.connect(lambda checked=False, i=lid: self._on_lesson(i))
-            self._lesson_buttons[lid] = btn
-            self._lesson_layout.insertWidget(self._lesson_layout.count() - 1, btn)
-
-        if self._active_lesson_id:
-            self.set_active_lesson(self._active_lesson_id)
+            row.clicked.connect(self._on_lesson)
+            self._lesson_rows[lesson.id] = row
+            self._lesson_layout.insertWidget(self._lesson_layout.count() - 1, row)
 
     def _on_lesson(self, lesson_id: str) -> None:
         lesson = self._catalog.get(lesson_id)
@@ -156,5 +205,11 @@ class Sidebar(QFrame):
 
     def set_active_lesson(self, lesson_id: str | None) -> None:
         self._active_lesson_id = lesson_id
-        for lid, btn in self._lesson_buttons.items():
-            btn.setChecked(lid == lesson_id)
+        for lid, row in self._lesson_rows.items():
+            active = lid == lesson_id
+            row.setProperty("active", "true" if active else "false")
+            row.style().unpolish(row)
+            row.style().polish(row)
+            row.update()
+            # keep internal flag in sync for click gating
+            row._active = active  # noqa: SLF001

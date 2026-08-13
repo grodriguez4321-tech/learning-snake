@@ -83,7 +83,7 @@ class CodeEditorWidget(QPlainTextEdit):
         if not font.exactMatch():
             font = QFont("Consolas")
         font.setStyleHint(QFont.Monospace)
-        font.setPointSize(11)
+        font.setPointSize(13)
         self.setFont(font)
         self.setTabStopDistance(self.fontMetrics().horizontalAdvance(" ") * 4)
         self.setLineWrapMode(QPlainTextEdit.NoWrap)
