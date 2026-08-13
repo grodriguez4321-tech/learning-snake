@@ -264,6 +264,8 @@ class SettingsPage(QWidget):
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        from PySide6.QtCore import Qt
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(32, 28, 32, 28)
         layout.setSpacing(16)
@@ -273,13 +275,26 @@ class SettingsPage(QWidget):
         layout.addWidget(title)
 
         body = QLabel(
-            "Theme can be changed from the top bar. "
+            "Theme and panel visibility can also be changed from the top toolbar. "
             "Progress and drafts are saved automatically when you leave an exercise "
-            "or close the app."
+            "or close the app — use Save for an explicit checkpoint."
         )
         body.setWordWrap(True)
         body.setObjectName("BodyText")
         layout.addWidget(body)
+
+        shortcuts = QLabel(
+            "<b>Keyboard shortcuts</b><br>"
+            "Ctrl+B — toggle sidebar<br>"
+            "Ctrl+J — toggle editor column<br>"
+            "Ctrl+Shift+D — toggle dark/light theme<br>"
+            "Ctrl+Enter — run code<br>"
+            "Ctrl+S — save progress<br>"
+            "Ctrl+Q — quit"
+        )
+        shortcuts.setObjectName("MutedLabel")
+        shortcuts.setTextFormat(Qt.TextFormat.RichText)
+        layout.addWidget(shortcuts)
 
         row = QHBoxLayout()
         save = QPushButton("Save progress now")

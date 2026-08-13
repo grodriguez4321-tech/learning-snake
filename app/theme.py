@@ -333,6 +333,25 @@ def build_stylesheet(theme: Theme) -> str:
         background-color: {theme.accent_hover};
         border-color: {theme.accent_hover};
     }}
+    QPushButton#ToolButton {{
+        background-color: transparent;
+        border: 1px solid {theme.border_subtle};
+        border-radius: 7px;
+        color: {theme.text_muted};
+        padding: 5px 10px;
+        font-size: 12px;
+        font-weight: 500;
+    }}
+    QPushButton#ToolButton:hover {{
+        background-color: {theme.bg_elevated};
+        color: {theme.text};
+        border-color: {theme.border};
+    }}
+    QPushButton#ToolButton:checked {{
+        background-color: {theme.nav_active};
+        color: {theme.text};
+        border-color: {theme.accent_soft};
+    }}
     QPushButton#GhostButton, QPushButton#SecondaryButton {{
         background-color: transparent;
         border: 1px solid {theme.border};

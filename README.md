@@ -23,9 +23,11 @@ On Debian/Ubuntu you may also need Qt platform libraries (for example
 
 | Action | Shortcut | Also |
 | --- | --- | --- |
-| Toggle sidebar | `Ctrl+B` | — |
-| Toggle editor column | `Ctrl+J` | — |
-| Toggle Dark/Light | `Ctrl+Shift+D` | Theme control in the top bar |
+| Toggle sidebar | `Ctrl+B` | **Sidebar** in the top toolbar |
+| Toggle editor column | `Ctrl+J` | **Editor** in the top toolbar |
+| Toggle Dark/Light | `Ctrl+Shift+D` | **Theme · …** in the top toolbar |
+| Save progress | `Ctrl+S` | **Save** in the top toolbar (also Settings) |
+| Reset progress | — | **Reset…** in the top toolbar (also Settings) |
 | Run code | `Ctrl+Enter` | **Run Code** button |
 
 UI preferences (theme + panel visibility) are saved in `data/ui_prefs.json`.
