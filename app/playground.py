@@ -11,7 +11,7 @@ class Playground(ttk.Frame):
     def __init__(
         self,
         master: tk.Misc,
-        on_run: Callable[[str], str],
+        on_run: Callable[[str, Callable[[str], None]], None],
         on_clear: Callable[[], None],
         on_reset_env: Callable[[], None],
         **kwargs,
@@ -20,17 +20,22 @@ class Playground(ttk.Frame):
         self.on_run = on_run
         self.on_clear = on_clear
         self.on_reset_env = on_reset_env
+        self._busy = False
 
         toolbar = ttk.Frame(self)
         toolbar.pack(fill="x", padx=4, pady=4)
         ttk.Label(toolbar, text="Playground — experiment freely (variables persist until reset)").pack(
             side="left"
         )
-        ttk.Button(toolbar, text="Run", command=self._run).pack(side="right")
+        self.run_button = ttk.Button(toolbar, text="Run", command=self._run)
+        self.run_button.pack(side="right")
         ttk.Button(toolbar, text="Clear Output", command=self._clear_output).pack(
             side="right", padx=4
         )
-        ttk.Button(toolbar, text="Reset Environment", command=self._reset_env).pack(side="right")
+        self.reset_button = ttk.Button(
+            toolbar, text="Reset Environment", command=self._reset_env
+        )
+        self.reset_button.pack(side="right")
 
         paned = ttk.Panedwindow(self, orient="vertical")
         paned.pack(fill="both", expand=True, padx=4, pady=4)
@@ -52,7 +57,7 @@ class Playground(ttk.Frame):
         self.input.pack(side="left", fill="both", expand=True)
         y_scroll.pack(side="right", fill="y")
         self.input.bind("<Tab>", self._insert_tab)
-        self.input.bind("<Control-Return>", lambda _e: self._run() or "break")
+        self.input.bind("<Control-Return>", self._ctrl_enter)
         paned.add(input_frame, weight=2)
 
         output_frame = ttk.LabelFrame(paned, text="Playground Output")
@@ -73,6 +78,7 @@ class Playground(ttk.Frame):
         out_scroll.pack(side="right", fill="y")
         self.output.tag_configure("error", foreground="#fca5a5")
         self.output.tag_configure("plain", foreground="#e5e7eb")
+        self.output.tag_configure("hint", foreground="#93c5fd")
         paned.add(output_frame, weight=2)
 
         self.input.insert("1.0", "x = 2 + 2\nprint(x)\n")
@@ -81,11 +87,27 @@ class Playground(ttk.Frame):
         self.input.insert("insert", "    ")
         return "break"
 
+    def _ctrl_enter(self, _event: object) -> str:
+        self._run()
+        return "break"
+
     def _run(self) -> None:
+        if self._busy:
+            return
         code = self.input.get("1.0", "end-1c")
-        result = self.on_run(code)
-        kind = "error" if "Error" in result or "Traceback" in result or "too long" in result else "plain"
-        self._append(result, kind=kind)
+        self._set_busy(True)
+        self._append("Running…", kind="hint")
+
+        def done(text: str) -> None:
+            self._set_busy(False)
+            kind = (
+                "error"
+                if ("Error" in text or "Traceback" in text or "too long" in text)
+                else "plain"
+            )
+            self._append(text, kind=kind)
+
+        self.on_run(code, done)
 
     def _clear_output(self) -> None:
         self.on_clear()
@@ -94,11 +116,21 @@ class Playground(ttk.Frame):
         self.output.configure(state="disabled")
 
     def _reset_env(self) -> None:
+        if self._busy:
+            return
         self.on_reset_env()
         self._append("[Playground environment reset — variables cleared]\n")
 
+    def _set_busy(self, busy: bool) -> None:
+        self._busy = busy
+        state = "disabled" if busy else "normal"
+        self.run_button.configure(state=state)
+        self.reset_button.configure(state=state)
+        self.input.configure(state=state)
+
     def _append(self, text: str, kind: str = "plain") -> None:
+        tag = kind if kind in {"error", "plain", "hint"} else "plain"
         self.output.configure(state="normal")
-        self.output.insert("end", text.rstrip() + "\n", kind if kind in {"error", "plain"} else "plain")
+        self.output.insert("end", text.rstrip() + "\n", tag)
         self.output.see("end")
         self.output.configure(state="disabled")

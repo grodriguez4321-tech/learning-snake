@@ -56,6 +56,8 @@ class Exercise:
     topics: list[str] = field(default_factory=list)
     # Optional solution shown only after many failed attempts (Phase 1: unused).
     reference_solution: str = ""
+    # Modules this exercise may import. Empty => imports disabled.
+    allowed_modules: list[str] = field(default_factory=list)
 
     @property
     def is_code_exercise(self) -> bool:
@@ -117,4 +119,5 @@ def exercise_from_dict(data: dict[str, Any]) -> Exercise:
         code_to_predict=data.get("code_to_predict", data.get("code", "")),
         topics=list(data.get("topics", [])),
         reference_solution=data.get("reference_solution", ""),
+        allowed_modules=list(data.get("allowed_modules", [])),
     )

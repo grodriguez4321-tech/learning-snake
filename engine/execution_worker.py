@@ -53,6 +53,8 @@ ALLOWED_BUILTINS = [
     "type",
     "zip",
     "Exception",
+    "ImportError",
+    "ModuleNotFoundError",
     "ValueError",
     "TypeError",
     "NameError",
@@ -65,9 +67,16 @@ ALLOWED_BUILTINS = [
 ]
 
 
-def safe_builtins() -> dict[str, Any]:
+def safe_builtins(allowed_modules: list[str] | None = None) -> dict[str, Any]:
     raw = __builtins__ if isinstance(__builtins__, dict) else __builtins__.__dict__
-    return {name: raw[name] for name in ALLOWED_BUILTINS if name in raw}
+    mapping = {name: raw[name] for name in ALLOWED_BUILTINS if name in raw}
+    # ImportPolicy is imported lazily so the worker module stays lightweight if
+    # the parent only needs traceback helpers in tests.
+    from engine.import_policy import ImportPolicy
+
+    policy = ImportPolicy(allowed_modules)
+    mapping["__import__"] = policy.guarded_import
+    return mapping
 
 
 def student_traceback(exc: BaseException) -> str:
@@ -94,10 +103,14 @@ def student_traceback(exc: BaseException) -> str:
     return text
 
 
-def decode_namespace(blob: str | None) -> dict[str, Any]:
+def decode_namespace(
+    blob: str | None,
+    *,
+    allowed_modules: list[str] | None = None,
+) -> dict[str, Any]:
     namespace: dict[str, Any] = {
         "__name__": "__student__",
-        "__builtins__": safe_builtins(),
+        "__builtins__": safe_builtins(allowed_modules),
     }
     if not blob:
         return namespace
@@ -107,7 +120,7 @@ def decode_namespace(blob: str | None) -> dict[str, Any]:
         return namespace
     if isinstance(restored, dict):
         namespace.update(restored)
-    namespace["__builtins__"] = safe_builtins()
+    namespace["__builtins__"] = safe_builtins(allowed_modules)
     return namespace
 
 
@@ -279,7 +292,11 @@ def improve_function_feedback(results: list[dict[str, Any]]) -> None:
 def run_payload(payload: dict[str, Any]) -> dict[str, Any]:
     source = payload.get("source", "")
     filename = "<playground>" if payload.get("mode") == "playground" else "<student>"
-    namespace = decode_namespace(payload.get("namespace_blob"))
+    allowed_modules = list(payload.get("allowed_modules") or [])
+    namespace = decode_namespace(
+        payload.get("namespace_blob"),
+        allowed_modules=allowed_modules,
+    )
     if payload.get("mode") == "playground":
         namespace["__name__"] = "__playground__"
 

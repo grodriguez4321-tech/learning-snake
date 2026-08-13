@@ -106,7 +106,11 @@ class ExerciseChecker:
             return CheckResult(False, "Your editor is empty. Write some code, then try again.")
 
         tests = [test_case_to_dict(test) for test in exercise.tests]
-        run = self.runner.check(code, tests)
+        run = self.runner.check(
+            code,
+            tests,
+            allowed_modules=exercise.allowed_modules,
+        )
 
         if run.timed_out:
             return CheckResult(False, TIMEOUT_MESSAGE, run=run)

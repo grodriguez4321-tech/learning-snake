@@ -48,7 +48,13 @@ def lesson_from_dict(data: dict[str, Any]) -> Lesson:
         )
         for item in data.get("examples", [])
     ]
-    exercises = [exercise_from_dict(item) for item in data.get("exercises", [])]
+    exercises = []
+    lesson_modules = list(data.get("allowed_modules", []))
+    for item in data.get("exercises", []):
+        exercise = exercise_from_dict(item)
+        if not exercise.allowed_modules and lesson_modules:
+            exercise.allowed_modules = list(lesson_modules)
+        exercises.append(exercise)
     return Lesson(
         id=data["id"],
         section=data["section"],

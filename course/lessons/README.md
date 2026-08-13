@@ -26,3 +26,11 @@ Exercise checks use `tests` with kinds such as:
 - `runs_successfully`
 
 Prefer behavior checks over comparing source text.
+
+Optional import control (defaults to no imports):
+
+```json
+"allowed_modules": ["math"]
+```
+
+Only curated curriculum modules can be enabled. See `engine/import_policy.py`.

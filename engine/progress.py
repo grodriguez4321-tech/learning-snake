@@ -2,11 +2,15 @@
 
 Progress is stored as JSON beside the application so closing and reopening
 the app restores completed lessons, drafts, hint usage, and mastery scores.
+
+Corrupt or malformed files must never crash startup: they are quarantined and
+replaced with a fresh ProgressData, with a warning retained for the UI.
 """
 
 from __future__ import annotations
 
 import json
+import time
 from copy import deepcopy
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -52,35 +56,137 @@ class ProgressStore:
         self.path = Path(path)
         self.data = ProgressData()
         self.data.ensure_mastery_defaults()
+        self.load_warning: Optional[str] = None
+        self.recovered_from_corrupt: bool = False
 
     def load(self) -> ProgressData:
+        self.load_warning = None
+        self.recovered_from_corrupt = False
+
         if not self.path.exists():
             self.data = ProgressData()
             self.data.ensure_mastery_defaults()
             return self.data
 
-        with self.path.open(encoding="utf-8") as handle:
-            raw = json.load(handle)
+        try:
+            text = self.path.read_text(encoding="utf-8")
+        except OSError as exc:
+            self._recover(f"Could not read progress file ({exc}).")
+            return self.data
 
-        exercises: dict[str, ExerciseProgress] = {}
-        for exercise_id, payload in raw.get("exercises", {}).items():
-            exercises[exercise_id] = ExerciseProgress(
-                completed=bool(payload.get("completed", False)),
-                attempts=int(payload.get("attempts", 0)),
-                hints_used=int(payload.get("hints_used", 0)),
-                draft_code=str(payload.get("draft_code", "")),
-                last_answer=str(payload.get("last_answer", "")),
-            )
+        if not text.strip():
+            self._recover("Progress file was empty.")
+            return self.data
 
-        self.data = ProgressData(
-            completed_lessons=list(raw.get("completed_lessons", [])),
-            current_lesson_id=raw.get("current_lesson_id"),
-            exercises=exercises,
-            mastery={str(k): float(v) for k, v in raw.get("mastery", {}).items()},
-            mistake_topics={str(k): int(v) for k, v in raw.get("mistake_topics", {}).items()},
-        )
+        try:
+            raw = json.loads(text)
+        except json.JSONDecodeError as exc:
+            self._quarantine_and_recover(f"Progress JSON was invalid ({exc}).")
+            return self.data
+
+        if not isinstance(raw, dict):
+            self._quarantine_and_recover("Progress JSON root was not an object.")
+            return self.data
+
+        try:
+            self.data = self._parse(raw)
+        except Exception as exc:  # noqa: BLE001 - never crash on progress shape bugs
+            self._quarantine_and_recover(f"Progress data was malformed ({exc}).")
+            return self.data
+
         self.data.ensure_mastery_defaults()
         return self.data
+
+    def _parse(self, raw: dict[str, Any]) -> ProgressData:
+        exercises: dict[str, ExerciseProgress] = {}
+        raw_exercises = raw.get("exercises", {})
+        if raw_exercises is None:
+            raw_exercises = {}
+        if not isinstance(raw_exercises, dict):
+            raise ValueError("exercises must be an object")
+
+        for exercise_id, payload in raw_exercises.items():
+            if not isinstance(payload, dict):
+                continue
+            try:
+                exercises[str(exercise_id)] = ExerciseProgress(
+                    completed=bool(payload.get("completed", False)),
+                    attempts=int(payload.get("attempts", 0) or 0),
+                    hints_used=int(payload.get("hints_used", 0) or 0),
+                    draft_code=str(payload.get("draft_code", "") or ""),
+                    last_answer=str(payload.get("last_answer", "") or ""),
+                )
+            except (TypeError, ValueError):
+                continue
+
+        completed_raw = raw.get("completed_lessons", [])
+        if completed_raw is None:
+            completed_raw = []
+        if not isinstance(completed_raw, list):
+            completed_raw = []
+
+        mastery_raw = raw.get("mastery", {})
+        if not isinstance(mastery_raw, dict):
+            mastery_raw = {}
+        mastery: dict[str, float] = {}
+        for key, value in mastery_raw.items():
+            try:
+                mastery[str(key)] = float(value)
+            except (TypeError, ValueError):
+                continue
+
+        mistakes_raw = raw.get("mistake_topics", {})
+        if not isinstance(mistakes_raw, dict):
+            mistakes_raw = {}
+        mistakes: dict[str, int] = {}
+        for key, value in mistakes_raw.items():
+            try:
+                mistakes[str(key)] = int(value)
+            except (TypeError, ValueError):
+                continue
+
+        current = raw.get("current_lesson_id")
+        if current is not None:
+            current = str(current)
+
+        return ProgressData(
+            completed_lessons=[str(item) for item in completed_raw],
+            current_lesson_id=current,
+            exercises=exercises,
+            mastery=mastery,
+            mistake_topics=mistakes,
+        )
+
+    def _quarantine_and_recover(self, reason: str) -> None:
+        backup = self._quarantine_corrupt_file()
+        detail = reason
+        if backup is not None:
+            detail = f"{reason} A backup was saved as {backup.name}."
+        self._recover(detail)
+
+    def _recover(self, reason: str) -> None:
+        self.data = ProgressData()
+        self.data.ensure_mastery_defaults()
+        self.recovered_from_corrupt = True
+        self.load_warning = (
+            f"{reason} Starting with a fresh progress file. "
+            "Previous completion state may have been lost."
+        )
+
+    def _quarantine_corrupt_file(self) -> Optional[Path]:
+        if not self.path.exists():
+            return None
+        stamp = time.strftime("%Y%m%d-%H%M%S")
+        backup = self.path.with_name(f"{self.path.name}.corrupt-{stamp}")
+        try:
+            self.path.replace(backup)
+            return backup
+        except OSError:
+            try:
+                backup.write_bytes(self.path.read_bytes())
+                return backup
+            except OSError:
+                return None
 
     def save(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -103,6 +209,8 @@ class ProgressStore:
     def reset(self) -> None:
         self.data = ProgressData()
         self.data.ensure_mastery_defaults()
+        self.load_warning = None
+        self.recovered_from_corrupt = False
         self.save()
 
     def exercise(self, exercise_id: str) -> ExerciseProgress:

@@ -51,8 +51,9 @@ xvfb-run -a python3 tests/smoke_gui.py
 ├── engine/                 # Non-UI logic
 │   ├── code_runner.py      # Subprocess runner + timeout
 │   ├── execution_worker.py # Isolated process that execs learner code
+│   ├── import_policy.py    # Guarded allowlist for learner imports
 │   ├── exercise_checker.py # Behavior-based tests + feedback
-│   ├── progress.py         # JSON save/load
+│   ├── progress.py         # JSON save/load with corrupt recovery
 │   └── course_controller.py# Unlock rules and navigation
 ├── data/                   # progress.json created at runtime
 └── tests/
@@ -112,23 +113,35 @@ Hints are progressive: each Hint click reveals the next stored hint and records
 ## Code execution safety
 
 `engine/code_runner.py` launches `python -m engine.execution_worker` for each
-run. The parent enforces a timeout (default 2 seconds). Timed-out programs show:
+run. The parent enforces a timeout (default 2 seconds) and terminates the worker
+with OS-appropriate APIs:
+
+- POSIX: process-group `SIGTERM` then `SIGKILL`
+- Windows: `CREATE_NEW_PROCESS_GROUP` + `terminate()` / `kill()`
+
+Timed-out programs show:
 
 > Your program ran for too long and was stopped. Check for an infinite loop.
+
+The Tkinter UI runs Run/Check/Playground work on a background thread and marshals
+results back with `after(...)`, so the interface stays responsive while waiting.
 
 Tracebacks are filtered to learner code (`<student>` / `<playground>`), not the
 application internals.
 
-## How to add another lesson
+## Imports and modules
 
-1. Create `course/lessons/<id>.json` using an existing lesson as a template.
-2. Set `section`, `section_order`, and `order` so it sorts where you want.
-3. Add exercises with `tests` (or `expected_answer` / `choices`).
-4. Restart the app (catalog loads at startup).
-5. Optionally extend mastery topic names in `engine/progress.py` if you introduce
-   a new major topic label.
+Learner code uses a guarded `__import__`. By default **no modules are importable**
+(Phase 1 lessons do not need them). When the curriculum reaches modules, a lesson
+or exercise may set:
 
-No GUI code changes are required for ordinary new lessons.
+```json
+"allowed_modules": ["math", "json"]
+```
+
+Only names in the curated curriculum catalog can be enabled (`math`, `json`,
+`random`, …). Requests for modules like `os` or `subprocess` are rejected even if
+listed by mistake.
 
 ## Progress saving
 
@@ -142,6 +155,22 @@ Progress is stored in `data/progress.json`:
 
 It loads automatically on launch and saves after checks, hints, navigation, and
 on quit. **File → Reset Progress…** clears everything after confirmation.
+
+If the progress file is corrupt or malformed, the app quarantines it (renamed to
+`progress.json.corrupt-<timestamp>`), starts fresh, and shows a warning instead of
+crashing.
+
+## How to add another lesson
+
+1. Create `course/lessons/<id>.json` using an existing lesson as a template.
+2. Set `section`, `section_order`, and `order` so it sorts where you want.
+3. Add exercises with `tests` (or `expected_answer` / `choices`).
+4. Optionally set `allowed_modules` on the lesson or exercise when imports are needed.
+5. Restart the app (catalog loads at startup).
+6. Optionally extend mastery topic names in `engine/progress.py` if you introduce
+   a new major topic label.
+
+No GUI code changes are required for ordinary new lessons.
 
 ## Unlocking
 

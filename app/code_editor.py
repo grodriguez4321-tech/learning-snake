@@ -32,6 +32,11 @@ class CodeEditor(ttk.Frame):
         ttk.Button(toolbar, text="Hint", command=on_hint).pack(side="left", padx=4)
         ttk.Label(toolbar, text="Ctrl+Enter runs code", foreground="#666").pack(side="right")
 
+        self._buttons: list[ttk.Button] = []
+        for child in toolbar.winfo_children():
+            if isinstance(child, ttk.Button):
+                self._buttons.append(child)
+
         paned = ttk.Panedwindow(self, orient="vertical")
         paned.pack(fill="both", expand=True, padx=4, pady=4)
 
@@ -146,3 +151,12 @@ class CodeEditor(ttk.Frame):
 
     def clear_output(self) -> None:
         self.set_output("")
+
+    def set_busy(self, busy: bool, message: str = "Running…") -> None:
+        state = "disabled" if busy else "normal"
+        for button in self._buttons:
+            button.configure(state=state)
+        self.editor.configure(state=state)
+        self.answer.configure(state=state)
+        if busy:
+            self.set_output(message, kind="hint")

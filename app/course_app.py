@@ -2,13 +2,22 @@
 
 Composition over inheritance: the app owns sidebar, lesson view, editor, and
 playground widgets, and coordinates them through CourseController.
+
+Run/Check/Playground execution happens on a background thread so the Tk event
+loop stays responsive while the subprocess runner waits (including timeouts).
+
+Results are delivered through a thread-safe queue and applied on the Tk thread
+via a periodic ``after`` poll — calling ``after`` directly from worker threads
+is unreliable (and fails when mainloop is not running).
 """
 
 from __future__ import annotations
 
+import queue
+import threading
 import tkinter as tk
 from tkinter import messagebox, ttk
-from typing import Optional
+from typing import Callable, Optional, TypeVar
 
 from app.code_editor import CodeEditor
 from app.lesson_view import LessonView
@@ -18,6 +27,10 @@ from course.exercise import Exercise
 from course.lesson import Lesson
 from engine.code_runner import CodeRunner
 from engine.course_controller import CourseController
+from engine.exercise_checker import CheckResult
+
+
+T = TypeVar("T")
 
 
 class CourseApp(ttk.Frame):
@@ -34,11 +47,16 @@ class CourseApp(ttk.Frame):
         self._current_lesson: Optional[Lesson] = None
         self._current_exercise: Optional[Exercise] = None
         self._loading_exercise = False
+        self._busy = False
+        self._closing = False
+        self._result_queue: queue.Queue[tuple[Callable[[object], None], object]] = queue.Queue()
 
         self.pack(fill="both", expand=True)
         self._build_menu()
         self._build_layout()
         self._load_initial_lesson()
+        self._maybe_warn_progress_recovery()
+        self._poll_async_results()
 
     def _build_menu(self) -> None:
         menubar = tk.Menu(self.master)
@@ -95,6 +113,76 @@ class CourseApp(ttk.Frame):
 
         self.master.protocol("WM_DELETE_WINDOW", self._on_close)
 
+    def _maybe_warn_progress_recovery(self) -> None:
+        warning = self.controller.progress.load_warning
+        if not warning:
+            return
+
+        def show() -> None:
+            if not self._closing:
+                messagebox.showwarning("Progress recovered", warning)
+
+        try:
+            self.master.after(200, show)
+        except tk.TclError:
+            pass
+
+    def _poll_async_results(self) -> None:
+        if self._closing:
+            return
+        try:
+            while True:
+                callback, payload = self._result_queue.get_nowait()
+                try:
+                    callback(payload)
+                except Exception:  # noqa: BLE001 - never break the poll loop
+                    import traceback
+
+                    traceback.print_exc()
+        except queue.Empty:
+            pass
+        try:
+            self.master.after(50, self._poll_async_results)
+        except tk.TclError:
+            pass
+
+    def _run_background(
+        self,
+        work: Callable[[], T],
+        on_success: Callable[[T], None],
+        *,
+        busy_message: str = "Running…",
+    ) -> None:
+        if self._busy or self._closing:
+            return
+        self._busy = True
+        self.editor.set_busy(True, message=busy_message)
+
+        def worker() -> None:
+            try:
+                result: object = work()
+            except BaseException as exc:  # noqa: BLE001 - surface to UI
+                result = exc
+            if self._closing:
+                return
+            self._result_queue.put((lambda payload: self._finish_background(on_success, payload), result))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _finish_background(
+        self,
+        on_success: Callable[[T], None],
+        result: object,
+    ) -> None:
+        self._busy = False
+        if self._closing:
+            return
+        self.editor.set_busy(False)
+        if isinstance(result, BaseException):
+            self.editor.set_output(f"{type(result).__name__}: {result}", kind="error")
+            return
+        on_success(result)  # type: ignore[arg-type]
+
     def _load_initial_lesson(self) -> None:
         lesson = self.controller.current_lesson()
         if lesson is None:
@@ -128,16 +216,24 @@ class CourseApp(ttk.Frame):
         )
 
     def _on_sidebar_select(self, lesson_id: str) -> None:
+        if self._busy:
+            return
+        if self._current_lesson is not None and self._current_lesson.id == lesson_id:
+            return
         lesson = self.controller.set_current_lesson(lesson_id)
         if lesson:
             self._show_lesson(lesson)
 
     def _prev_lesson(self) -> None:
+        if self._busy:
+            return
         lesson = self.controller.go_previous()
         if lesson:
             self._show_lesson(lesson)
 
     def _next_lesson(self) -> None:
+        if self._busy:
+            return
         current = self._current_lesson
         if current is None:
             return
@@ -180,47 +276,69 @@ class CourseApp(ttk.Frame):
         )
         self.controller.progress.save()
 
+    def _allowed_modules(self) -> list[str]:
+        if self._current_exercise is None:
+            return []
+        return list(self._current_exercise.allowed_modules)
+
     def _run_code(self) -> None:
         code = self.editor.get_code()
-        result = self.runner.run(code)
-        if result.timed_out:
-            self.editor.set_output(result.learner_message, kind="error")
-        elif result.success:
-            text = result.stdout if result.stdout else "(ran successfully — no output)"
-            self.editor.set_output(text, kind="plain")
-        else:
-            self.editor.set_output(result.learner_message, kind="error")
+        modules = self._allowed_modules()
+
+        def work():
+            return self.runner.run(code, allowed_modules=modules)
+
+        def done(result) -> None:
+            if result.timed_out:
+                self.editor.set_output(result.learner_message, kind="error")
+            elif result.success:
+                text = result.stdout if result.stdout else "(ran successfully — no output)"
+                self.editor.set_output(text, kind="plain")
+            else:
+                self.editor.set_output(result.learner_message, kind="error")
+
+        self._run_background(work, done, busy_message="Running code…")
 
     def _check_answer(self) -> None:
         if self._current_lesson is None or self._current_exercise is None:
             return
+        lesson = self._current_lesson
         exercise = self._current_exercise
-        result = self.controller.submit_exercise(
-            self._current_lesson,
-            exercise,
-            code=self.editor.get_code(),
-            answer=self.editor.get_answer(),
-        )
-        lines = [result.message]
-        # Avoid duplicating the same failure line in details.
-        for detail in result.details:
-            if detail and detail != result.message:
-                lines.append(detail)
-        if result.run and result.run.error and not result.passed:
-            if result.run.error not in lines:
-                lines.append("")
-                lines.append(result.run.error)
-        kind = "success" if result.passed else "error"
-        self.editor.set_output("\n".join(lines), kind=kind)
-        self.sidebar.refresh(selected_lesson_id=self._current_lesson.id)
-        self._update_status()
-        if result.passed:
-            nxt = self.controller.catalog.next(self._current_lesson.id)
-            if nxt and self.controller.is_unlocked(nxt):
-                self.status_var.set("Exercise passed · next lesson unlocked")
+        code = self.editor.get_code()
+        answer = self.editor.get_answer()
+
+        def work() -> CheckResult:
+            return self.controller.submit_exercise(
+                lesson,
+                exercise,
+                code=code,
+                answer=answer,
+            )
+
+        def done(result: CheckResult) -> None:
+            lines = [result.message]
+            for detail in result.details:
+                if detail and detail != result.message:
+                    lines.append(detail)
+            if result.run and result.run.error and not result.passed:
+                if result.run.error not in lines:
+                    lines.append("")
+                    lines.append(result.run.error)
+            kind = "success" if result.passed else "error"
+            self.editor.set_output("\n".join(lines), kind=kind)
+            # Refresh markers only; avoid selection churn inside event handlers.
+            current_id = lesson.id
+            self.sidebar.refresh(selected_lesson_id=current_id)
+            self._update_status()
+            if result.passed:
+                nxt = self.controller.catalog.next(lesson.id)
+                if nxt and self.controller.is_unlocked(nxt):
+                    self.status_var.set("Exercise passed · next lesson unlocked")
+
+        self._run_background(work, done, busy_message="Checking answer…")
 
     def _reset_exercise(self) -> None:
-        if self._current_exercise is None:
+        if self._busy or self._current_exercise is None:
             return
         if not messagebox.askyesno("Reset exercise", "Replace your code with the starter template?"):
             return
@@ -230,7 +348,7 @@ class CourseApp(ttk.Frame):
         self.editor.clear_output()
 
     def _show_hint(self) -> None:
-        if self._current_exercise is None:
+        if self._busy or self._current_exercise is None:
             return
         used, hint = self.controller.request_hint(self._current_exercise)
         if hint is None:
@@ -241,11 +359,33 @@ class CourseApp(ttk.Frame):
         else:
             self.editor.append_output(f"Hint {used}: {hint}", kind="hint")
 
-    def _run_playground(self, code: str) -> str:
-        result = self.runner.run_playground(code)
-        if result.success:
-            return result.stdout if result.stdout else "(ok — no output)"
-        return result.learner_message
+    def _run_playground(self, code: str, done: Callable[[str], None]) -> None:
+        if self._closing:
+            return
+
+        def work():
+            return self.runner.run_playground(code)
+
+        def finish(result: object) -> None:
+            if isinstance(result, BaseException):
+                done(f"{type(result).__name__}: {result}")
+                return
+            if result.success:  # type: ignore[union-attr]
+                text = result.stdout if result.stdout else "(ok — no output)"  # type: ignore[union-attr]
+            else:
+                text = result.learner_message  # type: ignore[union-attr]
+            done(text)
+
+        def worker() -> None:
+            try:
+                result: object = work()
+            except BaseException as exc:  # noqa: BLE001
+                result = exc
+            if self._closing:
+                return
+            self._result_queue.put((finish, result))
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def _save_progress(self) -> None:
         self._persist_current_draft()
@@ -253,6 +393,8 @@ class CourseApp(ttk.Frame):
         messagebox.showinfo("Saved", "Progress saved.")
 
     def _reset_progress(self) -> None:
+        if self._busy:
+            return
         if not messagebox.askyesno(
             "Reset progress",
             "Erase all completed lessons, drafts, and mastery scores?",
@@ -268,6 +410,9 @@ class CourseApp(ttk.Frame):
         messagebox.showinfo("Reset", "Progress has been reset.")
 
     def _on_close(self) -> None:
+        if self._closing:
+            return
+        self._closing = True
         self._persist_current_draft()
         self.controller.progress.save()
         self.master.destroy()

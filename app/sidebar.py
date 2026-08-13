@@ -47,33 +47,39 @@ class Sidebar(ttk.Frame):
         self.refresh()
 
     def refresh(self, selected_lesson_id: Optional[str] = None) -> None:
-        self.tree.delete(*self.tree.get_children())
-        self._lesson_iids.clear()
+        # Unbind while rebuilding: selection_set can deliver <<TreeviewSelect>>
+        # after a suppress flag is cleared, which re-enters navigation and hangs.
+        self.tree.unbind("<<TreeviewSelect>>")
+        try:
+            self.tree.delete(*self.tree.get_children())
+            self._lesson_iids.clear()
 
-        percent = self.controller.overall_progress_percent()
-        self.progress_var.set(f"Progress: {percent:.0f}%")
+            percent = self.controller.overall_progress_percent()
+            self.progress_var.set(f"Progress: {percent:.0f}%")
 
-        for section in self.controller.catalog.sections:
-            section_iid = self.tree.insert("", "end", text=section.name, open=True)
-            for lesson in section.lessons:
-                unlocked = self.controller.is_unlocked(lesson)
-                complete = self.controller.progress.is_lesson_complete(
-                    lesson.id, lesson.exercise_ids
-                )
-                if not unlocked:
-                    marker = "[locked]"
-                elif complete:
-                    marker = "✓"
-                else:
-                    marker = "○"
-                label = f"{marker}  {lesson.title}"
-                iid = self.tree.insert(section_iid, "end", text=label, values=(lesson.id,))
-                self._lesson_iids[lesson.id] = iid
+            for section in self.controller.catalog.sections:
+                section_iid = self.tree.insert("", "end", text=section.name, open=True)
+                for lesson in section.lessons:
+                    unlocked = self.controller.is_unlocked(lesson)
+                    complete = self.controller.progress.is_lesson_complete(
+                        lesson.id, lesson.exercise_ids
+                    )
+                    if not unlocked:
+                        marker = "[locked]"
+                    elif complete:
+                        marker = "✓"
+                    else:
+                        marker = "○"
+                    label = f"{marker}  {lesson.title}"
+                    iid = self.tree.insert(section_iid, "end", text=label, values=(lesson.id,))
+                    self._lesson_iids[lesson.id] = iid
 
-        if selected_lesson_id and selected_lesson_id in self._lesson_iids:
-            iid = self._lesson_iids[selected_lesson_id]
-            self.tree.selection_set(iid)
-            self.tree.see(iid)
+            if selected_lesson_id and selected_lesson_id in self._lesson_iids:
+                iid = self._lesson_iids[selected_lesson_id]
+                self.tree.selection_set(iid)
+                self.tree.see(iid)
+        finally:
+            self.tree.bind("<<TreeviewSelect>>", self._on_tree_select)
 
     def _on_tree_select(self, _event: object) -> None:
         selection = self.tree.selection()
