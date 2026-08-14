@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -34,7 +35,7 @@ class TerminationTests(unittest.TestCase):
 
     def test_terminate_process_tree_idempotent_on_finished_process(self) -> None:
         process = subprocess.Popen(
-            ["python3", "-c", "print('done')"],
+            [sys.executable, "-c", "print('done')"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
