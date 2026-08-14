@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QWidget
+from PySide6.QtGui import QFontMetrics
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QWidget
 
 from app.widgets.progress_widget import ProgressWidget
 
@@ -26,7 +27,13 @@ class TopBar(QFrame):
 
         self._breadcrumb = QLabel("Python Fundamentals")
         self._breadcrumb.setObjectName("Breadcrumb")
+        self._breadcrumb.setWordWrap(False)
+        self._breadcrumb.setMinimumWidth(0)
+        self._breadcrumb.setSizePolicy(
+            QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred
+        )
         layout.addWidget(self._breadcrumb, stretch=1)
+        self._full_breadcrumb = "Python Fundamentals"
 
         self._progress = ProgressWidget()
         layout.addWidget(self._progress)
@@ -68,7 +75,39 @@ class TopBar(QFrame):
         return btn
 
     def set_breadcrumb(self, text: str) -> None:
-        self._breadcrumb.setText(text)
+        self._full_breadcrumb = text
+        self._breadcrumb.setToolTip(text)
+        self._apply_breadcrumb_elide()
+
+    def resizeEvent(self, event) -> None:  # noqa: N802
+        super().resizeEvent(event)
+        self._apply_breadcrumb_elide()
+
+    def _apply_breadcrumb_elide(self) -> None:
+        text = self._full_breadcrumb
+        width = self._breadcrumb.width()
+        if width <= 1:
+            layout = self.layout()
+            margins = layout.contentsMargins() if layout is not None else None
+            margin_w = (margins.left() + margins.right()) if margins is not None else 28
+            spacing = layout.spacing() if layout is not None else 8
+            trailing = (
+                self._progress.width()
+                + self._sidebar_btn.width()
+                + self._editor_btn.width()
+                + self._save_btn.width()
+                + self._reset_btn.width()
+                + self._theme_btn.width()
+                + spacing * 5
+            )
+            width = max(0, self.width() - margin_w - trailing)
+        if width <= 1:
+            self._breadcrumb.setText("")
+            return
+        metrics = QFontMetrics(self._breadcrumb.font())
+        self._breadcrumb.setText(
+            metrics.elidedText(text, Qt.TextElideMode.ElideRight, width)
+        )
 
     def set_progress(self, completed: int, total: int) -> None:
         self._progress.set_progress(completed, total)
