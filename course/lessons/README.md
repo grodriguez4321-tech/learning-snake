@@ -24,8 +24,11 @@ Exercise checks use `tests` with kinds such as:
 - `class_defined`
 - `raises`
 - `runs_successfully`
+- `source_uses` when the *construct* is the learning objective:
+  - `feature`: `fstring`, `binop_names`, `rebind_self`, `append_or_extend`, `subscript`, `comment`, `if_statement`, `for_loop`
+  - optional `name` / `names` to require specific variables
 
-Prefer behavior checks over comparing source text.
+Prefer behavior checks over comparing source text. Use `source_uses` only when a hardcoded result would otherwise pass.
 
 Optional import control (defaults to no imports):
 

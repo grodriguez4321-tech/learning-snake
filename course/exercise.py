@@ -28,7 +28,7 @@ EXERCISE_TYPES = (
 class TestCase:
     """A single behavior check applied after executing student code."""
 
-    kind: str  # stdout_equals | stdout_contains | function | globals | expression
+    kind: str  # stdout_equals | stdout_contains | function | globals | expression | source_uses
     expected: Any = None
     function: Optional[str] = None
     args: list[Any] = field(default_factory=list)
@@ -38,6 +38,9 @@ class TestCase:
     expression: Optional[str] = None
     contains: Optional[str] = None
     message: str = ""
+    # source_uses: fstring | binop_names | rebind_self | append_or_extend | subscript | comment
+    feature: Optional[str] = None
+    names: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -58,6 +61,8 @@ class Exercise:
     reference_solution: str = ""
     # Modules this exercise may import. Empty => imports disabled.
     allowed_modules: list[str] = field(default_factory=list)
+    success_message: str = ""
+    failure_message: str = ""
 
     @property
     def is_code_exercise(self) -> bool:
@@ -86,6 +91,7 @@ def test_case_from_dict(data: dict[str, Any]) -> TestCase:
         "class_defined",
         "raises",
         "runs_successfully",
+        "source_uses",
     }:
         kind = data.get("type")
     if kind is None:
@@ -101,6 +107,8 @@ def test_case_from_dict(data: dict[str, Any]) -> TestCase:
         expression=data.get("expression"),
         contains=data.get("contains"),
         message=data.get("message", ""),
+        feature=data.get("feature"),
+        names=list(data.get("names", [])),
     )
 
 
@@ -120,4 +128,6 @@ def exercise_from_dict(data: dict[str, Any]) -> Exercise:
         topics=list(data.get("topics", [])),
         reference_solution=data.get("reference_solution", ""),
         allowed_modules=list(data.get("allowed_modules", [])),
+        success_message=str(data.get("success_message", "")),
+        failure_message=str(data.get("failure_message", "")),
     )

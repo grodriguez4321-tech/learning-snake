@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
 from app.theme import Theme
 from app.widgets.code_editor import PythonHighlighter
 from course.exercise import Exercise
-from course.lesson import CodeExample, Lesson
+from course.lesson import CodeExample, ContentSection, Lesson
 
 
 def _escape(text: str) -> str:
@@ -39,31 +39,18 @@ def _mono_font(point_size: int = 12) -> QFont:
     return font
 
 
-def _intro_from_content(content: str) -> str:
-    text = (content or "").strip()
-    if not text:
+def _format_body(text: str) -> str:
+    stripped = (text or "").strip("\n")
+    if not stripped:
         return ""
-    # Prefer the first short block; keep hierarchy light.
-    parts = [p.strip() for p in text.split("\n\n") if p.strip()]
-    if not parts:
-        return ""
-    first = parts[0].replace("\n", " ")
-    if first.lower().startswith("what problem"):
-        # Drop the heading phrase if present for a cleaner lead.
-        if "\n" in parts[0]:
-            lines = [ln.strip() for ln in parts[0].split("\n") if ln.strip()]
-            if len(lines) >= 2:
-                return lines[1]
-        # Single paragraph after the label
-        cleaned = first
-        for prefix in (
-            "What problem does this solve? ",
-            "What problem does this solve?",
-        ):
-            if cleaned.startswith(prefix):
-                cleaned = cleaned[len(prefix) :].strip()
-        return cleaned
-    return first
+    escaped = _escape(stripped)
+    if any(line.startswith("  ") for line in stripped.splitlines()):
+        return (
+            "<pre style='font-family: Consolas, \"Cascadia Code\", monospace; "
+            "font-size: 12px; margin: 4px 0 0 0; white-space: pre-wrap;'>"
+            f"{escaped}</pre>"
+        )
+    return escaped.replace("\n", "<br>")
 
 
 class ConceptCard(QFrame):
@@ -90,6 +77,84 @@ class ConceptCard(QFrame):
             return
         lines = "".join(
             f"<li style='margin:5px 0;'>{_escape(c)}</li>" for c in concepts
+        )
+        self._body.setText(f"<ul style='margin:0; padding-left:18px;'>{lines}</ul>")
+
+
+class ExplanationCard(QFrame):
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setObjectName("Card")
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(18, 14, 18, 16)
+        layout.setSpacing(12)
+
+        header = QLabel("How it works")
+        header.setObjectName("CardTitle")
+        layout.addWidget(header)
+
+        self._host = QVBoxLayout()
+        self._host.setSpacing(12)
+        layout.addLayout(self._host)
+
+    def set_sections(self, sections: list[ContentSection]) -> None:
+        while self._host.count():
+            item = self._host.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.hide()
+                widget.setParent(None)
+                widget.deleteLater()
+
+        if not sections:
+            self.hide()
+            return
+        self.show()
+        for section in sections:
+            block = QFrame()
+            block.setObjectName("ExampleBlock")
+            inner = QVBoxLayout(block)
+            inner.setContentsMargins(0, 0, 0, 0)
+            inner.setSpacing(4)
+            if section.heading:
+                heading = QLabel(section.heading)
+                heading.setObjectName("SectionHeading")
+                heading.setWordWrap(True)
+                inner.addWidget(heading)
+            body = QLabel()
+            body.setWordWrap(True)
+            body.setObjectName("BodyText")
+            body.setTextFormat(Qt.TextFormat.RichText)
+            body.setText(_format_body(section.body))
+            inner.addWidget(body)
+            self._host.addWidget(block)
+
+
+class MistakesCard(QFrame):
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setObjectName("MistakesCard")
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(18, 14, 18, 14)
+        layout.setSpacing(10)
+
+        header = QLabel("⚠  Common mistakes")
+        header.setObjectName("CardTitle")
+        layout.addWidget(header)
+
+        self._body = QLabel()
+        self._body.setWordWrap(True)
+        self._body.setObjectName("BodyText")
+        self._body.setTextFormat(Qt.TextFormat.RichText)
+        layout.addWidget(self._body)
+
+    def set_mistakes(self, mistakes: list[str]) -> None:
+        if not mistakes:
+            self.hide()
+            return
+        self.show()
+        lines = "".join(
+            f"<li style='margin:5px 0;'>{_escape(item)}</li>" for item in mistakes
         )
         self._body.setText(f"<ul style='margin:0; padding-left:18px;'>{lines}</ul>")
 
@@ -313,11 +378,17 @@ class LessonContent(QWidget):
         self._intro.setObjectName("LeadText")
         layout.addWidget(self._intro)
 
+        self._explanation = ExplanationCard()
+        layout.addWidget(self._explanation)
+
         self._concepts = ConceptCard()
         layout.addWidget(self._concepts)
 
         self._examples = ExampleSection()
         layout.addWidget(self._examples)
+
+        self._mistakes = MistakesCard()
+        layout.addWidget(self._mistakes)
 
         self._exercise = ExerciseCard()
         self._exercise.prevExercise.connect(self.prevExercise.emit)
@@ -361,9 +432,13 @@ class LessonContent(QWidget):
     ) -> None:
         self.lesson = lesson
         self._title.setText(lesson.title)
-        self._intro.setText(_intro_from_content(lesson.content))
+        intro = lesson.intro
+        self._intro.setText(intro)
+        self._intro.setVisible(bool(intro))
+        self._explanation.set_sections(list(lesson.explanation_sections))
         self._concepts.set_concepts(list(lesson.concepts))
         self._examples.set_examples(list(lesson.examples), self._theme)
+        self._mistakes.set_mistakes(list(lesson.common_mistakes))
         total = len(lesson.exercises)
         self._exercise.set_exercise(exercise, index=exercise_index, total=total)
         self._prev.setEnabled(prev_ok)

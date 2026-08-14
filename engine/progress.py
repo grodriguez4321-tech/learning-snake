@@ -18,7 +18,10 @@ from typing import Any, Optional
 
 
 DEFAULT_MASTERY_TOPICS = [
+    "print",
     "variables",
+    "strings",
+    "conditionals",
     "collections",
     "loops",
     "functions",

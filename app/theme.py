@@ -255,6 +255,16 @@ def build_stylesheet(theme: Theme) -> str:
         border: 1px solid {theme.accent_soft};
         border-radius: 10px;
     }}
+    QFrame#MistakesCard {{
+        background-color: {theme.bg_card};
+        border: 1px solid {theme.warning_soft};
+        border-radius: 10px;
+    }}
+    QLabel#SectionHeading {{
+        color: {theme.text};
+        font-weight: 600;
+        font-size: 13px;
+    }}
     QFrame#ExampleBlock {{
         background: transparent;
         border: none;

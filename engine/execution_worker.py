@@ -7,6 +7,7 @@ thread inside the GUI process cannot reliably do.
 
 from __future__ import annotations
 
+import ast
 import base64
 import io
 import json
@@ -145,7 +146,14 @@ def format_call(name: str, args: list[Any], kwargs: dict[str, Any]) -> str:
     return f"{name}({', '.join(bits)})"
 
 
-def apply_test(test: dict[str, Any], namespace: dict[str, Any], stdout: str, success: bool) -> tuple[bool, str]:
+def apply_test(
+    test: dict[str, Any],
+    namespace: dict[str, Any],
+    stdout: str,
+    success: bool,
+    *,
+    source: str = "",
+) -> tuple[bool, str]:
     kind = test.get("kind", "stdout_equals")
 
     if kind == "stdout_equals":
@@ -153,8 +161,10 @@ def apply_test(test: dict[str, Any], namespace: dict[str, Any], stdout: str, suc
         expected_text = expected if isinstance(expected, str) else str(expected)
         if stdout.rstrip("\n") == expected_text.rstrip("\n"):
             return True, "Printed output matched."
+        shown = stdout if stdout.strip() else "(no output)"
         return False, test.get("message") or (
-            f"Your program printed {stdout!r}, but it should print {expected_text!r}."
+            f"Your program printed {shown!r}, which is not the required output. "
+            "Check spelling, spaces, and punctuation."
         )
 
     if kind == "stdout_contains":
@@ -264,7 +274,127 @@ def apply_test(test: dict[str, Any], namespace: dict[str, Any], stdout: str, suc
             return True, "Code ran without errors."
         return False, "Code raised an error."
 
+    if kind == "source_uses":
+        return apply_source_uses(test, source)
+
     return False, f"Unknown test kind: {kind}"
+
+
+def _assigned_name(target: ast.AST) -> str | None:
+    if isinstance(target, ast.Name):
+        return target.id
+    return None
+
+
+def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
+    """Check that learner code uses a construct that is itself the learning objective."""
+    feature = str(test.get("feature") or "")
+    required = list(test.get("names") or [])
+    target = str(test.get("name") or "")
+    custom = str(test.get("message") or "")
+
+    if feature == "comment":
+        for line in source.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("#") and any(char.isalpha() for char in stripped):
+                return True, "Found a comment."
+        return False, custom or (
+            "Add a comment that starts with # and explains the next line."
+        )
+
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return False, custom or "Your code could not be parsed."
+
+    if feature == "fstring":
+        for node in ast.walk(tree):
+            if isinstance(node, ast.JoinedStr):
+                used = {child.id for child in ast.walk(node) if isinstance(child, ast.Name)}
+                if not required or set(required) <= used:
+                    return True, "Used an f-string."
+        return False, custom or (
+            "Use an f-string (a string that starts with f) and put the variable "
+            "names inside braces."
+        )
+
+    if feature == "binop_names":
+        want = set(required)
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Assign):
+                continue
+            names = [_assigned_name(item) for item in node.targets]
+            if target and target not in names:
+                continue
+            used = {child.id for child in ast.walk(node.value) if isinstance(child, ast.Name)}
+            if want <= used and isinstance(node.value, ast.BinOp):
+                return True, "Used the variables in an expression."
+        return False, custom or (
+            "Build the new value from the existing variable names, not a hardcoded number."
+        )
+
+    if feature == "rebind_self":
+        name = target or (required[0] if required else "")
+        for node in ast.walk(tree):
+            if isinstance(node, ast.AugAssign) and _assigned_name(node.target) == name:
+                return True, "Updated the variable using its current value."
+            if isinstance(node, ast.Assign):
+                assigned = [_assigned_name(item) for item in node.targets]
+                if name not in assigned:
+                    continue
+                used = {child.id for child in ast.walk(node.value) if isinstance(child, ast.Name)}
+                if name in used:
+                    return True, "Updated the variable using its current value."
+        return False, custom or (
+            f"Give {name} a new value that uses {name} on the right-hand side."
+        )
+
+    if feature == "append_or_extend":
+        name = target
+        for node in ast.walk(tree):
+            if isinstance(node, ast.AugAssign) and _assigned_name(node.target) == name:
+                return True, "Grew the list."
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr in {"append", "extend"}
+                and isinstance(node.func.value, ast.Name)
+                and node.func.value.id == name
+            ):
+                return True, "Grew the list."
+            if isinstance(node, ast.Assign):
+                assigned = [_assigned_name(item) for item in node.targets]
+                if name in assigned and isinstance(node.value, ast.BinOp) and isinstance(
+                    node.value.op, ast.Add
+                ):
+                    return True, "Grew the list."
+        return False, custom or (
+            f"Add an item to {name} with append, extend, or +=."
+        )
+
+    if feature == "subscript":
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Subscript):
+                continue
+            if not target:
+                return True, "Used an index."
+            if isinstance(node.value, ast.Name) and node.value.id == target:
+                return True, "Used an index."
+        return False, custom or "Use square-bracket indexing, such as party[0]."
+
+    if feature == "if_statement":
+        for node in ast.walk(tree):
+            if isinstance(node, ast.If):
+                return True, "Used an if statement."
+        return False, custom or "Use if and else to choose what to print."
+
+    if feature == "for_loop":
+        for node in ast.walk(tree):
+            if isinstance(node, ast.For):
+                return True, "Used a for loop."
+        return False, custom or "Use a for loop to visit each item in the list."
+
+    return False, f"Unknown source_uses feature: {feature}"
 
 
 def improve_function_feedback(results: list[dict[str, Any]]) -> None:
@@ -327,7 +457,7 @@ def run_payload(payload: dict[str, Any]) -> dict[str, Any]:
     if payload.get("mode") == "check":
         test_results: list[dict[str, Any]] = []
         for test in payload.get("tests", []):
-            ok, message = apply_test(test, namespace, stdout, success)
+            ok, message = apply_test(test, namespace, stdout, success, source=source)
             test_results.append({"ok": ok, "message": message, "test": test})
             if not ok:
                 break
