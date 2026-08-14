@@ -39,6 +39,21 @@ def _mono_font(point_size: int = 12) -> QFont:
     return font
 
 
+def _fit_readonly_code_height(
+    editor: QPlainTextEdit,
+    *,
+    min_height: int = 44,
+    max_height: int = 200,
+) -> None:
+    """Size a read-only code panel to its content (used for predict snippets)."""
+    editor.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+    line_count = max(1, editor.blockCount())
+    doc_h = int(editor.document().size().height()) + 18
+    height = min(max_height, max(min_height, line_count * 20 + 16, doc_h))
+    editor.setMinimumHeight(height)
+    editor.setMaximumHeight(height)
+
+
 def _format_body(text: str) -> str:
     stripped = (text or "").strip("\n")
     if not stripped:
@@ -285,9 +300,14 @@ class ExerciseCard(QFrame):
         self._predict.setObjectName("ExampleCode")
         self._predict.setReadOnly(True)
         self._predict.setFrameShape(QFrame.Shape.NoFrame)
-        self._predict.setMaximumHeight(88)
         self._predict.setFont(_mono_font(12))
         layout.addWidget(self._predict)
+
+        self._choices_label = QLabel()
+        self._choices_label.setWordWrap(True)
+        self._choices_label.setObjectName("BodyText")
+        self._choices_label.setTextFormat(Qt.TextFormat.RichText)
+        layout.addWidget(self._choices_label)
 
         self._instructions = QLabel()
         self._instructions.setWordWrap(True)
@@ -308,6 +328,7 @@ class ExerciseCard(QFrame):
             self._ex_meta.setText("")
             self._predict_label.setVisible(False)
             self._predict.setVisible(False)
+            self._choices_label.setVisible(False)
             self._instructions.setText("")
             self._prev_ex.setEnabled(False)
             self._next_ex.setEnabled(False)
@@ -323,16 +344,31 @@ class ExerciseCard(QFrame):
             self._predict_label.setVisible(True)
             self._predict.setVisible(True)
             self._predict.setPlainText(exercise.code_to_predict.strip())
+            _fit_readonly_code_height(self._predict)
         else:
             self._predict_label.setVisible(False)
             self._predict.setVisible(False)
 
+        if exercise.is_choice_exercise and exercise.choices:
+            items = "".join(
+                f"<li style='margin:5px 0;'>{index}. {_escape(choice)}</li>"
+                for index, choice in enumerate(exercise.choices, start=1)
+            )
+            self._choices_label.setText(
+                f"<b>Options</b><ol style='margin:6px 0; padding-left:22px;'>{items}</ol>"
+            )
+            self._choices_label.setVisible(True)
+        else:
+            self._choices_label.setVisible(False)
+
         tips: list[str] = []
         if exercise.is_code_exercise:
             tips.append("Write your solution in the editor on the right.")
-            tips.append("Use Run Code to try it, then Check to grade.")
-        elif exercise.uses_free_text_answer or exercise.is_choice_exercise:
-            tips.append("Enter your answer in the answer box above the action buttons.")
+            tips.append("Use Run Code to try it, then Check Exercise to grade.")
+        elif exercise.is_choice_exercise:
+            tips.append("Select an option on the right, then click Check.")
+        elif exercise.uses_free_text_answer:
+            tips.append("Type your predicted output in the answer box on the right.")
             tips.append("Then click Check.")
         if tips:
             items = "".join(f"<li style='margin:4px 0;'>{_escape(t)}</li>" for t in tips)

@@ -48,7 +48,7 @@ def output_text(course: CourseApp) -> str:
 
 
 def feedback_text(course: CourseApp) -> str:
-    return course.lessons_page.ide.feedback._view.text()
+    return course.lessons_page.ide.feedback._view.toPlainText()
 
 
 def playground_output(course: CourseApp) -> str:
