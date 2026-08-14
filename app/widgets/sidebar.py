@@ -56,21 +56,46 @@ class LessonRow(QFrame):
         self._label = QLabel()
         self._label.setObjectName("LessonRowLabel")
         self._label.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
+        self._label.setWordWrap(False)
+        self._label.setMinimumWidth(0)
+        self._label.setSizePolicy(
+            QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred
+        )
         layout.addWidget(self._label, stretch=1)
+        self._full_title = ""
 
     def set_row(self, *, icon: str, text: str, enabled: bool, active: bool) -> None:
         self._enabled = enabled
         self._active = active
+        self._full_title = text
         self._icon.setText(icon)
         self.setEnabled(enabled)
         self.setProperty("active", "true" if active else "false")
         self.setProperty("locked", "true" if not enabled else "false")
         self.style().unpolish(self)
         self.style().polish(self)
-        # Elide inside available width (~sidebar 260 - padding - icon)
+        tooltip = text if enabled else f"Locked — {text}"
+        self.setToolTip(tooltip)
+        self._label.setToolTip(tooltip)
+        self._apply_elide()
+
+    def resizeEvent(self, event) -> None:  # noqa: N802
+        super().resizeEvent(event)
+        self._apply_elide()
+
+    def _apply_elide(self) -> None:
+        """Fit the title to the label's current width with a trailing ellipsis."""
+        text = self._full_title
+        width = self._label.width()
+        if width <= 1:
+            width = max(0, self.width() - 44)  # row padding + icon + spacing
+        if width <= 1:
+            self._label.setText(text)
+            return
         metrics = QFontMetrics(self._label.font())
-        self._label.setText(metrics.elidedText(text, Qt.TextElideMode.ElideRight, 190))
-        self.setToolTip(text if enabled else f"Locked — {text}")
+        self._label.setText(
+            metrics.elidedText(text, Qt.TextElideMode.ElideRight, width)
+        )
 
     def mousePressEvent(self, event) -> None:  # noqa: N802
         if self._enabled and event.button() == Qt.MouseButton.LeftButton:
