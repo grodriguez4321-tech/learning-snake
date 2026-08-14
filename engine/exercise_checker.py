@@ -32,7 +32,8 @@ def test_case_to_dict(test: TestCase) -> dict[str, Any]:
             continue
         if value is None:
             continue
-        if value in ([], {}):
+        # Empty list/dict are valid expected values (e.g. [] from a function).
+        if key != "expected" and value in ([], {}):
             continue
         if key == "message" and value == "":
             continue

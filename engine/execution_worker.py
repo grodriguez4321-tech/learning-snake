@@ -394,6 +394,35 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
                 return True, "Used a for loop."
         return False, custom or "Use a for loop to visit each item in the list."
 
+    if feature == "compare_eq":
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.If):
+                continue
+            for child in ast.walk(node.test):
+                if isinstance(child, ast.Compare) and any(
+                    isinstance(op, ast.Eq) for op in child.ops
+                ):
+                    return True, "Used == to compare values."
+        return False, custom or "Use == inside the condition to compare values."
+
+    if feature == "method_call":
+        method = str(test.get("method") or test.get("attr") or "")
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            if not isinstance(node.func, ast.Attribute):
+                continue
+            if node.func.attr != method:
+                continue
+            if target and isinstance(node.func.value, ast.Name):
+                if node.func.value.id == target:
+                    return True, f"Called {target}.{method}()."
+            elif not target:
+                return True, f"Called .{method}()."
+        return False, custom or (
+            f"Call .{method}() on {target or 'the list'} to change it in place."
+        )
+
     return False, f"Unknown source_uses feature: {feature}"
 
 

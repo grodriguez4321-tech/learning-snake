@@ -1,0 +1,212 @@
+{
+  "id": "decisions_03_boolean_logic",
+  "section": "Making Decisions",
+  "section_order": 5,
+  "order": 2,
+  "title": "Combining Conditions with and, or, and not",
+  "topics": ["conditionals"],
+  "content": "What problem does this solve?\nSome doors need two keys at once — a physical key and enough gold. Boolean operators combine smaller yes/no questions into one condition.\n\nBasic syntax\n  if has_key and gold >= 10:\n      print(\"enter\")\n\n  if health < 20 or enemies >= 3:\n      print(\"flee\")\n\nWhat actually happens\nand requires every part to be true. or needs at least one part true. not flips a boolean. Python also allows chained comparisons such as 0 < health <= 100 — one readable range check.\n\nWhen this is useful\nCombine requirements (key and gold), escape triggers (low health or too many foes), or flip a flag with not.",
+  "concepts": [
+    "and needs every sub-condition true",
+    "or needs at least one sub-condition true",
+    "Chained comparisons such as 0 < health <= 100 test a range in one expression"
+  ],
+  "examples": [
+    {
+      "title": "Gate requires key and gold",
+      "code": "has_key = True\ngold = 12\nif has_key and gold >= 10:\n    print(\"enter\")\nelse:\n    print(\"blocked\")",
+      "explanation": "Both has_key and enough gold are true, so enter prints."
+    },
+    {
+      "title": "Flee when overwhelmed",
+      "code": "health = 15\nenemies = 4\nif health < 20 or enemies >= 3:\n    print(\"flee\")\nelse:\n    print(\"fight\")",
+      "explanation": "enemies >= 3 is true, so or makes the whole condition true."
+    }
+  ],
+  "common_mistakes": [
+    "Using = instead of == inside a condition",
+    "Assuming English or means only one option — logical or is true if either side is true",
+    "Forgetting that and stops early when the first part is false"
+  ],
+  "exercises": [
+    {
+      "id": "decisions_03_ex1",
+      "type": "predict_output",
+      "title": "Trace and and or",
+      "prompt": "Decide what prints. Trace each sub-condition before you answer, then click Check.",
+      "code_to_predict": "has_key = True\ngold = 8\nif has_key and gold >= 10:\n    print(\"enter\")\nelse:\n    print(\"blocked\")",
+      "expected_answer": "blocked",
+      "topics": ["conditionals"],
+      "failure_message": "has_key is true, but is gold >= 10 true when gold is 8? and needs both sides true.",
+      "hints": [
+        "Evaluate has_key first — is it true?",
+        "Now check gold >= 10 with gold equal to 8.",
+        "When one side of and is false, the whole condition is false."
+      ]
+    },
+    {
+      "id": "decisions_03_ex2",
+      "type": "predict_output",
+      "title": "Predict with not",
+      "prompt": "What prints? Trace how not flips the condition, then click Check.",
+      "code_to_predict": "has_key = False\nif not has_key:\n    print(\"blocked\")\nelse:\n    print(\"enter\")",
+      "expected_answer": "blocked",
+      "topics": ["conditionals"],
+      "failure_message": "not has_key is true when has_key is False — the if branch runs.",
+      "hints": [
+        "has_key is False.",
+        "not False becomes True.",
+        "The if branch prints blocked."
+      ]
+    },
+    {
+      "id": "decisions_03_ex3",
+      "type": "fill_blank",
+      "title": "Complete the flee condition",
+      "prompt": "Print flee when health is below 20 OR enemies is at least 3. Replace None with the correct or expression.",
+      "starter_code": "health = 30\nenemies = 3\nif None:  # TODO: low health OR too many enemies\n    print(\"flee\")\nelse:\n    print(\"fight\")\n",
+      "topics": ["conditionals"],
+      "hints": [
+        "You need two comparisons joined by or.",
+        "One side checks health; the other checks enemies.",
+        "Try health < 20 or enemies >= 3."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "if_statement",
+          "message": "Use if / else with a compound condition."
+        },
+        {"kind": "stdout_equals", "expected": "flee\n"}
+      ]
+    },
+    {
+      "id": "decisions_03_ex4",
+      "type": "debug",
+      "title": "Fix the gate check",
+      "prompt": "This gate program should print enter when the passphrase matches \"open\", but it crashes with a SyntaxError. The bug is using = where a comparison belongs.\n\nRun the code to read the error, fix the condition, then Check.",
+      "starter_code": "passphrase = \"open\"\nentered = \"open\"\nif entered = passphrase:\n    print(\"enter\")\nelse:\n    print(\"blocked\")\n",
+      "topics": ["conditionals"],
+      "hints": [
+        "Run first — Python will point at the if line.",
+        "Inside a condition you compare values; = assigns.",
+        "Use == to test whether entered equals passphrase."
+      ],
+      "tests": [
+        {"kind": "runs_successfully"},
+        {
+          "kind": "source_uses",
+          "feature": "compare_eq",
+          "message": "Fix the condition to compare with ==, not =."
+        },
+        {"kind": "stdout_equals", "expected": "enter\n"}
+      ]
+    },
+    {
+      "id": "decisions_03_ex5",
+      "type": "write_code",
+      "title": "Gate entry requirements",
+      "prompt": "Write can_enter(has_key, gold) that returns True only when the explorer has the key AND at least 10 gold.\n\nReturn a boolean — do not print. Both requirements must be satisfied.",
+      "starter_code": "def can_enter(has_key, gold):\n    # Return True only when both requirements are met\n    pass\n",
+      "topics": ["conditionals", "functions"],
+      "success_message": "You combined and with comparisons in a reusable function — the same gate logic you will see in shops and dungeons later.",
+      "hints": [
+        "Think of two separate questions: key? enough gold?",
+        "Join them with and inside one return statement.",
+        "Both has_key and gold >= 10 must be true.",
+        "return has_key and gold >= 10"
+      ],
+      "tests": [
+        {
+          "kind": "function",
+          "function": "can_enter",
+          "args": [true, 15],
+          "expected": true,
+          "message": "When has_key is True and gold is 15, entry should be allowed."
+        },
+        {
+          "kind": "function",
+          "function": "can_enter",
+          "args": [true, 10],
+          "expected": true,
+          "message": "Exactly 10 gold with a key should still allow entry."
+        },
+        {
+          "kind": "function",
+          "function": "can_enter",
+          "args": [true, 9],
+          "expected": false,
+          "message": "A key alone is not enough — 9 gold should block entry."
+        },
+        {
+          "kind": "function",
+          "function": "can_enter",
+          "args": [false, 50],
+          "expected": false,
+          "message": "Gold without a key should not allow entry."
+        },
+        {
+          "kind": "function",
+          "function": "can_enter",
+          "args": [true, 100],
+          "expected": true,
+          "message": "Any gold amount at or above 10 with a key should allow entry."
+        },
+        {
+          "kind": "function",
+          "function": "can_enter",
+          "args": [true, 11],
+          "expected": true,
+          "message": "11 gold with a key should allow entry — not only the examples from the prompt."
+        },
+        {
+          "kind": "function",
+          "function": "can_enter",
+          "args": [false, 5],
+          "expected": false,
+          "message": "Neither requirement met should return False."
+        }
+      ]
+    },
+    {
+      "id": "decisions_03_ex6",
+      "type": "fill_blank",
+      "title": "Inclusive health range",
+      "prompt": "Print valid when health is between 0 and 100 inclusive. Replace None with a condition that passes for health 0, 50, and 100.",
+      "starter_code": "health = 100\nif None:  # TODO: 0 through 100 inclusive\n    print(\"valid\")\nelse:\n    print(\"invalid\")\n",
+      "topics": ["conditionals"],
+      "hints": [
+        "Inclusive means 0 and 100 should both pass.",
+        "You can write health >= 0 and health <= 100.",
+        "Chained 0 < health < 100 would reject the endpoints."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "if_statement",
+          "message": "Use a comparison that includes both endpoints."
+        },
+        {"kind": "stdout_equals", "expected": "valid\n"}
+      ]
+    },
+    {
+      "id": "decisions_03_ex7",
+      "type": "architecture",
+      "title": "Readable range check",
+      "prompt": "You want to verify that health stayed between 0 and 100 inclusive. Which condition is clearest and correct in Python?",
+      "choices": [
+        "health >= 0 and health <= 100",
+        "0 < health < 100"
+      ],
+      "expected_answer": "1",
+      "topics": ["conditionals"],
+      "success_message": "Correct — and health <= 100 includes 100. The chained form 0 < health < 100 excludes both endpoints.",
+      "failure_message": "0 < health < 100 rejects health of exactly 0 or 100. To include both endpoints you need <= and >=.",
+      "hints": [
+        "Ask whether health of exactly 0 or 100 should pass.",
+        "Chained comparisons exclude the endpoints here.",
+        "Pick the condition that includes both 0 and 100."
+      ]
+    }
+  ]
+}
