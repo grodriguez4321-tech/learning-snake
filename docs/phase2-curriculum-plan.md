@@ -1,28 +1,38 @@
-# Phase 2 Curriculum Plan
+# Phase 2 Curriculum Plan (Revised)
 
-**Status:** Planning only — not yet implemented. Awaiting approval before authoring lesson JSON.
+**Status:** Curriculum-design approval stage — **revised per targeted feedback (Aug 2026)**. Not yet implemented.
 
 **Scope:** Continue immediately after Phase 1 (`functions_01_basics`) through **basic classes and introductory has-a composition**, stopping before Phase 3 (inheritance, `try`/`except`, advanced debugging, comprehensions).
 
-**Size:** **18 new lessons** (26 total with Phase 1’s 8).
+**Size:** **20 new lessons** (28 total with Phase 1’s 8).
 
 **Difficulty arc:** Phase 1 averages ~2; Phase 2 ramps **2 → 4–5** (capstone).
 
-**Pedagogical thread:** RPG/adventure theme (Aria, Rook, Mira, Selene; HP, gold, inventory, party, quests) to build durable mental models, not just syntax drills.
+**Pedagogical thread:** RPG/adventure theme when it improves continuity (Aria, Rook, Mira, Selene; HP, gold, inventory, party, quests). Use simpler non-RPG examples when they teach more clearly.
+
+**Implementation order:** **UI P0 prerequisites first**, then lesson JSON authoring. Do not author 20 lessons around temporary UI workarounds.
 
 ---
 
-## Executive synthesis
-
-Three specialist reviews converge on the same conclusion:
+## Executive synthesis (revised)
 
 | Dimension | Verdict |
 |-----------|---------|
-| **Curriculum sequencing** | Phase 1 covers print → variables → f-strings → if/else → lists/append/for → basic functions. Phase 2 should deepen control flow, collections (dicts, while), functions (params, scope, returning structures), then text/errors, then OOP ending in composition. |
-| **Assessment** | Current checker is sufficient if exercises use **function wrappers** with 4–6 behavioral cases, class tests via `expression`/`attribute`, and architecture/predict for reasoning. Minor engine extensions (`while_loop`, `elif_branch` AST features) are nice-to-have, not blocking. |
-| **UI readiness** | **`fill_blank`, `debug`, `write_code`** work well today. **Architecture MCQ, traceback reading, multi-line output, and `mini_project`** need UI work or authoring workarounds (see [UI authoring constraints](#ui-authoring-constraints-for-phase-2)). |
+| **Curriculum sequencing** | Preserve Phase 1 → deeper decisions → deeper collections → deeper functions → strings/errors → **data modeling (references)** → classes → composition. Remove standalone enumerate; add nested-data and shared-references lessons; add second debugging lesson. |
+| **Assessment** | Current checker is sufficient: **`function`** wrappers (4–6 cases), **`expression`** for nested paths and **`is`** for aliasing, **`class_defined` + expression**, distributed **`debug`** exercises. Explicit `message` on class tests until engine feedback improves. |
+| **Debugging** | A **thread across all 20 lessons**, not a single traceback unit. Dedicated Lessons 22 (reading errors) and 23 (logic bugs). |
+| **UI readiness** | **Block curriculum JSON on P0 UI** (choices rendering, output panel size, Run/Check separation). See [UI prerequisites](#ui-prerequisites-before-curriculum-implementation). |
 
-**Recommended sequencing adjustment:** teach **`len`/`range`/`enumerate` before `while`**, and **`scope` after dictionaries** so learners have seen locals inside loops and dict access before UnboundLocalError reasoning.
+### What changed from the first plan (v1)
+
+| Feedback area | Revision |
+|---------------|----------|
+| Enumerate standalone lesson | **Removed**; preview via `range(len(...))` in Lesson 11; formal `enumerate` in Lesson 19 where index + member both matter |
+| Nested data | **New Lesson 19** — lists of dicts, dicts with lists; bridge to composition |
+| Debugging | **Throughout** + **new Lesson 23** (logic bugs / value tracing) |
+| References / mutation | **New Lesson 24** — aliasing, shared mutable state, copy vs rebind; bridge to OOP |
+| Composition capstone | **Redesigned** — incremental construction from specs, cumulative skills, no large pasted class defs |
+| UI | **Do not workaround** — minimum P0 UI before authoring |
 
 ---
 
@@ -41,67 +51,109 @@ Three specialist reviews converge on the same conclusion:
 | 7 | `collections_03_loops` | Collections | Repeating with for |
 | 8 | `functions_01_basics` | Functions | Defining Functions and return |
 
-**Engine-ready but unused in Phase 1:** `class_defined`, `expression`, `attribute`, `raises`, `mini_project`, `reference_solution`, `allowed_modules`.
-
-**Mastery topics tracked but without content:** `classes`, `composition`, `inheritance`, `debugging`.
-
 ---
 
-## Phase 2 lesson map
+## Phase 2 lesson map (revised)
 
 ```mermaid
 flowchart TB
-  subgraph P1["Phase 1 (complete)"]
+  subgraph P1["Phase 1 (8 lessons)"]
     L1[Print → Functions basics]
   end
-  subgraph S2["Making Decisions"]
+  subgraph S2["Making Decisions (2)"]
     L9[elif]
     L10[Boolean logic]
   end
-  subgraph S3["Collections continued"]
-    L11[len & range]
+  subgraph S3["Collections (6)"]
+    L11[len/range]
     L12[List methods]
-    L13[enumerate]
-    L14[Dicts]
-    L15[Dict iteration]
-    L16[while loops]
+    L13[Dicts]
+    L14[Dict iteration]
+    L15[while]
+    L19[Nested data]
   end
-  subgraph S4["Functions continued"]
-    L17[Multi-param]
-    L18[Defaults]
-    L19[Return structures]
+  subgraph S4["Functions (4)"]
+    L16[Multi-param]
+    L17[Defaults]
+    L18[Return structures]
     L20[Scope]
   end
-  subgraph S5["Text & Errors"]
+  subgraph S5["Text & Errors (3)"]
     L21[String methods]
     L22[Tracebacks]
+    L23[Logic debugging]
   end
-  subgraph S6["Objects & Classes"]
-    L23[Class vs object]
-    L24[__init__ & self]
-    L25[Methods]
-    L26[Composition capstone]
+  subgraph S6["Data & Objects (5)"]
+    L24[Shared references]
+    L25[Class vs object]
+    L26[__init__ & self]
+    L27[Methods]
+    L28[Composition capstone]
   end
-  P1 --> S2 --> S3 --> S4 --> S5 --> S6
+  P1 --> S2 --> S3
+  L18 --> L19 --> L20
+  L20 --> S5 --> L24 --> S6
 ```
 
 ---
 
-## UI authoring constraints for Phase 2
+## UI prerequisites before curriculum implementation
 
-These affect how lessons should be written until UI enhancements land:
+### Limitation classification
 
-| Constraint | Workaround for Phase 2 authoring |
-|------------|----------------------------------|
-| Architecture `choices` not rendered | **Paste numbered options into every `prompt`** |
-| Predict panel capped at ~88px | Keep `code_to_predict` ≤ 4 lines |
-| Answer field is single-line | Multi-line predict answers should be avoided or expressed as `"line1\\nline2"` with clear prompt |
-| Output panel ~96px | Prefer `stdout_contains`; limit printed lines to 3–4 |
-| Run output overwritten by Check | Debug/traceback prompts must say **"Run first to see the error"** |
-| `mini_project` = `write_code` in UI | Capstone → **3–4 sequential exercises** in one lesson, not one blob |
-| No class-specific feedback polish | Write explicit `message` on each class test |
+| # | Limitation | A: Fix before Phase 2 | B: Defer | C: Curriculum-only |
+|---|------------|----------------------|----------|-------------------|
+| 1 | Architecture `choices` not rendered | **Yes** — ~12+ reasoning exercises; Phase 1 `functions_01_ex2` already broken without UI | Styled radios, keyboard nav | **No** — prompt-paste is brittle |
+| 2 | Predict panel ~88px cap | **Partial** — auto-height needed for reference/aliasing predicts | Syntax highlight in predict | Trivial predicts only (≤4 lines) |
+| 3 | Single-line answer field | No | Multi-line answer widget | Yes for rare multi-line predicts |
+| 4 | Output panel ~96px fixed | **Yes** — tracebacks, nested rosters, debug loop | Splitter memory, expand toggle | **No** — capping prints cripples nested data |
+| 5 | Run output overwritten by Check | **Yes** — debug pedagogy requires Run → observe → fix | Full tabbed Output/Check/Hints | **No** — static traceback in prompt ≠ Run debugging |
+| 6 | `mini_project` = `write_code` | No | Milestone UI, rubrics | **Yes** — capstone as sequential `write_code` |
+| 7 | Class-specific feedback weak | No | Engine `improve_class_feedback()` | **Yes** — explicit `message` on each test |
 
-**UI enhancements to request before Phase 2 polish pass:** render architecture choices, expandable traceback/output panels, exercise-type badges, editor auto-hide for non-code exercises, separate hint surface.
+### Minimum UI work (P0 — block curriculum until done)
+
+| Priority | Change | Primary files | Unblocks |
+|----------|--------|---------------|----------|
+| **P0-1** | Render `exercise.choices` for architecture / choice exercises (numbered list or radio group) | `app/widgets/lesson_content.py`, optionally `ide_panel.py` | Architecture reasoning across Phase 2; fixes Phase 1 MCQ gap |
+| **P0-2** | Enlarge output panel — remove fixed 96px; min ~140px + vertical stretch | `app/widgets/output_panel.py`, `ide_panel.py` | Tracebacks, multi-line output, nested-data rosters |
+| **P0-3** | Separate Run output from Check feedback — Run → Output; Check → Feedback; hints not appended to Run output | `app/course_app.py`, `feedback_panel.py` | Debug exercises throughout; traceback lesson |
+
+### High-value P1 (same UI pass if possible)
+
+| Priority | Change | Primary files | Unblocks |
+|----------|--------|---------------|----------|
+| **P1-1** | Auto-height predict code panel (mirror `ExampleBlock`; max ~160–200px, scroll beyond) | `app/widgets/lesson_content.py` | elif/while/scope/reference predictions without dumbing down code |
+
+### Safe to defer (Phase 2 polish / Phase 3)
+
+Exercise-type badges, editor auto-hide for non-code exercises, dedicated hint surface, `mini_project` milestone UI, class feedback engine helper, multi-line free-text answer widget.
+
+---
+
+## Debugging spine (Phase 2)
+
+Debugging is a **normal part of programming**, not a separate topic.
+
+| Layer | Where | Practice |
+|-------|-------|----------|
+| **Micro (every lesson)** | All 20 Phase 2 lessons | ≥1 of: `debug`, `predict_output`, value-tracing `architecture`, or “what line fails?” |
+| **Reading errors** | Lesson 22 `errors_01_tracebacks` | Traceback bottom-up; Name/Type/Index/Key/Syntax errors |
+| **Logic bugs** | Lesson 23 `errors_02_debugging_logic` | Wrong output without crash; trace assumptions; elif/loop/off-by-one mistakes |
+
+**Error-type exposure schedule**
+
+| Error type | First explicit lesson | Reinforced in |
+|------------|----------------------|---------------|
+| Syntax | Phase 1 + Lesson 22 | defaults, methods |
+| NameError | Lesson 22 | scope, shared references |
+| TypeError | Lesson 22 | list methods, methods (missing `self`) |
+| IndexError | Lesson 22 | len/range, nested data |
+| KeyError | Lesson 22 | dicts, nested data |
+| ValueError | Lesson 12 (remove) | while, nested data |
+| Logic (no exception) | Lesson 10 (early) | **Lesson 23**, while, scope, composition |
+
+**Debug exercise contract:** broken starter runs or fails predictably; learner uses **Run** to see error/output; **Check** validates behavior only. After P0-3 UI, prompts need not embed static tracebacks for fix-it exercises.
 
 ---
 
@@ -109,883 +161,350 @@ These affect how lessons should be written until UI enhancements land:
 
 ### Lesson 9 — `decisions_02_elif`
 
-**Title:** More Than Two Outcomes with elif
-
-**Learning objective:** Choose among three or more paths using `if` / `elif` / `else`; trace which block runs for a given value and explain why only one runs.
-
-**Prerequisites:** `decisions_01_conditionals`, comparisons (`>`, `>=`, `==`), variables, f-strings
-
-**Concepts introduced:** `elif`, ordered branch chains, "first true wins," optional final `else`
-
-**Concepts reviewed:** Boolean conditions, indentation, comparisons, f-strings for status output
-
-**Examples:**
-
-```python
-# Health tier
-health = 35
-if health >= 80:
-    print("healthy")
-elif health >= 30:
-    print("wounded")
-else:
-    print("critical")
-```
-
-```python
-# Quest purchasing chain
-gold = 12
-if gold >= 50:
-    print("buy armor")
-elif gold >= 10:
-    print("buy potion")
-else:
-    print("save up")
-```
-
-```python
-# Prediction: level = 5 → only "B" prints
-if level >= 10: print("A")
-elif level >= 5: print("B")
-else: print("C")
-```
-
-**Exercise progression:**
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `predict_output` | Trace 3-branch health tier | ★ confirm |
-| 2 | `fill_blank` | Complete missing `elif` condition | ★★ guided |
-| 3 | `write_code` | `wound_label(health)` via function wrapper | ★★★ independent |
-| 4 | `architecture` | Why `elif` chain vs three separate `if`s | ★★ reasoning |
-
-**Assessment strategy:**
-
-- **Ex 1:** `expected_answer` exact match; failure hints at top-to-bottom evaluation without revealing unprinted branches.
-- **Ex 2–3:** Wrap as `def wound_label(health): ...` with **4+ `function` tests**: `(100,"Healthy")`, `(50,"Wounded")`, `(0,"KO")`, `(1,"Wounded")` — catches hardcoding for starter value only.
-- **Valid alternatives:** `>=` boundary reordering if behavior identical.
-- **Must fail:** `if health == 25: return "Wounded"`; three independent `if`s when chain is required.
-- **Hints:** (1) Python checks conditions in order; first true block wins → (2) middle tier needs `elif`, not second `if` → (3) high → medium → else structure.
-- **Failure feedback:** "Worked for health=25, but …" via existing function feedback.
-
-**Likely misconceptions:** `else if` (invalid syntax); overlapping conditions where learners think multiple blocks run; forgetting `elif` only runs when all earlier conditions were false.
-
-**Relative difficulty:** **2**
+| Field | Value |
+|-------|-------|
+| **Title** | More Than Two Outcomes with elif |
+| **Learning objective** | Choose among three or more paths using `if` / `elif` / `else`; trace which single block runs and explain why. |
+| **Prerequisites** | `decisions_01_conditionals`, comparisons, variables, f-strings |
+| **Concepts introduced** | `elif`, ordered branch chains, “first true wins,” optional final `else` |
+| **Concepts reviewed** | Boolean conditions, indentation, comparisons, f-strings |
+| **Debugging** | Predict: boundary hits wrong tier (logic). Architecture: three separate `if`s vs `elif` chain — double-print bug. |
+| **Examples** | Health tiers (`healthy` / `wounded` / `critical`); gold purchase chain |
+| **Exercise progression** | predict → fill_blank → `write_code` `wound_label(health)` → architecture |
+| **Assessment** | `function` 4+ cases on `wound_label`; architecture via rendered `choices` (P0-1) |
+| **Misconceptions** | `else if` syntax; overlapping conditions; only first match runs |
+| **Difficulty** | **2** |
 
 ---
 
 ### Lesson 10 — `decisions_03_boolean_logic`
 
-**Title:** Combining Conditions with and, or, and not
-
-**Learning objective:** Build compound conditions; evaluate short-circuit logic; use chained comparisons (`0 < health <= 100`).
-
-**Prerequisites:** `decisions_02_elif`, comparisons
-
-**Concepts introduced:** `and`, `or`, `not`, truthiness (intro level), chained comparisons
-
-**Concepts reviewed:** if/elif/else, `==` vs `=`, numeric comparisons
-
-**Examples:**
-
-```python
-has_key = True
-level = 4
-if has_key and level >= 3:
-    print("enter")
-```
-
-```python
-health = 15
-enemies = 3
-if health < 20 or enemies >= 3:
-    print("flee")
-```
-
-```python
-health = 75
-if 0 < health <= 100:
-    print("valid")
-```
-
-**Exercise progression:**
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `predict_output` | Evaluate `and`/`or` with given booleans | ★ |
-| 2 | `fill_blank` | Insert `and` / `or` / `not` | ★★ |
-| 3 | `debug` | Fix `=` vs `==` or wrong operator | ★★ |
-| 4 | `write_code` | `can_enter(has_key, gold)` → `"enter"` / `"wait"` | ★★★ |
-| 5 | `architecture` | Nested `if` vs single compound condition | ★★ |
-
-**Assessment strategy:**
-
-- **Ex 4:** `function` tests — visible: `(True, 15)→"enter"`, `(False, 15)→"wait"`; hidden: `(True, 9)`, `(False, 0)`, `(True, 100)`.
-- **Must fail:** `if has_key: return "enter"` (ignores gold); lookup on two visible pairs only.
-- **Ex 5:** Paste numbered choices in prompt (UI constraint); test choice resolution.
-
-**Likely misconceptions:** English "or" vs logical `or`; assuming both sides of `and` always evaluate; chained comparison before understanding `health > 30 and health < 80`.
-
-**Relative difficulty:** **2–3**
+| Field | Value |
+|-------|-------|
+| **Title** | Combining Conditions with and, or, and not |
+| **Learning objective** | Build compound conditions; short-circuit reasoning; chained comparisons (`0 < health <= 100`). |
+| **Prerequisites** | `decisions_02_elif` |
+| **Concepts introduced** | `and`, `or`, `not`, intro truthiness, chained comparisons |
+| **Concepts reviewed** | if/elif/else, `==` vs `=` |
+| **Debugging** | `debug`: `=` vs `==`. Predict: trace `and`/`or` evaluation. Early logic-error exposure. |
+| **Examples** | Gate: `has_key and level >= 3`; flee: `health < 20 or enemies >= 3` |
+| **Exercise progression** | predict → fill_blank → debug → `write_code` `can_enter(has_key, gold)` → architecture |
+| **Assessment** | `function` 5 cases on `can_enter`; must fail gold-only or key-only shortcuts |
+| **Misconceptions** | English “or” vs logical `or`; chained comparison before decomposed form understood |
+| **Difficulty** | **2–3** |
 
 ---
 
 ## Section 3: Collections (continued)
 
-### Lesson 11 — `collections_04_len_range`
+### Lesson 11 — `collections_04_len_range` *(enumerate integrated, not standalone)*
 
-**Title:** Measuring and Generating Sequences with len and range
-
-**Learning objective:** Use `len()` to measure size; use `range()` to generate numeric sequences; reason about off-by-one boundaries.
-
-**Prerequisites:** lists, indexing, `for` loops
-
-**Concepts introduced:** `len()`, `range(n)`, `range(start, stop)`, loop variable as counter
-
-**Concepts reviewed:** zero-based indexing, `for` loops, f-strings
-
-**Examples:**
-
-```python
-party = ["Aria", "Rook", "Mira"]
-print(len(party))  # 3
-```
-
-```python
-for turn in range(3):
-    print(f"Turn {turn}")  # 0, 1, 2
-```
-
-```python
-for floor in range(1, 4):
-    print(f"Floor {floor}")  # 1, 2, 3
-```
-
-**Exercise progression:**
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `predict_output` | `len(inventory)` and small `range` loop | ★ |
-| 2 | `fill_blank` | Complete `range(...)` to print 0..2 | ★★ |
-| 3 | `write_code` | `last_item(items)` using `len` or negative index | ★★ |
-| 4 | `write_code` | `numbered_lines(items)` with `enumerate(..., start=1)` | ★★★ |
-
-**Assessment strategy:**
-
-- **Ex 3:** `function` with `["a","b","c"]`, `["solo"]`, `[]` (define empty behavior: `None` or raise), `[1,2,3,4]`.
-- **Must pass:** `items[-1]` and `items[len(items)-1]` as equivalent alternatives.
-- **Must fail:** hardcoded `"c"`; `return items[3]`.
-
-**Likely misconceptions:** `range(3)` includes 3 (stop is exclusive); using `len` on a number; confusing index with count.
-
-**Relative difficulty:** **2**
+| Field | Value |
+|-------|-------|
+| **Title** | Measuring and Generating Sequences with len and range |
+| **Learning objective** | Use `len()` and `range()`; off-by-one boundaries; use `range(len(seq))` when an index is needed (**enumerate deferred**). |
+| **Prerequisites** | lists, indexing, `for` loops |
+| **Concepts introduced** | `len()`, `range(n)`, `range(start, stop)`, index via `range(len())` |
+| **Concepts reviewed** | zero-based indexing, `for` loops, f-strings |
+| **Debugging** | Predict: `range(3)` stop exclusive. Debug: off-by-one `items[len(items)]`. |
+| **Examples** | `len(party)`; `for turn in range(3)`; `for i in range(len(items))` numbering |
+| **Exercise progression** | predict → fill_blank → `write_code` `last_item(items)` → `write_code` `numbered_lines(items)` using **`range(len(items))`** |
+| **Assessment** | Accept `items[-1]`; `function` cases include `[]`; numbering via index loop (not enumerate yet) |
+| **Enumerate note** | Sets up the problem enumerate solves; payoff in Lesson 19 |
+| **Difficulty** | **2** |
 
 ---
 
 ### Lesson 12 — `collections_05_list_methods`
 
-**Title:** Checking and Changing Lists with in, remove, and pop
-
-**Learning objective:** Test membership with `in`; remove items by value or index; predict in-place mutation after each operation.
-
-**Prerequisites:** lists, `append`, loops, `len`
-
-**Concepts introduced:** `in` / `not in`, `.remove(value)`, `.pop()` / `.pop(index)`, in-place mutation
-
-**Concepts reviewed:** `append`, indexing, `for` loops, mutability
-
-**Examples:**
-
-```python
-inventory = ["sword", "shield", "potion"]
-if "potion" in inventory:
-    print("ready")
-```
-
-```python
-inventory.remove("torch")  # ValueError if missing — note in passing
-last = inventory.pop()
-first = inventory.pop(0)
-```
-
-**Exercise progression:**
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `predict_output` | Trace list after `remove` / `pop` | ★ |
-| 2 | `write_code` | `if "key" in items: print("found")` | ★★ |
-| 3 | `debug` | Fix wrong `remove` argument or type | ★★ |
-| 4 | `write_code` | Remove `"curse"` if present, print list | ★★★ |
-
-**Likely misconceptions:** `remove` returns new list; index vs value confusion; modifying list during iteration.
-
-**Relative difficulty:** **2–3**
+| Field | Value |
+|-------|-------|
+| **Title** | Checking and Changing Lists with in, remove, and pop |
+| **Learning objective** | Membership with `in`; remove by value/index; predict in-place mutation. |
+| **Prerequisites** | lists, `append`, loops, `len` |
+| **Concepts introduced** | `in` / `not in`, `.remove()`, `.pop()` / `.pop(index)` |
+| **Concepts reviewed** | `append`, indexing, mutability |
+| **Debugging** | Predict after `pop(0)`. Debug: wrong `remove` argument. |
+| **Exercise progression** | predict → write_code (membership) → debug → write_code (conditional remove) |
+| **Assessment** | Behavioral list state; mention ValueError on missing remove in passing |
+| **Difficulty** | **2–3** |
 
 ---
 
-### Lesson 13 — `collections_06_enumerate`
+### Lesson 13 — `collections_07_dictionaries`
 
-**Title:** Looping with Index and Value using enumerate
-
-**Learning objective:** When both position and value matter, use `enumerate` instead of manual counters or `range(len)`.
-
-**Prerequisites:** `for` loops, indexing, `len`/`range`
-
-**Concepts introduced:** `enumerate(seq)`, unpacking `for i, item in enumerate(...)`, optional `start=`
-
-**Concepts reviewed:** zero-based indexing, f-strings, labeled output
-
-**Examples:**
-
-```python
-party = ["Aria", "Rook", "Mira"]
-for i, name in enumerate(party):
-    print(f"{i}: {name}")
-```
-
-```python
-for rank, item in enumerate(inventory, start=1):
-    print(f"{rank}. {item}")
-```
-
-**Exercise progression:**
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `predict_output` | Small `enumerate` loop | ★ |
-| 2 | `fill_blank` | Replace `range(len(...))` with `enumerate` | ★★ |
-| 3 | `write_code` | Numbered quest log lines | ★★★ |
-| 4 | `architecture` | `for item in list` vs `enumerate` given task | ★★ |
-
-**Likely misconceptions:** unpacking `i, item` feels magical; off-by-one with `start=1`.
-
-**Relative difficulty:** **3**
+| Field | Value |
+|-------|-------|
+| **Title** | Storing Labeled Data in Dictionaries |
+| **Learning objective** | Create dicts; read/update by key; model stats as labeled data vs parallel lists. |
+| **Prerequisites** | variables, strings, indexing concept |
+| **Concepts introduced** | `{key: value}`, `d["key"]`, assignment updates |
+| **Concepts reviewed** | f-strings, comparisons |
+| **Debugging** | Predict after gold update. Debug: wrong brackets / unquoted key. |
+| **Examples** | `hero = {"name": "Mira", "health": 42, "gold": 10}` |
+| **Exercise progression** | predict → fill_blank → `write_code` `make_stats(name, hp, gold)` → purchase check |
+| **Assessment** | `function` returning dict; 3+ input cases |
+| **Difficulty** | **3** |
 
 ---
 
-### Lesson 14 — `collections_07_dictionaries`
+### Lesson 14 — `collections_08_dict_iteration`
 
-**Title:** Storing Labeled Data in Dictionaries
-
-**Learning objective:** Create dicts; read/update values by key; model entity stats as labeled data instead of parallel lists.
-
-**Prerequisites:** variables, strings, indexing concept (keys vs integer indices)
-
-**Concepts introduced:** `{key: value}`, `d["health"]`, assignment updates, keys as labels
-
-**Concepts reviewed:** types, f-strings, comparisons on dict values
-
-**Examples:**
-
-```python
-hero = {"name": "Mira", "health": 42, "gold": 10}
-print(hero["name"])
-hero["gold"] = hero["gold"] + 5
-```
-
-```python
-stats = {"health": 80, "mana": 30}
-if stats["health"] > 0:
-    print("standing")
-```
-
-**Exercise progression:**
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `predict_output` | Read/update small character dict | ★ |
-| 2 | `fill_blank` | Complete key lookup and update | ★★ |
-| 3 | `write_code` | `make_stats(name, hp, gold)` returns dict | ★★ |
-| 4 | `write_code` | Purchase check using `if stats["gold"] >= price` | ★★★ |
-
-**Likely misconceptions:** integer indices on dicts; `{` vs `[`; assuming key order matters for lookup.
-
-**Relative difficulty:** **3**
+| Field | Value |
+|-------|-------|
+| **Title** | Visiting Every Entry in a Dictionary |
+| **Learning objective** | Loop keys and `.items()`; `.get(key, default)` for safe reads. |
+| **Prerequisites** | `collections_07_dictionaries`, `for` loops |
+| **Concepts introduced** | `for key in d`, `.items()`, `.get()` |
+| **Concepts reviewed** | f-strings, unpacking, conditionals |
+| **Debugging** | Debug: loop treats `.items()` as keys only. |
+| **Exercise progression** | predict (keys vs items) → write_code (stat lines) → debug → `write_code` `price(item, shop)` |
+| **Assessment** | `function` with shop dict arg; `.get(item, 0)` for missing keys |
+| **Difficulty** | **3** |
 
 ---
 
-### Lesson 15 — `collections_08_dict_iteration`
+### Lesson 15 — `collections_09_while`
 
-**Title:** Visiting Every Entry in a Dictionary
-
-**Learning objective:** Loop over keys and key-value pairs; use `.get()` for safe reads with a default.
-
-**Prerequisites:** `collections_07_dictionaries`, `for` loops
-
-**Concepts introduced:** `for key in d`, `.items()`, `.get(key, default)`
-
-**Concepts reviewed:** f-strings, unpacking, conditionals
-
-**Examples:**
-
-```python
-inventory = {"sword": 1, "potion": 3}
-for item, count in inventory.items():
-    print(f"{item}: {count}")
-```
-
-```python
-bonus = stats.get("luck", 0)  # 0 if missing
-```
-
-**Exercise progression:**
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `predict_output` | Keys-only loop vs `.items()` | ★ |
-| 2 | `write_code` | Print each `stat: value` line | ★★ |
-| 3 | `debug` | Fix loop assuming `.items()` returns only keys | ★★ |
-| 4 | `write_code` | `price(item, shop)` → price or `0` if missing | ★★★ |
-
-**Assessment strategy:**
-
-- **Ex 4:** 5 `function` tests passing shop dict as arg; must pass `.get(item, 0)` or `if item in shop`.
-- **Must fail:** bare `shop[item]` when spec requires 0 for missing keys.
-
-**Likely misconceptions:** `for x in dict` yields values; overusing `.get()` when key is guaranteed.
-
-**Relative difficulty:** **3**
-
----
-
-### Lesson 16 — `collections_09_while`
-
-**Title:** Repeating While a Condition Holds
-
-**Learning objective:** Use `while` for condition-driven repetition; trace loop exit; connect to infinite-loop safety (app timeout message).
-
-**Prerequisites:** `decisions_03_boolean_logic`, variables, reassignment, **`collections_04_len_range`** (teach len/range before while)
-
-**Concepts introduced:** `while condition:`, loop condition eventually false, counters/accumulators
-
-**Concepts reviewed:** comparisons, compound conditions, reassignment, `print` tracing
-
-**Examples:**
-
-```python
-shield = 3
-while shield > 0:
-    print("block")
-    shield = shield - 1
-print("broken")
-```
-
-```python
-# Infinite loop warning — tie to app timeout
-health = 50
-while health > 0:
-    print("still fighting")  # forgot to decrease
-```
-
-**Exercise progression:**
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `predict_output` | Small finite `while` | ★ |
-| 2 | `fill_blank` | Complete decrement so loop terminates | ★★ |
-| 3 | `debug` | Fix missing update / infinite loop | ★★ |
-| 4 | `write_code` | `drain_total(numbers)` pops until empty, returns sum | ★★★ |
-| 5 | `architecture` | Choose `for` vs `while` | ★★ |
-
-**Assessment strategy:**
-
-- **Ex 4:** `function` with `[10,5,1]→16`, `[]→0`, `[7]`, `[1,1,1,1]`.
-- Infinite loops caught by runner timeout — existing `TIMEOUT_MESSAGE`.
-- Optional engine extension: `source_uses` feature `while_loop`.
-
-**Likely misconceptions:** `while` vs `for` selection; forgetting to update loop variable; using `while` when `for item in collection` is simpler.
-
-**Relative difficulty:** **3–4**
+| Field | Value |
+|-------|-------|
+| **Title** | Repeating While a Condition Holds |
+| **Learning objective** | Condition-driven repetition; trace exit; connect missing updates to timeout message. |
+| **Prerequisites** | boolean logic, reassignment, `collections_04_len_range` |
+| **Concepts introduced** | `while condition:`, counters/accumulators, termination |
+| **Concepts reviewed** | comparisons, compound conditions |
+| **Debugging** | Debug: missing decrement (timeout). Predict finite while. Architecture: `for` vs `while`. |
+| **Exercise progression** | predict → fill_blank → debug → `write_code` `drain_total(numbers)` → architecture |
+| **Assessment** | `function` 4 cases; infinite loop caught by runner |
+| **Difficulty** | **3–4** |
 
 ---
 
 ## Section 4: Functions (continued)
 
-### Lesson 17 — `functions_02_parameters`
+### Lesson 16 — `functions_02_parameters`
 
-**Title:** Functions with Multiple Parameters
-
-**Learning objective:** Define and call functions with two or more parameters; understand argument order; pass collections into functions.
-
-**Prerequisites:** `functions_01_basics`, lists, dicts
-
-**Concepts introduced:** Multi-parameter signatures, argument order, passing list/dict into functions
-
-**Concepts reviewed:** `return`, f-strings, dict/list access inside functions
-
-**Examples:**
-
-```python
-def damage(attack, defense):
-    return max(0, attack - defense)
-```
-
-```python
-def item_line(name, qty):
-    return f"- {qty}x {name}"
-```
-
-**Exercise progression:**
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `predict_output` | Call with two args | ★ |
-| 2 | `fill_blank` | Complete signature/body | ★★ |
-| 3 | `write_code` | `apply_bonus(stats, amount)` returns new health | ★★ |
-| 4 | `write_code` | `party_summary(names, leader_index)` returns f-string | ★★★ |
-
-**Likely misconceptions:** argument order swapped; mutating global vs returning new value (preview scope lesson).
-
-**Relative difficulty:** **2–3**
+| Field | Value |
+|-------|-------|
+| **Title** | Functions with Multiple Parameters |
+| **Learning objective** | Multi-parameter signatures; argument order; pass collections into functions. |
+| **Prerequisites** | `functions_01_basics`, lists, dicts |
+| **Concepts introduced** | Multi-param defs, ordered args, collection parameters |
+| **Concepts reviewed** | `return`, f-strings, dict/list access |
+| **Debugging** | Debug: swapped arguments at call site. Predict two-arg call. |
+| **Exercise progression** | predict → fill_blank → debug → `apply_bonus` → `party_summary` |
+| **Assessment** | 4+ `function` cases each |
+| **Difficulty** | **2–3** |
 
 ---
 
-### Lesson 18 — `functions_03_defaults`
+### Lesson 17 — `functions_03_defaults`
 
-**Title:** Optional Parameters with Default Values
-
-**Learning objective:** Give parameters defaults; call with fewer arguments; reason about which value binds where.
-
-**Prerequisites:** `functions_02_parameters`
-
-**Concepts introduced:** `def greet(name, title="Traveler")`, optional omission
-
-**Concepts reviewed:** return, f-strings, multiple parameters
-
-**Examples:**
-
-```python
-def greet(name, title="Traveler"):
-    return f"Welcome, {title} {name}"
-
-print(greet("Mira"))
-print(greet("Mira", "Captain"))
-```
-
-```python
-def heal(health, amount=10):
-    return health + amount
-```
-
-**Exercise progression:**
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `predict_output` | Call with and without optional arg | ★ |
-| 2 | `fill_blank` | Add default parameter | ★★ |
-| 3 | `write_code` | `format_loot(item, quantity=1)` | ★★ |
-| 4 | `architecture` | When defaults help vs always explicit | ★★ |
-
-**Assessment strategy:**
-
-- Include `kwargs` test: `greet("X", title="Guide")`.
-- **Must fail:** hardcoding `"Traveler"` in body ignoring parameter.
-- **Warn only:** mutable default args (`def f(items=[])`) — defer deep dive to Phase 3.
-
-**Likely misconceptions:** non-default params after defaults (syntax error); mutable defaults.
-
-**Relative difficulty:** **3**
+| Field | Value |
+|-------|-------|
+| **Title** | Optional Parameters with Default Values |
+| **Learning objective** | Defaults in signature; call with fewer args; binding rules. |
+| **Prerequisites** | `functions_02_parameters` |
+| **Concepts introduced** | Default parameter values, optional omission |
+| **Concepts reviewed** | return, f-strings |
+| **Debugging** | Debug: SyntaxError from param order. Predict with/without optional arg. |
+| **Exercise progression** | predict → fill_blank → debug → `format_loot(item, quantity=1)` → architecture |
+| **Assessment** | Include `kwargs` test; warn on mutable defaults (defer deep dive) |
+| **Difficulty** | **3** |
 
 ---
 
-### Lesson 19 — `functions_04_returning_data`
+### Lesson 18 — `functions_04_returning_data`
 
-**Title:** Returning Lists and Dictionaries from Functions
+| Field | Value |
+|-------|-------|
+| **Title** | Returning Lists and Dictionaries from Functions |
+| **Learning objective** | Return structured data; contrast return vs in-place mutation; `list()` copy preview. |
+| **Prerequisites** | functions, lists, dicts, loops |
+| **Concepts introduced** | Returning composites; assembling structures in function body |
+| **Concepts reviewed** | `return` vs `print`, `append`, dict literals |
+| **Debugging** | Debug: missing `return` → `None`. Architecture: mutate input vs return new list. |
+| **Exercise progression** | predict → `new_quest` → debug → `add_item` (returns **new** list) → `build_party()` (list of dicts — sets up Lesson 19) |
+| **Assessment** | List equality via `function`; caller-owned list unchanged when spec requires new list |
+| **Difficulty** | **3** |
 
-**Learning objective:** Build and return structured data; caller stores and uses the result — reinforcing print vs return at scale.
+---
 
-**Prerequisites:** functions, lists, dicts, loops
+### Lesson 19 — `collections_10_nested_data` *(NEW — conceptual bridge to composition)*
 
-**Concepts introduced:** Returning composite values; assembling dict/list in function body
-
-**Concepts reviewed:** `return` vs `print`, `for`, `append`, dict literals
-
-**Examples:**
-
-```python
-def make_character(name, health):
-    return {"name": name, "health": health}
-```
-
-```python
-def add_item(inventory, item):
-    result = list(inventory)
-    result.append(item)
-    return result  # contrast with in-place append lesson
-```
-
-**Exercise progression:**
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `predict_output` | Function returns dict; caller indexes | ★ |
-| 2 | `write_code` | `new_quest(title, reward)` returns dict | ★★ |
-| 3 | `write_code` | `add_item(inventory, item)` returns **new** list | ★★★ |
-| 4 | `mini_project`* | `build_party()` + `format_roster(party)` | ★★★ |
-
-*Author as 2 sequential `write_code` exercises (UI constraint).
-
-**Likely misconceptions:** returning `None`; aliasing same mutable list every call.
-
-**Relative difficulty:** **3**
+| Field | Value |
+|-------|-------|
+| **Title** | Working with Nested Lists and Dictionaries |
+| **Learning objective** | Combine lists and dicts into larger data models; access/modify nested values; loop nested structures; understand that **big models are built from smaller structures**. |
+| **Prerequisites** | dicts, dict iteration, list methods, loops, `functions_04_returning_data` |
+| **Concepts introduced** | List of dicts, dict containing lists, chained indexing `party[0]["health"]`, nested loops, **`enumerate(party, start=1)`** (formal intro — index + member both matter) |
+| **Concepts reviewed** | `.get()`, f-strings, conditionals, `append`, functions returning structures |
+| **Debugging** | Predict nested update. Debug: KeyError wrong depth. Debug: append to wrong nested list. |
+| **Examples** | `party = [{"name": "Aria", "health": 80}, {"name": "Rook", "health": 100}]`; `character = {"name": "Aria", "inventory": ["sword", "potion"]}` |
+| **Exercise progression** | predict → debug (KeyError) → `add_to_inventory(character, item)` → `total_party_health(party)` → numbered roster with **`enumerate`** → architecture (list of dicts vs parallel lists vs flat dict) |
+| **Assessment** | **`function` with partial fixtures** — not full nested literal equality. Test paths: `party[0]["health"]`, `total_party_health`, mutation visibility. Avoid brittle full-object compares. |
+| **Misconceptions** | Wrong nesting level; confusing list index with dict key; parallel lists instead of combined model |
+| **Difficulty** | **3–4** |
 
 ---
 
 ### Lesson 20 — `functions_05_scope`
 
-**Title:** Local Names and Global Names
-
-**Learning objective:** Predict whether a name is local or global; understand parameters are local; prefer return over global mutation.
-
-**Prerequisites:** functions, assignment, **`collections_07_dictionaries`** (locals seen in loops/dicts first)
-
-**Concepts introduced:** Local scope in function body, module-level globals, read global vs assign local
-
-**Concepts reviewed:** parameters, return, NameError
-
-**Examples:**
-
-```python
-gold = 100
-
-def spend(amount):
-    remaining = gold - amount  # read global, local remaining
-    return remaining
-```
-
-```python
-def double(x):
-    x = x * 2  # local rebinding only
-    return x
-```
-
-**Exercise progression:**
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `predict_output` | Parameter shadows outer variable | ★ |
-| 2 | `predict_output` / `architecture` | Assignment inside function doesn't change outer | ★★ |
-| 3 | `debug` | Fix UnboundLocalError via parameter/return | ★★★ |
-| 4 | `write_code` | Pure `apply_damage(health, hit)` — no globals | ★★★ |
-| 5 | `architecture` | Return vs mutating global gold | ★★ |
-
-**Assessment strategy:**
-
-- Starter includes misleading global `score=999`; `expression` verifies global unchanged after call.
-- **`global` keyword:** mention exists; do not require in Phase 2.
-
-**Likely misconceptions:** assignment inside function updates global automatically; parameters as persistent "memory" between calls.
-
-**Relative difficulty:** **3–4**
+| Field | Value |
+|-------|-------|
+| **Title** | Local Names and Global Names |
+| **Learning objective** | Local vs global; parameters are local; prefer return over global mutation. |
+| **Prerequisites** | functions, nested data (locals in loops over dicts) |
+| **Concepts introduced** | Local scope, module globals, read global vs assign local |
+| **Concepts reviewed** | parameters, return, NameError |
+| **Debugging** | Debug: UnboundLocalError. Predict: inner assignment doesn't change outer. |
+| **Exercise progression** | predict → predict/architecture → debug → pure `apply_damage(health, hit)` → architecture |
+| **Assessment** | Misleading global in starter + `expression` verifies global unchanged; **`global` keyword mentioned, not required** |
+| **Difficulty** | **3–4** |
 
 ---
 
-## Section 5: Working with Text
+## Section 5: Text & Errors
 
 ### Lesson 21 — `strings_01_methods`
 
-**Title:** Cleaning and Comparing Strings with Methods
-
-**Learning objective:** Use `.lower()`, `.upper()`, `.strip()`, `.split()`; substring checks with `in`; strings are immutable.
-
-**Prerequisites:** strings, f-strings, functions, `in` from lists
-
-**Concepts introduced:** Method call syntax on strings; immutability (methods return new strings)
-
-**Concepts reviewed:** `in`, comparisons, conditionals
-
-**Examples:**
-
-```python
-code = "  OPEN  "
-if code.strip().lower() == "open":
-    print("door unlocks")
-```
-
-```python
-quest = "Find the Dragon Key"
-if "key" in quest.lower():
-    print("key quest")
-```
-
-**Exercise progression:**
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `predict_output` | `strip().lower()` chain | ★ |
-| 2 | `fill_blank` | Normalize input before compare | ★★ |
-| 3 | `debug` | Fix `s.strip()` without reassignment | ★★ |
-| 4 | `write_code` | `clean_command(text)` → stripped lowercase | ★★★ |
-
-**Likely misconceptions:** strings mutate like lists; case-sensitive comparison bugs.
-
-**Relative difficulty:** **2–3**
+| Field | Value |
+|-------|-------|
+| **Title** | Cleaning and Comparing Strings with Methods |
+| **Learning objective** | `.lower()`, `.strip()`, `.split()`; substring `in`; immutability. |
+| **Prerequisites** | strings, f-strings, functions, `in` |
+| **Concepts introduced** | String methods; methods return new strings |
+| **Concepts reviewed** | comparisons, conditionals |
+| **Debugging** | Debug: `s.strip()` without reassignment. |
+| **Exercise progression** | predict → fill_blank → debug → `clean_command(text)` |
+| **Assessment** | 4 `function` cases; accept order-equivalent `strip().lower()` |
+| **Difficulty** | **2–3** |
 
 ---
-
-## Section 6: Reading Errors
 
 ### Lesson 22 — `errors_01_tracebacks`
 
-**Title:** Reading Tracebacks and Common Errors
-
-**Learning objective:** Read traceback bottom-up; identify error type and line; connect message to fix strategy.
-
-**Prerequisites:** variables, functions, lists, dicts, scope intro
-
-**Concepts introduced:** Traceback structure, `NameError`, `TypeError`, `IndexError`, `KeyError`, syntax error indicators
-
-**Concepts reviewed:** scope, indexing, dict keys, function arity
-
-**Examples:**
-
-```python
-# NameError
-print(score)
-
-# IndexError
-party = ["Aria"]
-print(party[3])
-
-# KeyError
-stats = {"health": 10}
-print(stats["mana"])
-```
-
-**Exercise progression:**
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `architecture` | Match error type to snippet | ★ |
-| 2 | `debug` | Fix NameError (typo) | ★★ |
-| 3 | `debug` | Fix TypeError (wrong arity) | ★★ |
-| 4 | `debug` | Fix IndexError (off-by-one) | ★★★ |
-| 5 | `architecture` | Match error message to likely cause | ★★ |
-
-**Assessment strategy:**
-
-- **UI constraint:** embed short tracebacks (~3 lines) in **`prompt`** as preformatted text, not long `code_to_predict`.
-- Debug exercises: prompt must say **"Run first to see the error."**
-- Architecture: paste all snippet/choice options in prompt.
-
-**Likely misconceptions:** reading top of traceback first; treating all errors as "syntax errors"; random editing instead of tracing named line.
-
-**Relative difficulty:** **3**
-
-*Advanced debugging workflow (print debugging, bisection) deferred to Phase 3.*
+| Field | Value |
+|-------|-------|
+| **Title** | Reading Tracebacks and Common Errors |
+| **Learning objective** | Read traceback bottom-up; map error type → fix strategy; **syntax vs runtime**. |
+| **Prerequisites** | variables, functions, lists, dicts, scope, nested data |
+| **Concepts introduced** | Traceback structure; NameError, TypeError, IndexError, KeyError, SyntaxError |
+| **Concepts reviewed** | scope, indexing, dict keys, nested access |
+| **Debugging** | **Core reading lesson.** Architecture: match error type. Debug: fix Name, Type, Index/Key errors using **Run** (after P0-3). |
+| **Exercise progression** | architecture → debug ×3 → architecture (message → cause) |
+| **Assessment** | After P0 UI: rely on Run tracebacks, not prompt-embedded traces for fix exercises |
+| **Difficulty** | **3** |
 
 ---
 
-## Section 7: Objects and Classes
+### Lesson 23 — `errors_02_debugging_logic` *(NEW — second dedicated debugging lesson)*
 
-### Lesson 23 — `classes_01_objects`
-
-**Title:** Classes, Objects, and References
-
-**Learning objective:** Distinguish class (blueprint) from object (instance); create instances; access attributes with dot notation.
-
-**Prerequisites:** dicts (attribute analogy), functions (methods preview), types
-
-**Concepts introduced:** `class Name:`, instantiation `Name()`, attribute access `obj.attr`, multiple independent instances
-
-**Concepts reviewed:** dict key access vs dot access, f-strings
-
-**Examples:**
-
-```python
-class Character:
-    pass
-
-hero = Character()
-hero.name = "Mira"
-hero.health = 40
-
-a = Character()
-b = Character()
-a.name = "Rook"  # b.name is separate
-```
-
-**Exercise progression:**
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `predict_output` | Two instances, different attributes | ★ |
-| 2 | `fill_blank` | Create instance and set attributes | ★★ |
-| 3 | `write_code` | Define `Item` class; create `sword` with `name` | ★★ |
-| 4 | `architecture` | Dict vs object — when labeled fields + behavior suggest a class | ★★ |
-
-**Assessment strategy:**
-
-- Always pair `class_defined` with `expression` instantiation tests.
-- Two-instance independence tests catch shared-state bugs early.
-- Write explicit `message` on each test (UI lacks class-specific feedback polish).
-
-**Likely misconceptions:** class and object are the same; attributes exist on class for all instances without assignment; `Character()` vs `Character`.
-
-**Relative difficulty:** **3**
+| Field | Value |
+|-------|-------|
+| **Title** | Finding Logic Bugs and Tracing Values |
+| **Learning objective** | Fix programs that **run but produce wrong output**; trace values through branches/loops; distinguish **syntax, runtime, and logical** errors. |
+| **Prerequisites** | `errors_01_tracebacks`, elif, while, dicts, functions, nested data |
+| **Concepts introduced** | Logical errors, assumption checking, lightweight print-as-tracer, expected vs actual |
+| **Concepts reviewed** | elif ordering, loop counters, dict lookups, off-by-one |
+| **Debugging** | **Core lesson — all exercises are debug/predict/architecture.** |
+| **Examples** | Wrong elif tier printed; while counter logic off; nested loop sums wrong field; function uses wrong dict key |
+| **Exercise progression** | architecture (error class) → predict (value trace through elif) → debug (while logic) → debug (nested loop) → debug (function wrong key) → architecture (next debugging step) |
+| **Assessment** | No greenfield `write_code`; behavioral tests after fix |
+| **Difficulty** | **3–4** |
 
 ---
 
-### Lesson 24 — `classes_02_init`
+## Section 6: Data Modeling & Objects
 
-**Title:** Initializing Objects with __init__ and self
+### Lesson 24 — `data_01_shared_references` *(NEW — before any class lesson)*
 
-**Learning objective:** Write `__init__` to set initial state; understand `self` as the current instance reference.
-
-**Prerequisites:** `classes_01_objects`, functions with parameters
-
-**Concepts introduced:** `def __init__(self, ...)`, `self.attr = ...`, constructor runs on instantiation
-
-**Concepts reviewed:** parameters, assignment, dict-like state
-
-**Examples:**
-
-```python
-class Character:
-    def __init__(self, name, health):
-        self.name = name
-        self.health = health
-
-hero = Character("Mira", 42)
-```
-
-```python
-class Quest:
-    def __init__(self, title, reward):
-        self.title = title
-        self.reward = reward
-```
-
-**Exercise progression:**
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `predict_output` | `__init__` sets attributes | ★ |
-| 2 | `fill_blank` | Complete `__init__` body | ★★ |
-| 3 | `write_code` | `Item(name, weight)` class | ★★ |
-| 4 | `write_code` | `Character` with three stats; status via f-string outside class | ★★★ |
-
-**Assessment strategy:**
-
-- `expression`: `Character("A",10).hp` and `Character("B",99).hp`; verify `Character("A",10).hp` still 10 after creating B.
-- **Must fail:** shared class-level variable for hp (tests detect mutation bleed).
-
-**Likely misconceptions:** forgetting `self` in parameter list or assignments; calling `__init__` manually; treating `self` as optional magic.
-
-**Relative difficulty:** **4**
+| Field | Value |
+|-------|-------|
+| **Title** | Shared References and Mutable State |
+| **Learning objective** | Predict when two names refer to the **same mutable object**; explain why mutating through one name affects the other; contrast **rebinding** (`=`) vs **mutating** (`.append`). Connect to OOP: `Character(stats)` holds a **reference**, not a magical copy. |
+| **Prerequisites** | list/dict mutation, nested data, scope basics, `errors_02_debugging_logic` |
+| **Concepts introduced** | Aliasing, shared references, `is` vs `==` (intro), rebind vs mutate, shallow copy via `list()` / `dict()` |
+| **Concepts reviewed** | `append`, nested lists in dicts, return-new-list from Lesson 18 |
+| **Debugging** | Predict: `inventory = ["sword"]; player_inventory = inventory; player_inventory.append("potion")` — both names see change. Debug: two dicts share same inventory list. |
+| **Examples** | Shared list alias; shared nested dict; `copy_inventory` returns independent list |
+| **Exercise progression** | predict (shared append) → predict (rebind vs mutate) → debug (shared inventory bug) → `give_item(owner, item)` → architecture (copy vs alias) → `copy_inventory(items)` |
+| **Assessment** | **`expression` with `is`**: `alias is original` → True; after copy, `is` → False. Mutation tests: `len(backup)` reflects change through alias. **Must fail** accidental `.copy()` when alias intended. |
+| **OOP bridge** | Closing note: class attribute storing a list holds a **reference** — Lesson 25 connects this to objects. |
+| **Difficulty** | **3–4** |
 
 ---
 
-### Lesson 25 — `classes_03_methods`
+### Lesson 25 — `classes_01_objects`
 
-**Title:** Instance Methods and Using self
-
-**Learning objective:** Define methods that read/update instance state; call via `obj.method()`; apply print vs return reasoning to methods.
-
-**Prerequisites:** `classes_02_init`, `functions_01_basics`
-
-**Concepts introduced:** Instance methods, `self` in method body, behavior + state together
-
-**Concepts reviewed:** return vs print, mutating attributes, f-strings, conditionals
-
-**Examples:**
-
-```python
-class Character:
-    def __init__(self, name, health):
-        self.name = name
-        self.health = health
-
-    def take_damage(self, amount):
-        self.health = self.health - amount
-
-    def is_standing(self):
-        return self.health > 0
-
-    def describe(self):
-        return f"{self.name} has {self.health} HP"
-```
-
-**Exercise progression:**
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `predict_output` | Method changes `health` | ★ |
-| 2 | `fill_blank` | Implement one method with `self` | ★★ |
-| 3 | `write_code` | `heal(amount)` method | ★★ |
-| 4 | `architecture` | Should `describe` print or return? | ★★ |
-| 5 | `write_code` | `Potion.use(character)` increases health | ★★★ |
-
-**Assessment strategy:**
-
-- Sequential `expression` tests in same namespace: create, heal(10), heal(5), read hp.
-- Second object unaffected — independence test.
-- **Debug exercise:** fix `def heal(amount):` missing `self` → TypeError.
-
-**Likely misconceptions:** missing `self` on definition; `take_damage(5)` vs `hero.take_damage(5)`; methods outside class indentation.
-
-**Relative difficulty:** **4**
+| Field | Value |
+|-------|-------|
+| **Title** | Classes and Objects |
+| **Learning objective** | Class (blueprint) vs object (instance); create instances; dot attributes; **independent instances**; optional preview that two attributes can alias same mutable (callback to Lesson 24). |
+| **Prerequisites** | dicts, functions, **`data_01_shared_references`** |
+| **Concepts introduced** | `class Name:`, `Name()`, `obj.attr`, multiple instances |
+| **Concepts reviewed** | dict access vs dot access; reference behavior |
+| **Debugging** | Predict: two instances, separate attributes. Debug: `Character` vs `Character()`. |
+| **Exercise progression** | predict → fill_blank → debug → minimal `Item` class → architecture (dict vs object) |
+| **Assessment** | `class_defined` + `expression` instantiation; two-instance independence |
+| **Difficulty** | **3** |
 
 ---
 
-### Lesson 26 — `classes_04_composition` *(Phase 2 capstone)*
+### Lesson 26 — `classes_02_init`
 
-**Title:** Objects Containing Other Objects (has-a)
+| Field | Value |
+|-------|-------|
+| **Title** | Initializing Objects with __init__ and self |
+| **Learning objective** | Write `__init__`; understand `self`; **each instance gets its own mutable containers** (e.g. `inventory=[]` in `__init__`, not class level). |
+| **Prerequisites** | `classes_01_objects`, shared references |
+| **Concepts introduced** | `def __init__(self, ...)`, `self.attr = ...` |
+| **Concepts reviewed** | parameters, per-instance lists |
+| **Debugging** | Debug: **class-level list shared across instances** — feedback ties to Lesson 24. |
+| **Exercise progression** | predict → fill_blank → debug (shared class list) → `Item(name, weight)` → `Character` three stats |
+| **Assessment** | Two-instance test: `a.inventory is b.inventory` → False |
+| **Difficulty** | **4** |
 
-**Learning objective:** Model has-a relationships: party has characters, character has inventory; delegate behavior without inheritance.
+---
 
-**Prerequisites:** classes, methods, lists, dicts, loops, functions returning objects
+### Lesson 27 — `classes_03_methods`
 
-**Concepts introduced:** Composition, nested objects, list of instances, object references
+| Field | Value |
+|-------|-------|
+| **Title** | Instance Methods and Using self |
+| **Learning objective** | Methods read/update instance state; `obj.method()`; print vs return for methods. |
+| **Prerequisites** | `classes_02_init`, functions, conditionals |
+| **Concepts introduced** | Instance methods, `self` in body |
+| **Concepts reviewed** | return vs print, mutating attributes, conditionals |
+| **Debugging** | Debug: missing `self` → TypeError. Predict: method changes `health`. |
+| **Exercise progression** | predict → fill_blank → debug → architecture (describe: print or return?) → `heal(amount)` → `Potion.use(character)` |
+| **Assessment** | Sequential `expression` tests in same namespace; explicit `message` on failures |
+| **Difficulty** | **4** |
 
-**Concepts reviewed:** `append`, `for`, methods, f-strings, functions returning objects
+---
 
-**Examples:**
+### Lesson 28 — `classes_04_composition` *(revised cumulative capstone)*
 
-```python
-class Character:
-    def __init__(self, name):
-        self.name = name
-        self.inventory = []
-
-    def pick_up(self, item):
-        self.inventory.append(item)
-
-class Party:
-    def __init__(self, name):
-        self.name = name
-        self.members = []
-
-    def add_member(self, character):
-        self.members.append(character)
-
-    def roster(self):
-        for member in self.members:
-            print(member.name)
-```
-
-**Exercise progression** (capstone split into 4–6 exercises — UI constraint):
-
-| # | Type | Focus | Difficulty |
-|---|------|-------|------------|
-| 1 | `predict_output` | Party with two members after `add_member` | ★ |
-| 2 | `fill_blank` | Complete `Party.add_member` | ★★ |
-| 3 | `write_code` | `Character` with own `inventory` list in `__init__` | ★★★ |
-| 4 | `write_code` | `total_hp(party)` sums `.hp` across members | ★★★★ |
-| 5 | `architecture` | Composition vs "one big dict" vs inheritance | ★★ |
-| 6 | `write_code` | **Guild Roster milestone:** Character + Party + add + roster + pick_up | ★★★★★ |
-
-**Assessment strategy:**
-
-- **Ex 3:** two characters, separate inventories — adding to one must not change the other's.
-- **Ex 4:** `function` with empty list, one member, three members.
-- **Ex 6 (capstone):** 8–12 mixed `function` + `expression` tests; verify method mutation + formatted output.
-- **Must fail:** shared global inventory list; inheritance-based "Party inherits list."
-- Explicitly defer inheritance to Phase 3 in architecture exercise choices.
-
-**Likely misconceptions:** jumping to inheritance; storing only names when objects needed for behavior; class attributes vs instance lists shared across instances.
-
-**Relative difficulty:** **4–5**
+| Field | Value |
+|-------|-------|
+| **Title** | Building a Small Multi-Object Program (has-a) |
+| **Learning objective** | **Construct** a small program from specs using classes, methods, lists, dicts, conditionals, loops, and functions — organizing concepts already learned, not learning a new system. |
+| **Prerequisites** | all Phase 2; especially nested data, shared references, init, methods |
+| **Concepts introduced** | Has-a composition as design choice (minimal new syntax) |
+| **Concepts reviewed** | **Cumulative:** elif/while/for, dicts, nested loops, functions, mutable state, multiple objects, methods, references |
+| **Debugging** | Debug: `add_member` appends string not object. Debug: shared inventory across characters. |
+| **Capstone design rules** | **No large pasted class definitions.** Incremental construction. Max ~12 lines per class in spec. Each step adds one concern. |
+| **Exercise progression** | |
+| | 1 `predict_output` — trace roster after two `add_member` calls (code learner wrote in prior steps) |
+| | 2 `fill_blank` — complete `Character.__init__` only (~3 lines) from spec |
+| | 3 `write_code` — **`Character`**: `name`, `health`, `inventory=[]`, `pick_up(item)` — spec only, ≤15 lines |
+| | 4 `write_code` — **`Party`**: `members`, `add_member(character)` — builds on Ex 3 |
+| | 5 `write_code` — **`total_hp(party)`** function summing `.health` — retrieves functions + loops |
+| | 6 `architecture` — composition vs nested dict vs inheritance (defer inheritance) |
+| | 7 `write_code` **capstone** — wire Character + Party + `pick_up` + `roster()`; starter is minimal (empty `Party()` only, not full solution) |
+| **Assessment (capstone test suite)** | `class_defined`; `expression` independence (`a.inventory is b.inventory` → False); `party.members[0] is c`; `function` `total_hp` 4 cases; pick_up on one member doesn't alter another; shared-reference failures reference Lesson 24/26 messages |
+| **Misconceptions** | Inheritance shortcut; strings in `members` instead of objects; global inventory |
+| **Difficulty** | **4–5** |
 
 ---
 
@@ -993,12 +512,12 @@ class Party:
 
 | Phase 1 concept | Phase 2 retrieval hotspots |
 |-----------------|---------------------------|
-| f-strings | decisions, enumerate, functions, all class lessons |
-| if/else | decisions 02–03, list methods, strings, class methods |
-| lists + indexing | collections 04–09, functions 04, composition |
-| append | collections 05; contrast with return-new-list in functions 04 |
-| for loops | collections 04–09, dict iteration, class rosters |
-| def / return | every Functions lesson + class methods |
+| f-strings | decisions, functions, nested data, all class lessons |
+| if/else | decisions 02–03, list methods, strings, methods, capstone |
+| lists + indexing | collections 04–15, nested data, composition |
+| append | list methods; contrast return-new-list (Lesson 18) |
+| for loops | dict iteration, nested data, capstone roster |
+| def / return | all Functions lessons + class methods |
 | print vs return | functions 04, classes 03, architecture exercises |
 
 ---
@@ -1007,84 +526,141 @@ class Party:
 
 | Topic | Rationale |
 |-------|-----------|
-| Inheritance, `super()` | Composition taught first per pedagogy rules |
+| Inheritance, `super()` | Composition taught first |
 | `@property`, dunder beyond `__init__` | Cognitive load |
-| List/dict comprehensions | Syntax sugar before reasoning foundations |
-| `try` / `except` | Error *reading* first; handling in Phase 3 |
+| List/dict comprehensions | After reasoning foundations |
+| `try` / `except` | Error reading first |
 | Advanced debugging workflow | Phase 3 |
-| Mutable default parameters (deep dive) | Mention only in Lesson 18 |
-| Class/static methods | Not basic OOP |
-| `global` keyword mastery | Mention in scope; prefer return pattern |
+| Mutable default parameters (deep dive) | Mention only in Lesson 17 |
+| `global` keyword mastery | Mention in scope; prefer return |
+| Full `enumerate` standalone lesson | Integrated in Lessons 11 + 19 |
 
 ---
 
-## Engine extensions (recommended, not blocking)
+## Engine extensions (recommended, non-blocking)
 
 | Extension | Purpose |
 |-----------|---------|
-| `source_uses`: `while_loop`, `elif_branch`, `enumerate_call` | Enforce construct when literals pass |
-| `source_uses`: `default_param` | Verify defaults in signature |
-| Richer class failure messages | Parallel to function `improve_function_feedback` |
+| `source_uses`: `while_loop`, `elif_branch` | Construct enforcement when behavior passes |
+| `improve_class_feedback()` | Richer class failure messages (UI/engine polish) |
 | Optional `hidden: true` on tests | Future UI differentiation |
 
 ---
 
 ## Mastery topics to add at implementation
 
-Extend `engine/progress.py` topic labels: `boolean_logic`, `loops_while`, `dictionaries`, `scope`, `errors`, `classes`, `composition`.
+`boolean_logic`, `nested_data`, `loops_while`, `dictionaries`, `scope`, `debugging_logic`, `references`, `errors`, `classes`, `composition`.
 
 ---
 
-## Phase 2 exit criteria
+## Phase 2 exit criteria (updated)
 
-After Lesson 26, a learner should be able to:
+After Lesson 28, a learner should be able to:
 
 - Branch on complex conditions and combine predicates
-- Work with lists, dicts, `while`/`for`/`enumerate`/`range`/`len`
+- Work with lists, dicts, **nested structures**, `while`/`for`/`range`/`len`, and **`enumerate` in context**
 - Write multi-parameter functions with defaults; return structured data; reason about scope
-- Normalize strings and read common tracebacks
-- Define classes with `__init__` and methods; build small multi-object programs with has-a composition
+- **Predict alias behavior** for mutable objects and explain shared references
+- Normalize strings; **read tracebacks and fix logic bugs without crashes**
+- **Debug as a normal habit** — syntax, runtime, and logical errors
+- Define classes with `__init__` and methods; **construct** a small multi-object program with has-a composition
 - Write small multi-function / multi-class scripts independently
 
-This prepares them for **Phase 3**: inheritance, `try`/`except`, debugging practice, and project milestones.
+Prepares **Phase 3**: inheritance, `try`/`except`, advanced debugging, comprehensions, project milestones.
 
 ---
 
 ## Summary table
 
-| # | ID | Title | Difficulty |
-|---|-----|-------|------------|
-| 9 | `decisions_02_elif` | More Than Two Outcomes with elif | 2 |
-| 10 | `decisions_03_boolean_logic` | Combining Conditions with and, or, and not | 2–3 |
-| 11 | `collections_04_len_range` | Measuring and Generating Sequences with len and range | 2 |
-| 12 | `collections_05_list_methods` | Checking and Changing Lists with in, remove, and pop | 2–3 |
-| 13 | `collections_06_enumerate` | Looping with Index and Value using enumerate | 3 |
-| 14 | `collections_07_dictionaries` | Storing Labeled Data in Dictionaries | 3 |
-| 15 | `collections_08_dict_iteration` | Visiting Every Entry in a Dictionary | 3 |
-| 16 | `collections_09_while` | Repeating While a Condition Holds | 3–4 |
-| 17 | `functions_02_parameters` | Functions with Multiple Parameters | 2–3 |
-| 18 | `functions_03_defaults` | Optional Parameters with Default Values | 3 |
-| 19 | `functions_04_returning_data` | Returning Lists and Dictionaries from Functions | 3 |
-| 20 | `functions_05_scope` | Local Names and Global Names | 3–4 |
-| 21 | `strings_01_methods` | Cleaning and Comparing Strings with Methods | 2–3 |
-| 22 | `errors_01_tracebacks` | Reading Tracebacks and Common Errors | 3 |
-| 23 | `classes_01_objects` | Classes, Objects, and References | 3 |
-| 24 | `classes_02_init` | Initializing Objects with __init__ and self | 4 |
-| 25 | `classes_03_methods` | Instance Methods and Using self | 4 |
-| 26 | `classes_04_composition` | Objects Containing Other Objects (has-a) | 4–5 |
+| # | ID | Section | Title | Difficulty |
+|---|-----|---------|-------|------------|
+| 9 | `decisions_02_elif` | Making Decisions | More Than Two Outcomes with elif | 2 |
+| 10 | `decisions_03_boolean_logic` | Making Decisions | Combining Conditions with and, or, and not | 2–3 |
+| 11 | `collections_04_len_range` | Collections | Measuring and Generating Sequences with len and range | 2 |
+| 12 | `collections_05_list_methods` | Collections | Checking and Changing Lists with in, remove, and pop | 2–3 |
+| 13 | `collections_07_dictionaries` | Collections | Storing Labeled Data in Dictionaries | 3 |
+| 14 | `collections_08_dict_iteration` | Collections | Visiting Every Entry in a Dictionary | 3 |
+| 15 | `collections_09_while` | Collections | Repeating While a Condition Holds | 3–4 |
+| 16 | `functions_02_parameters` | Functions | Functions with Multiple Parameters | 2–3 |
+| 17 | `functions_03_defaults` | Functions | Optional Parameters with Default Values | 3 |
+| 18 | `functions_04_returning_data` | Functions | Returning Lists and Dictionaries from Functions | 3 |
+| 19 | `collections_10_nested_data` | Collections | Working with Nested Lists and Dictionaries | 3–4 |
+| 20 | `functions_05_scope` | Functions | Local Names and Global Names | 3–4 |
+| 21 | `strings_01_methods` | Working with Text | Cleaning and Comparing Strings with Methods | 2–3 |
+| 22 | `errors_01_tracebacks` | Reading Errors | Reading Tracebacks and Common Errors | 3 |
+| 23 | `errors_02_debugging_logic` | Reading Errors | Finding Logic Bugs and Tracing Values | 3–4 |
+| 24 | `data_01_shared_references` | Data Modeling | Shared References and Mutable State | 3–4 |
+| 25 | `classes_01_objects` | Objects & Classes | Classes and Objects | 3 |
+| 26 | `classes_02_init` | Objects & Classes | Initializing Objects with __init__ and self | 4 |
+| 27 | `classes_03_methods` | Objects & Classes | Instance Methods and Using self | 4 |
+| 28 | `classes_04_composition` | Objects & Classes | Building a Small Multi-Object Program (has-a) | 4–5 |
 
 ---
 
-## Approval decisions (pending)
+## Implementation sequence (approved workflow)
 
-Before implementation, confirm:
+1. **UI P0** — choices rendering, output panel, Run/Check separation (+ P1 predict auto-height)
+2. **Lesson JSON** — author in catalog order; verify with test suite
+3. **Engine polish** (optional) — class feedback, `source_uses` extensions
+4. **UI polish** (defer) — badges, hint surface, mini_project UI
 
-1. **Lesson count (18)** — acceptable scope, or prefer a shorter Phase 2 (e.g. defer `strings_01_methods` or merge dict lessons)?
-2. **UI work timing** — implement lessons with authoring workarounds first, or block on architecture-choice rendering and expandable output panels?
-3. **Capstone shape** — 4–6 sequential exercises in `classes_04_composition` vs one `mini_project` after UI support?
-4. **Sequencing** — approve `len`/`range` before `while` and `scope` after dicts?
+---
 
-Once approved, implementation proceeds lesson-by-lesson as JSON files under `course/lessons/` with no GUI changes required for the core path.
+## CHANGE SUMMARY (v1 → v2)
+
+### Lessons removed
+| ID | Title | Reason |
+|----|-------|--------|
+| `collections_06_enumerate` | Looping with Index and Value using enumerate | Too much weight for early beginner track; concepts integrated elsewhere |
+
+### Lessons added
+| ID | Title | Reason |
+|----|-------|--------|
+| `collections_10_nested_data` | Working with Nested Lists and Dictionaries | Explicit nested-data modeling; bridge to composition |
+| `errors_02_debugging_logic` | Finding Logic Bugs and Tracing Values | Second debugging lesson; logic errors distinct from traceback reading |
+| `data_01_shared_references` | Shared References and Mutable State | Explicit aliasing/mutation before OOP |
+
+### Lessons combined / integrated
+| Change | Detail |
+|--------|--------|
+| **Enumerate → Lesson 11** | `range(len(items))` numbering; sets up enumerate problem |
+| **Enumerate → Lesson 19** | Formal `enumerate(party, start=1)` when index + member dict both matter |
+| **References → split from `classes_01`** | Reference/alias content moved to dedicated Lesson 24; `classes_01` slimmed to class vs instance |
+
+### Lessons reordered
+| Change | Detail |
+|--------|--------|
+| Dicts / dict iteration / while | Move up one slot (formerly after enumerate) |
+| `collections_10_nested_data` | After `functions_04_returning_data`, before scope |
+| `functions_05_scope` | After nested data (locals in nested loops first) |
+| `data_01_shared_references` | New section **Data Modeling**, after error lessons, **before** any class lesson |
+| Functions block | Interleaved with collections: params/defaults/returning_data, then nested data, then scope |
+
+### Major assessment changes
+| Area | Change |
+|------|--------|
+| **Nested data** | `function` with partial fixtures; path `expression` checks; avoid full nested literal equality |
+| **Shared references** | `expression` with `is`; mutation visible across aliases; must fail accidental `.copy()` |
+| **Debugging** | ≥1 debug/predict/trace per lesson; Run-first workflow after UI P0 (not static traceback paste) |
+| **Capstone** | 7 incremental exercises; behavioral suite 10–12 tests; no large starter class defs |
+| **Enumerate** | Assessed in context (Lesson 19 roster), not standalone construct enforcement |
+| **Architecture** | Single source of truth in `choices` JSON once P0-1 UI ships (not duplicated in prompt) |
+
+### Proposed UI prerequisites (before curriculum JSON)
+| Priority | Work item |
+|----------|-----------|
+| **P0-1** | Render architecture / choice `choices` in exercise UI |
+| **P0-2** | Enlarge output panel (min height + stretch) |
+| **P0-3** | Separate Run output from Check feedback; stop hint/output mixing |
+| **P1-1** | Auto-height predict code panel |
+
+### Final Phase 2 lesson count
+| Metric | v1 plan | **v2 plan (revised)** |
+|--------|---------|----------------------|
+| New Phase 2 lessons | 18 | **20** |
+| Total with Phase 1 | 26 | **28** |
+| Removed | — | 1 (`collections_06_enumerate`) |
+| Added | — | 3 (nested data, logic debugging, shared references) |
 
 ---
 
