@@ -322,6 +322,8 @@ Boss challenges introduce **no major new syntax**. They combine previously taugh
 | Checkpoint | After lessons | Combines (example) |
 |------------|---------------|----------------------|
 | Boss 1 | 10 (end of Decisions section) | variables, if/else, elif, boolean logic, f-strings |
+
+Boss 1 may ship first as a **multi-part final exercise** in Lesson 10 (sequential `write_code` + `architecture`) before a dedicated `boss_challenge` exercise type exists.
 | Boss 2 | 15 (mid-Collections) | lists, loops, len/range, conditionals, dicts *(introduced by 13)* |
 | Boss 3 | 20 (end of Functions + nested data) | functions, dicts, nested data, loops, conditionals |
 | Boss 4 | 28 (Phase 2 capstone) | classes, methods, composition, cumulative skills |
@@ -737,7 +739,9 @@ Detailed specs exist in `docs/phase2-curriculum-plan.md`. This section separates
 
 ### A. APPLY NOW TO LESSONS 9–13
 
-These require **no major new engine features** — only curriculum authoring discipline and existing exercise types.
+These require **no major new engine features** — only curriculum authoring discipline and existing exercise types (`predict_output`, `fill_blank`, `write_code`, `debug`, `architecture`).
+
+**Prerequisite:** UI P0 (choices rendering, output panel, Run/Check separation) must ship before authoring — see Appendix D. Engagement patterns fail without it.
 
 #### Core learning loop
 
@@ -849,7 +853,7 @@ High-value features after the first Phase 2 batch (Lessons 9–13) is validated.
 | **Boss challenge exercise type** | course + engine | Boss 1 after Lesson 10 |
 | **Quick Challenge insertion** | engine + app | Spaced retrieval |
 | **Mastery band storage** | engine | Adaptive review |
-| **modify_existing / complete_partial types** | course + engine | Exercise variety beyond fill_blank |
+| **modify_existing / complete_partial types** | course + engine | Exercise variety beyond fill_blank *(fill_blank covers partial completion today)* |
 | **Hint level labels in UI** | app | Clearer progressive help |
 | **Project artifact tracking in progress** | engine | Persistent project continuity |
 
@@ -974,6 +978,53 @@ Until UI enforces locking, prompt copy and exercise ordering achieve most of the
 - `.cursor/rules/pedagogy.mdc` — Teaching principles
 - `.cursor/rules/exercise-quality.mdc` — Assessment quality rules
 - `.cursor/rules/architecture.mdc` — Layer separation
+
+---
+
+## Appendix D: UI prerequisites for engagement patterns
+
+Several engagement patterns **depend on UI work** documented in `docs/phase2-curriculum-plan.md`. Curriculum authors should not workaround these with brittle prompt hacks.
+
+| Pattern | UI requirement | Priority |
+|---------|----------------|----------|
+| Architecture / learner reasoning with choices | Render `exercise.choices` | **P0-1** |
+| Debug: Run → observe traceback → fix | Separate Run output from Check feedback | **P0-3** |
+| Multi-line program output, nested rosters | Enlarge output panel (min ~140px + stretch) | **P0-2** |
+| Longer predict snippets (while, scope, aliasing) | Auto-height predict code panel | **P1-1** |
+| Commit-before-run prediction | Record prediction before Run *(future)* | Future |
+
+**Lessons 9–10 include architecture exercises** that require P0-1 before authoring. **Debug exercises across 9–13** require P0-3 for authentic Run-first pedagogy.
+
+Until P0 ships, Phase 2 lesson authoring for 9–13 should wait — engagement design must not be undermined by UI limitations.
+
+---
+
+## Appendix E: Specialist review synthesis
+
+This document was reviewed by curriculum-design, assessment-design, and learning-UX perspectives. Key integrated recommendations:
+
+### Curriculum
+
+- Treat `docs/phase2-curriculum-plan.md` as the **authoritative lesson spec** for 9–28; this document governs *why* and *how*, not duplicate per-lesson tables.
+- Persistent project naming must be **stable from Lesson 9** (`wound_label`, `can_enter`, `make_stats`) so Lesson 18–19 can reference prior artifacts.
+- Boss 1 (after Lesson 10) may initially ship as a **final capstone-style exercise** within or immediately after Lesson 10 until a distinct `boss_challenge` type exists.
+- Do not skip the debugging spine in 9–13 while waiting for dedicated error lessons (22–23).
+
+### Assessment
+
+- Prefer **behavioral tests** (`function`, `stdout_equals`, `expression`) over source comparison.
+- Use `source_uses` only when construct use is the learning objective and hardcoded output would pass otherwise.
+- Debug exercises: include `runs_successfully` plus behavioral tests on the fixed code.
+- Multiple valid implementations: avoid over-constraining with `source_uses` unless teaching a specific construct.
+- Concept metadata is **authoring discipline now**, engine enforcement later — start tagging in JSON comments or sidecar notes if schema not yet extended.
+
+### Learning UX
+
+- Short sessions require **interaction early** — first exercise should often be predict, not write.
+- Failure copy must name the **behavior** that failed, never the learner.
+- Hints are help, not penalty — UI should never show "hint penalty" or reduced score.
+- Completion feedback should grow from per-exercise `success_message` toward lesson-level capability summaries.
+- Avoid discovery/mystery exercises in 9–13 batch — focus on core loop establishment first.
 
 ---
 
