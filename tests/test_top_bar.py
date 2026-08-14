@@ -72,13 +72,22 @@ class TopBarBreadcrumbElideTests(unittest.TestCase):
 
     def test_elide_updates_on_resize(self) -> None:
         text = "📖  Python Fundamentals  ›  Defining Functions and return"
-        bar = self._shown_bar(text, width=900, breadcrumb_width=600)
-        self.assertFalse(_is_elided(bar._breadcrumb.text(), text), bar._breadcrumb.text())
-        self.assertEqual(bar._breadcrumb.text(), text)
-        bar._breadcrumb.setFixedWidth(140)
+        bar = self._shown_bar(text, width=900, breadcrumb_width=120)
+        narrow = bar._breadcrumb.text()
+        self.assertTrue(_is_elided(narrow, text), narrow)
+
+        bar._breadcrumb.setFixedWidth(360)
+        bar.resizeEvent(QResizeEvent(QSize(900, 48), QSize(900, 48)))
+        self.app.processEvents()
+        wider = bar._breadcrumb.text()
+        self.assertGreater(len(wider), len(narrow), (narrow, wider))
+
+        bar._breadcrumb.setFixedWidth(80)
         bar.resizeEvent(QResizeEvent(QSize(720, 48), QSize(720, 48)))
         self.app.processEvents()
-        self.assertTrue(_is_elided(bar._breadcrumb.text(), text))
+        tighter = bar._breadcrumb.text()
+        self.assertLessEqual(len(tighter), len(wider), (wider, tighter))
+        self.assertEqual(bar._breadcrumb.toolTip(), text)
 
     def test_very_narrow_bar_still_elides(self) -> None:
         text = "📖  Python Fundamentals  ›  Defining Functions and return"
