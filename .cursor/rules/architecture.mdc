@@ -1,0 +1,100 @@
+---
+description: Core architecture rules for the Interactive Python Course
+alwaysApply: true
+---
+
+# Project Architecture
+
+This application is an interactive desktop Python learning course.
+
+Preserve separation of concerns.
+
+## Main layers
+
+### course/
+Owns curriculum data and curriculum models.
+
+Responsibilities:
+- lessons
+- exercises
+- lesson ordering
+- lesson metadata
+- educational content
+- exercise definitions
+
+Ordinary lesson additions should not require GUI changes.
+
+### engine/
+Owns non-UI application logic.
+
+Responsibilities:
+- executing learner Python
+- exercise grading
+- hidden behavioral tests
+- progress persistence
+- lesson unlocking
+- mastery tracking
+- import policy
+- execution timeouts
+
+Do not move engine logic into GUI widgets.
+
+### app/
+Owns presentation and interaction only.
+
+Responsibilities:
+- windows
+- layouts
+- navigation
+- editor
+- visual feedback
+- lesson rendering
+- theme
+- user interaction
+
+Do not put grading rules, course progression policy, or persistence logic directly into UI widgets.
+
+## Design principles
+
+Prefer composition over unnecessary inheritance.
+
+Keep modules small and focused.
+
+Do not create large god classes.
+
+Do not duplicate logic that already exists elsewhere.
+
+When adding features, determine which layer owns the behavior before implementing it.
+
+Avoid breaking existing public interfaces without a clear reason.
+
+Do not rewrite stable systems merely because a different implementation is possible.
+
+## Learner code execution
+
+Learner-written code is untrusted.
+
+It must:
+- run outside the GUI process
+- have a timeout
+- never permanently freeze the application
+- preserve learner-friendly errors
+- obey the import policy
+
+Do not weaken execution isolation for convenience.
+
+## Backward compatibility
+
+Progress files from prior versions should be handled defensively.
+
+Curriculum changes should not unnecessarily destroy existing learner progress.
+
+## Before major refactoring
+
+Explain:
+1. what problem exists
+2. why the existing architecture cannot solve it cleanly
+3. what files will change
+4. what behavior must remain intact
+
+Prefer incremental refactors over wholesale rewrites.

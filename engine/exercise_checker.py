@@ -1,0 +1,152 @@
+"""Behavior-based exercise checking.
+
+Prefer executing student code and inspecting results over comparing source
+strings. Code exercises are graded inside an isolated subprocess so infinite
+loops cannot freeze the UI, while still supporting stdout/globals/function/
+expression/class checks declared in lesson JSON.
+"""
+
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass, field
+from typing import Any, Optional
+
+from course.exercise import Exercise, TestCase
+from engine.code_runner import TIMEOUT_MESSAGE, CodeRunner, RunResult
+
+
+@dataclass
+class CheckResult:
+    passed: bool
+    message: str
+    details: list[str] = field(default_factory=list)
+    run: Optional[RunResult] = None
+
+
+def test_case_to_dict(test: TestCase) -> dict[str, Any]:
+    payload = asdict(test)
+    cleaned: dict[str, Any] = {"kind": payload["kind"]}
+    for key, value in payload.items():
+        if key == "kind":
+            continue
+        if value is None:
+            continue
+        if value in ([], {}):
+            continue
+        if key == "message" and value == "":
+            continue
+        cleaned[key] = value
+    return cleaned
+
+
+class ExerciseChecker:
+    def __init__(self, runner: Optional[CodeRunner] = None) -> None:
+        self.runner = runner or CodeRunner()
+
+    def check(
+        self,
+        exercise: Exercise,
+        *,
+        code: str = "",
+        answer: str = "",
+    ) -> CheckResult:
+        if exercise.type == "predict_output":
+            return self._check_predict(exercise, answer)
+        if exercise.type == "architecture":
+            return self._check_architecture(exercise, answer)
+        return self._check_code_exercise(exercise, code)
+
+    def _check_predict(self, exercise: Exercise, answer: str) -> CheckResult:
+        cleaned = answer.strip()
+        if not cleaned:
+            return CheckResult(False, "Enter your predicted output in the answer box.")
+
+        expected = self._resolve_choice(exercise, exercise.expected_answer)
+        actual = self._resolve_choice(exercise, cleaned)
+
+        if actual == expected:
+            return CheckResult(True, "Correct! Your prediction matches the output.")
+
+        # Do not reveal the exact expected text immediately.
+        hint = "Check spacing, punctuation, and capitalization carefully."
+        if exercise.code_to_predict and "print(" in exercise.code_to_predict:
+            hint = (
+                "Remember that print() separates multiple arguments with a single "
+                "space and adds a newline at the end (you usually omit the newline "
+                "when typing your answer)."
+            )
+        return CheckResult(False, f"Not quite. {hint}")
+
+    def _check_architecture(self, exercise: Exercise, answer: str) -> CheckResult:
+        cleaned = answer.strip()
+        if not cleaned:
+            return CheckResult(False, "Choose an option in the answer box (number or full text).")
+
+        expected = self._resolve_choice(exercise, exercise.expected_answer)
+        actual = self._resolve_choice(exercise, cleaned)
+
+        if actual == expected:
+            return CheckResult(True, "Good design reasoning — that relationship fits.")
+        return CheckResult(
+            False,
+            "That design choice does not fit this situation. Re-read the question "
+            "and think about 'is-a' versus 'has-a'.",
+        )
+
+    def _resolve_choice(self, exercise: Exercise, value: str) -> str:
+        cleaned = value.strip()
+        if cleaned.isdigit() and exercise.choices:
+            index = int(cleaned) - 1
+            if 0 <= index < len(exercise.choices):
+                return exercise.choices[index].strip()
+        return cleaned
+
+    def _check_code_exercise(self, exercise: Exercise, code: str) -> CheckResult:
+        if not code.strip():
+            return CheckResult(False, "Your editor is empty. Write some code, then try again.")
+
+        tests = [test_case_to_dict(test) for test in exercise.tests]
+        run = self.runner.check(
+            code,
+            tests,
+            allowed_modules=exercise.allowed_modules,
+        )
+
+        if run.timed_out:
+            return CheckResult(False, TIMEOUT_MESSAGE, run=run)
+
+        if not run.success and not any(t.kind == "raises" for t in exercise.tests):
+            error = run.error or run.stderr or "Unknown error"
+            return CheckResult(
+                False,
+                "Your code raised an error before tests could run.",
+                details=[error],
+                run=run,
+            )
+
+        if not exercise.tests:
+            if run.success:
+                return CheckResult(True, "Code ran successfully.", run=run)
+            return CheckResult(
+                False,
+                "Code did not run successfully.",
+                details=[run.error or ""],
+                run=run,
+            )
+
+        details: list[str] = []
+        for item in run.test_results:
+            message = str(item.get("message", ""))
+            details.append(message)
+            if not item.get("ok"):
+                return CheckResult(False, message, details=details, run=run)
+
+        if len(run.test_results) < len(exercise.tests):
+            # Worker stopped early or returned nothing useful.
+            return CheckResult(
+                False,
+                "Could not finish checking this exercise. Try running the code first.",
+                run=run,
+            )
+
+        return CheckResult(True, "All checks passed. Nice work!", details=details, run=run)

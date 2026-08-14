@@ -1,0 +1,90 @@
+---
+description: Reliability and regression testing standards
+globs:
+  - "**/*.py"
+  - "tests/**"
+alwaysApply: false
+---
+
+# Testing Standards
+
+Do not consider a feature complete because it works on the happy path.
+
+## Preserve the learning loop
+
+Regularly test:
+
+launch
+→ open lesson
+→ read exercise
+→ edit code
+→ Run
+→ Check
+→ fail
+→ receive feedback
+→ request hints
+→ fix solution
+→ pass
+→ unlock next lesson
+→ close app
+→ reopen app
+→ progress remains
+
+## Learner code cases
+
+Always preserve behavior for:
+
+valid code
+
+syntax errors
+
+runtime errors
+
+no output
+
+multiple print statements
+
+infinite loops
+
+alternative valid solutions
+
+incorrect types
+
+incorrect values
+
+unexpected but valid Python
+
+## Platform
+
+The primary local user platform is Windows.
+
+Do not assume POSIX behavior is sufficient.
+
+Cross-platform process management must explicitly consider Windows.
+
+## GUI
+
+GUI work must not block the main UI thread during learner code execution.
+
+Tk/Qt widget operations must occur on the GUI thread unless the framework explicitly guarantees otherwise.
+
+## Progress
+
+Test:
+- missing progress file
+- valid progress
+- malformed JSON
+- partially malformed data
+- reset progress
+- saved drafts
+- completion state
+- hints used
+- attempt counts
+
+## Regression behavior
+
+Every meaningful bug fix should add a regression test where practical.
+
+Run the complete automated test suite before declaring significant work finished.
+
+Do not delete or weaken tests merely to make a change pass.

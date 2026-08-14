@@ -1,0 +1,68 @@
+{
+  "id": "collections_01_lists",
+  "section": "Collections",
+  "section_order": 2,
+  "order": 1,
+  "title": "Lists and Indexing",
+  "topics": ["collections"],
+  "content": "What problem does this solve?\nOne variable holding one value is not enough for an inventory, a party roster, or a queue of turns. A list stores an ordered sequence of values under a single name.\n\nBasic syntax\n  inventory = [\"sword\", \"shield\", \"potion\"]\n  inventory[0]   # first item\n  inventory.append(\"rope\")\n\nWhat actually happens\nA list is a mutable object. The name inventory refers to that object. Indexing walks to a position (starting at 0). append mutates the same list object by adding another element at the end.\n\nWhy not always use separate variables? Because the number of items changes, and looping over a list scales — item1, item2, item3 does not.",
+  "concepts": [
+    "Lists are ordered and mutable",
+    "Indexing starts at 0",
+    "append adds to the end of the same list object"
+  ],
+  "examples": [
+    {
+      "title": "Party roster",
+      "code": "party = [\"Aria\", \"Rook\", \"Mira\"]\nprint(party[0])\nparty.append(\"Selene\")\nprint(party)",
+      "explanation": "party[0] is the first name. append changes the list in place."
+    }
+  ],
+  "common_mistakes": [
+    "Using index 1 when you meant the first item (that is index 0)",
+    "Confusing append (in-place) with + (which builds a new list)"
+  ],
+  "exercises": [
+    {
+      "id": "collections_01_ex1",
+      "type": "write_code",
+      "title": "Build an inventory",
+      "prompt": "Create a list named inventory containing the strings \"sword\", \"shield\", and \"potion\" in that order.\nThen append \"torch\" and print the list.",
+      "starter_code": "# Create inventory, append torch, then print\n",
+      "topics": ["collections"],
+      "hints": [
+        "Use square brackets and commas between string items.",
+        "Call inventory.append(\"torch\") after creating the list.",
+        "inventory = [\"sword\", \"shield\", \"potion\"]\ninventory.append(\"torch\")\nprint(inventory)"
+      ],
+      "tests": [
+        {
+          "kind": "globals",
+          "name": "inventory",
+          "type_name": "list",
+          "expected": ["sword", "shield", "potion", "torch"]
+        },
+        {
+          "kind": "stdout_contains",
+          "contains": "torch"
+        }
+      ]
+    },
+    {
+      "id": "collections_01_ex2",
+      "type": "debug",
+      "title": "Fix the indexing bug",
+      "prompt": "This program is supposed to print the first party member (Aria), but it is wrong. Fix it.",
+      "starter_code": "party = [\"Aria\", \"Rook\", \"Mira\"]\nprint(party[1])  # should show Aria\n",
+      "topics": ["collections"],
+      "hints": [
+        "Which index means 'first item' in Python?",
+        "Lists are zero-based.",
+        "Use party[0] instead of party[1]."
+      ],
+      "tests": [
+        {"kind": "stdout_equals", "expected": "Aria\n"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "id": "functions_01_basics",
+  "section": "Functions",
+  "section_order": 4,
+  "order": 1,
+  "title": "Defining Functions and return",
+  "topics": ["functions"],
+  "content": "What problem does this solve?\nWhen the same calculation appears in many places — damage, healing, gold rewards — copy-pasting code becomes fragile. A function packages a reusable action under a name.\n\nBasic syntax\n  def double(number):\n      return number * 2\n\nWhat actually happens\ndef creates a function object and binds it to the name double. Calling double(5) assigns 5 to the parameter number, runs the body, and return sends a value back to the caller.\n\nCritical distinction\n  print(result)  — shows something to a human\n  return result  — gives a value to other code\n\nIf you only print inside a function, callers cannot use the computed value in further calculations.",
+  "concepts": [
+    "def creates a reusable function object",
+    "Parameters receive argument values for one call",
+    "return sends a value to the caller; print only displays"
+  ],
+  "examples": [
+    {
+      "title": "print vs return",
+      "code": "def add(a, b):\n    return a + b\n\ntotal = add(2, 3)\nprint(total)",
+      "explanation": "add returns 5. The caller stores it in total, then prints it."
+    }
+  ],
+  "common_mistakes": [
+    "Using print instead of return, then wondering why total is None",
+    "Forgetting parentheses when calling: add 2, 3 is invalid"
+  ],
+  "exercises": [
+    {
+      "id": "functions_01_ex1",
+      "type": "write_code",
+      "title": "Write double()",
+      "prompt": "Create a function double(number) that returns twice the supplied number.\nDo not hardcode a single answer — it must work for many inputs.",
+      "starter_code": "def double(number):\n    # Return twice the number\n    pass\n",
+      "topics": ["functions"],
+      "hints": [
+        "Think about which keyword sends a value back from a function.",
+        "You need to use return with an expression involving number.",
+        "A possible structure is:\ndef double(number):\n    return number * 2"
+      ],
+      "tests": [
+        {"kind": "function", "function": "double", "args": [2], "expected": 4},
+        {"kind": "function", "function": "double", "args": [7], "expected": 14},
+        {"kind": "function", "function": "double", "args": [-3], "expected": -6},
+        {"kind": "function", "function": "double", "args": [0], "expected": 0}
+      ]
+    },
+    {
+      "id": "functions_01_ex2",
+      "type": "architecture",
+      "title": "print or return?",
+      "prompt": "You are writing heal(character_health, amount) used by combat code that must continue calculating after healing.\nShould the function print the new health, or return it, if other code must use the updated value?",
+      "choices": [
+        "Only print the new health inside heal",
+        "Return the new health so callers can use it"
+      ],
+      "expected_answer": "2",
+      "topics": ["functions"],
+      "hints": [
+        "Ask whether another function needs the numeric result.",
+        "Printed text is for humans; returned values are for programs.",
+        "Choose the option that returns the new health."
+      ]
+    },
+    {
+      "id": "functions_01_ex3",
+      "type": "write_code",
+      "title": "Damage after defense",
+      "prompt": "Write deal_damage(health, damage, defense) that returns remaining health after applying damage reduced by defense.\nFormula: remaining = health - max(0, damage - defense)\nHealth should not be used as a printed side effect — return the number.",
+      "starter_code": "def deal_damage(health, damage, defense):\n    # Return the remaining health\n    pass\n",
+      "topics": ["functions"],
+      "hints": [
+        "Compute reduced = damage - defense, but do not let it go below zero.",
+        "Use max(0, damage - defense), then subtract from health.",
+        "return health - max(0, damage - defense)"
+      ],
+      "tests": [
+        {"kind": "function", "function": "deal_damage", "args": [100, 30, 10], "expected": 80},
+        {"kind": "function", "function": "deal_damage", "args": [50, 5, 10], "expected": 50},
+        {"kind": "function", "function": "deal_damage", "args": [40, 40, 0], "expected": 0}
+      ]
+    }
+  ]
+}

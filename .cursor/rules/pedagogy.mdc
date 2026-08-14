@@ -1,0 +1,100 @@
+---
+description: Teaching and curriculum design principles for the Python course
+globs:
+  - "course/**"
+alwaysApply: false
+---
+
+# Pedagogy Rules
+
+The purpose of this application is to teach programming reasoning, not merely Python syntax.
+
+Assume the learner is a beginner but intellectually capable.
+
+Do not talk down to the learner.
+
+## Concept sequencing
+
+Never require a concept before it has been introduced.
+
+New lessons should build primarily on concepts already taught.
+
+Introduce one major new idea at a time whenever practical.
+
+Later exercises should deliberately reuse earlier concepts so knowledge is retained.
+
+Prefer progression:
+
+explanation
+→ worked example
+→ prediction
+→ guided exercise
+→ independent exercise
+→ later retrieval/reuse
+
+## Explanations
+
+Teach:
+- what the feature is
+- why it exists
+- how it works
+- when it is useful
+- common mistakes
+- how it connects to prior concepts
+
+Avoid definitions that simply restate syntax.
+
+Prefer concrete examples before abstract terminology.
+
+When technical terminology matters, introduce it explicitly.
+
+## Cognitive load
+
+Do not overload early lessons with unrelated concepts.
+
+Avoid giant walls of instructional text.
+
+Break material into:
+- short explanations
+- key concepts
+- examples
+- exercises
+
+Examples should be small enough that the learner can understand every line.
+
+## Programming reasoning
+
+Whenever appropriate, ask the learner to:
+- predict output
+- trace values
+- identify a bug
+- choose between designs
+- modify existing code
+- write code independently
+- explain what an object/function/value represents
+
+Do not make the entire course "copy this code."
+
+## OOP
+
+When reaching object-oriented programming, strongly teach:
+- classes versus objects
+- instance attributes
+- methods and self
+- object references
+- composition
+- inheritance only when an is-a relationship genuinely exists
+- mutable state
+- responsibilities of objects
+
+Composition should be taught before treating inheritance as the default design tool.
+
+## Feedback
+
+Wrong answers should produce useful information without immediately revealing the complete solution.
+
+The learner should understand what failed and have another chance to reason through it.
+
+Hints should become progressively more specific.
+
+The final hint may be strong, but earlier hints should not simply give away the answer.
