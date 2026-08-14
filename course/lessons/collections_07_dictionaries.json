@@ -1,0 +1,189 @@
+{
+  "id": "collections_07_dictionaries",
+  "section": "Collections",
+  "section_order": 6,
+  "order": 3,
+  "title": "Storing Labeled Data in Dictionaries",
+  "topics": ["collections"],
+  "content": "What problem does this solve?\nA hero has a name, health, and gold — three related facts. Parallel variables work at first, but a dictionary groups labeled data under one name: each stat has a key you read and update.\n\nBasic syntax\n  hero = {\"name\": \"Mira\", \"health\": 42, \"gold\": 10}\n  hero[\"gold\"]\n  hero[\"health\"] = 35\n\nWhat actually happens\nCurly braces build a dict. Keys are usually strings; values can be any type. hero[\"gold\"] looks up a value; assignment with hero[\"gold\"] = 7 updates that entry in place.\n\nWhen this is useful\nModel records with named fields — character stats, shop prices, quest flags — instead of juggling many separate variables.",
+  "concepts": [
+    "A dict maps keys to values with {key: value} syntax",
+    "d[\"key\"] reads; d[\"key\"] = value updates",
+    "Keys are labels — health and gold stay attached to the same hero"
+  ],
+  "examples": [
+    {
+      "title": "Hero stats dict",
+      "code": "hero = {\"name\": \"Mira\", \"health\": 42, \"gold\": 10}\nprint(hero[\"name\"])\nprint(f'{hero[\"name\"]} has {hero[\"health\"]} HP')",
+      "explanation": "Bracket lookup reads each labeled field for messages."
+    },
+    {
+      "title": "Spend gold",
+      "code": "hero = {\"name\": \"Mira\", \"health\": 42, \"gold\": 10}\nhero[\"gold\"] = hero[\"gold\"] - 3\nprint(hero[\"gold\"])",
+      "explanation": "Assignment updates the gold entry inside the same dict."
+    }
+  ],
+  "common_mistakes": [
+    "Forgetting quotes around string keys — name is a variable, \"name\" is the key",
+    "Using square brackets on a list but parentheses on a dict — dicts use {}",
+    "Typo in a key name causes KeyError"
+  ],
+  "exercises": [
+    {
+      "id": "collections_07_ex1",
+      "type": "predict_output",
+      "title": "Predict after a gold update",
+      "prompt": "Trace the gold change before you answer, then click Check.",
+      "code_to_predict": "hero = {\"name\": \"Mira\", \"health\": 42, \"gold\": 10}\nhero[\"gold\"] = hero[\"gold\"] - 3\nprint(hero[\"gold\"])",
+      "expected_answer": "7",
+      "topics": ["collections"],
+      "failure_message": "Start at 10, subtract 3, then read hero[\"gold\"] — not the name or health fields.",
+      "hints": [
+        "hero[\"gold\"] starts at 10.",
+        "Assignment replaces that entry with 10 - 3.",
+        "The print shows the updated gold value only."
+      ]
+    },
+    {
+      "id": "collections_07_ex2",
+      "type": "fill_blank",
+      "title": "Complete the dict literal",
+      "prompt": "Build a hero dict with keys \"name\", \"health\", and \"gold\". Replace None with the correct key for the name field.",
+      "starter_code": "name = \"Mira\"\nhp = 42\ngold = 10\nhero = {None: name, \"health\": hp, \"gold\": gold}\nprint(hero[\"name\"])\n",
+      "topics": ["collections"],
+      "hints": [
+        "Dict keys that are strings need quotes.",
+        "The first key should be the string \"name\".",
+        "Use \"name\": name inside the curly braces."
+      ],
+      "tests": [
+        {"kind": "stdout_equals", "expected": "Mira\n"}
+      ]
+    },
+    {
+      "id": "collections_07_ex3",
+      "type": "debug",
+      "title": "Fix the key lookup",
+      "prompt": "This program should print 42 (Mira's health), but it crashes. Python treats health inside the brackets as a variable name, not a dict key.\n\nRun to see the error, fix the lookup, then Check.",
+      "starter_code": "hero = {\"name\": \"Mira\", \"health\": 42, \"gold\": 10}\nprint(hero[health])\n",
+      "topics": ["collections"],
+      "hints": [
+        "Run first — the error points at the lookup line.",
+        "String keys need quotes inside the brackets.",
+        "Use hero[\"health\"] to read the health entry."
+      ],
+      "tests": [
+        {"kind": "runs_successfully"},
+        {
+          "kind": "source_uses",
+          "feature": "subscript",
+          "name": "hero",
+          "message": "Look up a value from hero with hero[\"health\"], not print(42) alone."
+        },
+        {"kind": "stdout_equals", "expected": "42\n"}
+      ]
+    },
+    {
+      "id": "collections_07_ex4",
+      "type": "write_code",
+      "title": "Build hero stats",
+      "prompt": "Write make_stats(name, hp, gold) that returns a dictionary with exactly these string keys:\n- \"name\" → the name argument\n- \"health\" → the hp argument\n- \"gold\" → the gold argument\n\nReturn the dict — do not print. This structure will reappear in later lessons.",
+      "starter_code": "def make_stats(name, hp, gold):\n    # Return {\"name\": ..., \"health\": ..., \"gold\": ...}\n    pass\n",
+      "topics": ["collections", "functions"],
+      "hints": [
+        "Return a dict literal with three key: value pairs.",
+        "Keys are the strings \"name\", \"health\", and \"gold\".",
+        "Map health to the hp parameter.",
+        "Return a dict literal — do not print."
+      ],
+      "tests": [
+        {
+          "kind": "function",
+          "function": "make_stats",
+          "args": ["Mira", 42, 10],
+          "expected": {"name": "Mira", "health": 42, "gold": 10},
+          "message": "All three keys should match the arguments."
+        },
+        {
+          "kind": "function",
+          "function": "make_stats",
+          "args": ["Rook", 80, 0],
+          "expected": {"name": "Rook", "health": 80, "gold": 0},
+          "message": "Zero gold is valid — every key still required."
+        },
+        {
+          "kind": "function",
+          "function": "make_stats",
+          "args": ["Selene", 5, 100],
+          "expected": {"name": "Selene", "health": 5, "gold": 100},
+          "message": "Do not hardcode Mira — use the parameters."
+        },
+        {
+          "kind": "function",
+          "function": "make_stats",
+          "args": ["X", 99, 1],
+          "expected": {"name": "X", "health": 99, "gold": 1},
+          "message": "Build the dict from parameters, not a fixed hero."
+        },
+        {
+          "kind": "expression",
+          "expression": "make_stats('Aria', 1, 2)['health']",
+          "expected": 1,
+          "message": "The health key must store the hp argument."
+        }
+      ]
+    },
+    {
+      "id": "collections_07_ex5",
+      "type": "write_code",
+      "title": "Can they afford the purchase?",
+      "prompt": "Write can_afford(stats, price) where stats is a dictionary from make_stats (with a \"gold\" key).\n\nReturn True when stats[\"gold\"] is greater than or equal to price, otherwise False. Do not print or modify the dictionary.",
+      "starter_code": "def can_afford(stats, price):\n    # Return whether there is enough gold\n    pass\n",
+      "topics": ["collections", "conditionals", "functions"],
+      "success_message": "You read labeled data from a dict and combined it with a comparison — the foundation for shops and stat screens.",
+      "hints": [
+        "Look up gold with stats[\"gold\"].",
+        "Compare that value to price with >=.",
+        "return the comparison result directly.",
+        "Do not hardcode prices — use the price parameter."
+      ],
+      "tests": [
+        {
+          "kind": "function",
+          "function": "can_afford",
+          "args": [{"name": "Mira", "health": 42, "gold": 10}, 7],
+          "expected": true,
+          "message": "10 gold should cover a 7-gold price."
+        },
+        {
+          "kind": "function",
+          "function": "can_afford",
+          "args": [{"name": "Mira", "health": 42, "gold": 10}, 10],
+          "expected": true,
+          "message": "Exactly enough gold should return True."
+        },
+        {
+          "kind": "function",
+          "function": "can_afford",
+          "args": [{"name": "Mira", "health": 42, "gold": 10}, 11],
+          "expected": false,
+          "message": "Not enough gold should return False."
+        },
+        {
+          "kind": "function",
+          "function": "can_afford",
+          "args": [{"name": "Rook", "health": 80, "gold": 0}, 1],
+          "expected": false,
+          "message": "Zero gold cannot afford a positive price."
+        },
+        {
+          "kind": "function",
+          "function": "can_afford",
+          "args": [{"name": "Selene", "health": 5, "gold": 50}, 25],
+          "expected": true,
+          "message": "Use stats[\"gold\"], not a hardcoded check for one hero."
+        }
+      ]
+    }
+  ]
+}

@@ -24,10 +24,10 @@ class CatalogTests(unittest.TestCase):
     def test_loads_ordered_lessons(self) -> None:
         catalog = CourseCatalog(ROOT / "course" / "lessons")
         catalog.load()
-        self.assertGreaterEqual(len(catalog.lessons), 8)
+        self.assertGreaterEqual(len(catalog.lessons), 13)
         ids = [lesson.id for lesson in catalog.lessons]
         self.assertEqual(
-            ids,
+            ids[:8],
             [
                 "fundamentals_01_print",
                 "fundamentals_02_variables",
@@ -37,6 +37,16 @@ class CatalogTests(unittest.TestCase):
                 "collections_02_append",
                 "collections_03_loops",
                 "functions_01_basics",
+            ],
+        )
+        self.assertEqual(
+            ids[8:13],
+            [
+                "decisions_02_elif",
+                "decisions_03_boolean_logic",
+                "collections_04_len_range",
+                "collections_05_list_methods",
+                "collections_07_dictionaries",
             ],
         )
         # Ordering is stable by section_order then order.
@@ -200,6 +210,25 @@ class CheckerTests(unittest.TestCase):
         self.assertFalse(wrong.passed)
         self.assertNotIn("HP: 100", wrong.message)
         self.assertTrue(self.checker.check(exercise, answer="HP: 100").passed)
+
+    def test_empty_list_expected_is_not_stripped(self) -> None:
+        exercise = Exercise(
+            id="t_empty_list",
+            type="write_code",
+            title="empty",
+            prompt="return empty list",
+            tests=[
+                TestCase(
+                    kind="function",
+                    function="nums",
+                    args=[[]],
+                    expected=[],
+                    message="Should accept an empty list result.",
+                ),
+            ],
+        )
+        code = "def nums(items):\n    return []\n"
+        self.assertTrue(self.checker.check(exercise, code=code).passed)
 
     def test_timeout_during_check(self) -> None:
         exercise = Exercise(

@@ -1,0 +1,191 @@
+{
+  "id": "collections_04_len_range",
+  "section": "Collections",
+  "section_order": 6,
+  "order": 1,
+  "title": "Measuring and Generating Sequences with len and range",
+  "topics": ["collections", "loops"],
+  "content": "What problem does this solve?\nYou need to know how many items are in a list, or repeat an action a fixed number of turns, or walk a list by index when the position matters.\n\nBasic syntax\n  len(party)\n  for turn in range(3):\n      print(turn)\n  for i in range(len(items)):\n      print(i, items[i])\n\nWhat actually happens\nlen counts elements. range(n) produces 0, 1, …, n-1 — the stop value is never included. range(len(items)) gives valid index numbers for a list.\n\nWhen this is useful\nUse len for counts, range(n) for a known number of repetitions, and range(len(seq)) when you need both index and value.",
+  "concepts": [
+    "len(sequence) returns how many items it holds",
+    "range(n) counts from 0 up to but not including n",
+    "range(len(items)) pairs each index with items[index]"
+  ],
+  "examples": [
+    {
+      "title": "Party size",
+      "code": "party = [\"Aria\", \"Rook\", \"Mira\"]\nprint(len(party))",
+      "explanation": "Three names means len returns 3."
+    },
+    {
+      "title": "Three combat turns",
+      "code": "for turn in range(3):\n    print(f\"Turn {turn + 1}\")",
+      "explanation": "range(3) yields 0, 1, 2 — add 1 when displaying to humans."
+    },
+    {
+      "title": "Number inventory slots by index",
+      "code": "items = [\"sword\", \"shield\"]\nfor i in range(len(items)):\n    print(f\"{i + 1}. {items[i]}\")",
+      "explanation": "i is 0 then 1; adding 1 makes human-friendly line numbers."
+    }
+  ],
+  "common_mistakes": [
+    "Treating range(3) as 1, 2, 3 — it starts at 0 and stops before 3",
+    "Using items[len(items)] — the last valid index is len(items) - 1",
+    "Forgetting that an empty list has len 0 and no valid index"
+  ],
+  "exercises": [
+    {
+      "id": "collections_04_ex1",
+      "type": "predict_output",
+      "title": "Predict the last value",
+      "prompt": "range(3) prints several numbers. What is the last value printed? Trace the loop, then click Check.",
+      "code_to_predict": "for i in range(3):\n    print(i)",
+      "expected_answer": "2",
+      "topics": ["loops"],
+      "failure_message": "range(3) produces 0, 1, then 2 — the last value printed is 2, not 3.",
+      "hints": [
+        "range(3) stops before 3, so the values are 0, 1, 2.",
+        "Each loop prints one value; track the final i.",
+        "The last number is 2."
+      ]
+    },
+    {
+      "id": "collections_04_ex2",
+      "type": "fill_blank",
+      "title": "Loop the right number of turns",
+      "prompt": "Print Turn 1, Turn 2, and Turn 3 using range. Replace None with the correct range call.",
+      "starter_code": "for turn in None:  # TODO: three turns, indexes 0..2\n    print(f\"Turn {turn + 1}\")\n",
+      "topics": ["loops"],
+      "hints": [
+        "You need three iterations.",
+        "range with one argument stops before that number.",
+        "Use range(3) to get indexes 0, 1, and 2."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "message": "Use a for loop over range."
+        },
+        {"kind": "stdout_equals", "expected": "Turn 1\nTurn 2\nTurn 3\n"}
+      ]
+    },
+    {
+      "id": "collections_04_ex3",
+      "type": "debug",
+      "title": "Fix the off-by-one index",
+      "prompt": "This program should print the last inventory item (potion) without crashing. It uses an index one past the end.\n\nRun to see the error, fix the index, then Check.",
+      "starter_code": "items = [\"sword\", \"shield\", \"potion\"]\nprint(items[len(items)])\n",
+      "topics": ["collections"],
+      "hints": [
+        "Run first — valid indexes go from 0 through len(items) - 1.",
+        "The last item sits at index len(items) - 1.",
+        "Use items[len(items) - 1] or items[-1]."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "subscript",
+          "name": "items",
+          "message": "Read from items using a valid index."
+        },
+        {"kind": "stdout_equals", "expected": "potion\n"}
+      ]
+    },
+    {
+      "id": "collections_04_ex4",
+      "type": "write_code",
+      "title": "Return the last item",
+      "prompt": "Write last_item(items) that returns the last element of a non-empty list.\n\nIf items is empty, return None. Do not print.",
+      "starter_code": "def last_item(items):\n    # Return the last element, or None when empty\n    pass\n",
+      "topics": ["collections", "functions"],
+      "hints": [
+        "Check len(items) == 0 first.",
+        "The last index is len(items) - 1, or use items[-1].",
+        "Return None for an empty list; otherwise return the last element."
+      ],
+      "tests": [
+        {
+          "kind": "function",
+          "function": "last_item",
+          "args": [["sword", "shield", "potion"]],
+          "expected": "potion",
+          "message": "The last of three items should be potion."
+        },
+        {
+          "kind": "function",
+          "function": "last_item",
+          "args": [["Aria"]],
+          "expected": "Aria",
+          "message": "A one-item list should return that item."
+        },
+        {
+          "kind": "function",
+          "function": "last_item",
+          "args": [[]],
+          "expected": null,
+          "message": "An empty list should return None, not crash."
+        },
+        {
+          "kind": "function",
+          "function": "last_item",
+          "args": [["a", "b"]],
+          "expected": "b",
+          "message": "Use indexing that works for any length, not a hardcoded answer."
+        }
+      ]
+    },
+    {
+      "id": "collections_04_ex5",
+      "type": "write_code",
+      "title": "Numbered inventory lines",
+      "prompt": "Write numbered_lines(items) that returns a list of strings like:\n[\"1. sword\", \"2. shield\"]\n\nUse range(len(items)) to build each line. Return the list — do not print.",
+      "starter_code": "def numbered_lines(items):\n    lines = []\n    # Loop i over range(len(items)); append f\"{i + 1}. {items[i]}\"\n    return lines\n",
+      "topics": ["collections", "loops", "strings"],
+      "success_message": "You combined len, range, indexing, and f-strings to label every item — a pattern party rosters will reuse later.",
+      "hints": [
+        "Start with an empty list to collect lines.",
+        "Loop i over range(len(items)).",
+        "Each line is an f-string: number is i + 1, text is items[i].",
+        "Append each line, then return the full list."
+      ],
+      "tests": [
+        {
+          "kind": "function",
+          "function": "numbered_lines",
+          "args": [["sword", "shield"]],
+          "expected": ["1. sword", "2. shield"],
+          "message": "Two items should produce two numbered lines."
+        },
+        {
+          "kind": "function",
+          "function": "numbered_lines",
+          "args": [["potion"]],
+          "expected": ["1. potion"],
+          "message": "A single item should be line 1."
+        },
+        {
+          "kind": "function",
+          "function": "numbered_lines",
+          "args": [["foo", "bar"]],
+          "expected": ["1. foo", "2. bar"],
+          "message": "Line text must come from the items, not hardcoded sword/shield."
+        },
+        {
+          "kind": "function",
+          "function": "numbered_lines",
+          "args": [[]],
+          "expected": [],
+          "message": "An empty inventory should return an empty list."
+        },
+        {
+          "kind": "function",
+          "function": "numbered_lines",
+          "args": [["a", "b", "c"]],
+          "expected": ["1. a", "2. b", "3. c"],
+          "message": "Line numbers must increase by one each time."
+        }
+      ]
+    }
+  ]
+}

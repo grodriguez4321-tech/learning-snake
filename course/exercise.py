@@ -41,6 +41,7 @@ class TestCase:
     # source_uses: fstring | binop_names | rebind_self | append_or_extend | subscript | comment
     feature: Optional[str] = None
     names: list[str] = field(default_factory=list)
+    method: Optional[str] = None
 
 
 @dataclass
@@ -109,6 +110,7 @@ def test_case_from_dict(data: dict[str, Any]) -> TestCase:
         message=data.get("message", ""),
         feature=data.get("feature"),
         names=list(data.get("names", [])),
+        method=data.get("method"),
     )
 
 

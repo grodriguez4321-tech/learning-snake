@@ -1,0 +1,143 @@
+{
+  "id": "collections_05_list_methods",
+  "section": "Collections",
+  "section_order": 6,
+  "order": 2,
+  "title": "Checking and Changing Lists with in, remove, and pop",
+  "topics": ["collections"],
+  "content": "What problem does this solve?\nInventories change mid-adventure: check whether you already carry a torch, drop a used potion, or take the first item from a loot pile. Lists come with operations that search and mutate in place.\n\nBasic syntax\n  \"torch\" in inventory\n  inventory.remove(\"potion\")\n  first = inventory.pop(0)\n\nWhat actually happens\nin asks whether a value is present. remove deletes the first matching value. pop removes by index (default: last item) and gives you the removed value. All three change or inspect the same list object.\n\nWhen this is useful\nUse in before acting on an item, remove when you know the value, pop when the position matters.",
+  "concepts": [
+    "in tests membership without knowing the index",
+    "remove deletes the first matching value from the list",
+    "pop removes by index and returns the removed item"
+  ],
+  "examples": [
+    {
+      "title": "Check before equipping",
+      "code": "inventory = [\"sword\", \"torch\"]\nif \"torch\" in inventory:\n    print(\"lit\")",
+      "explanation": "in returns True because torch is already in the list."
+    },
+    {
+      "title": "Use a potion",
+      "code": "inventory = [\"sword\", \"potion\", \"key\"]\ninventory.remove(\"potion\")\nprint(inventory)",
+      "explanation": "remove deletes the first potion; the list shrinks in place."
+    }
+  ],
+  "common_mistakes": [
+    "Calling remove with a value that is not in the list — Python raises ValueError",
+    "Expecting remove to return the list — it returns None",
+    "Forgetting that pop(0) shifts remaining items to lower indexes"
+  ],
+  "exercises": [
+    {
+      "id": "collections_05_ex1",
+      "type": "predict_output",
+      "title": "Predict what pop returns",
+      "prompt": "What does the first print show — the value removed by pop(0)? Trace the call, then click Check.",
+      "code_to_predict": "inventory = [\"sword\", \"shield\", \"potion\"]\nfirst = inventory.pop(0)\nprint(first)\nprint(inventory)",
+      "expected_answer": "sword",
+      "topics": ["collections"],
+      "failure_message": "pop(0) removes and returns the first element — sword — before the second print runs.",
+      "hints": [
+        "pop(0) removes the item at index 0.",
+        "That item is the first name in the list.",
+        "The first print shows sword."
+      ]
+    },
+    {
+      "id": "collections_05_ex2",
+      "type": "write_code",
+      "title": "Check for a torch",
+      "prompt": "inventory is already created. If \"torch\" is in inventory, print exactly:\nready\n\nOtherwise print exactly:\nmissing",
+      "starter_code": "inventory = [\"sword\", \"shield\", \"torch\"]\n# Print ready or missing\n",
+      "topics": ["collections", "conditionals"],
+      "hints": [
+        "Use in to test membership.",
+        "Wrap the test in if / else.",
+        "Print ready when the torch is present, missing otherwise."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "if_statement",
+          "message": "Use if / else to branch on membership."
+        },
+        {"kind": "stdout_equals", "expected": "ready\n"}
+      ]
+    },
+    {
+      "id": "collections_05_ex3",
+      "type": "debug",
+      "title": "Fix the remove call",
+      "prompt": "After using a potion, the inventory should be [\"sword\", \"key\"]. The remove call uses the wrong value and raises ValueError.\n\nRun to see the error, fix the argument to remove, then Check.",
+      "starter_code": "inventory = [\"sword\", \"potion\", \"key\"]\ninventory.remove(\"potions\")\nprint(inventory)\n",
+      "topics": ["collections"],
+      "hints": [
+        "Run first — ValueError means the value is not in the list.",
+        "Compare each string carefully: potion vs potions.",
+        "Remove \"potion\" exactly as it appears in the list."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "name": "inventory",
+          "method": "remove",
+          "message": "Use inventory.remove(...) — do not replace the whole list."
+        },
+        {
+          "kind": "globals",
+          "name": "inventory",
+          "type_name": "list",
+          "expected": ["sword", "key"],
+          "message": "After removing the potion, inventory should hold sword and key."
+        },
+        {"kind": "stdout_equals", "expected": "['sword', 'key']\n"}
+      ]
+    },
+    {
+      "id": "collections_05_ex4",
+      "type": "write_code",
+      "title": "Remove an item if present",
+      "prompt": "Write drop_item(inventory, item) that removes item from the list when it is present.\n\nIf item is not in inventory, leave the list unchanged. Return the list (same object is fine). Do not print.",
+      "starter_code": "def drop_item(inventory, item):\n    # Remove item when present; return inventory\n    pass\n",
+      "topics": ["collections", "conditionals", "functions"],
+      "success_message": "You checked membership before mutating the list — the safe pattern for inventory changes.",
+      "hints": [
+        "Use in to test before removing.",
+        "Only call remove when the item is present — otherwise ValueError.",
+        "return inventory after your changes."
+      ],
+      "tests": [
+        {
+          "kind": "function",
+          "function": "drop_item",
+          "args": [["sword", "potion", "key"], "potion"],
+          "expected": ["sword", "key"],
+          "message": "Removing potion should leave sword and key."
+        },
+        {
+          "kind": "function",
+          "function": "drop_item",
+          "args": [["sword", "key"], "torch"],
+          "expected": ["sword", "key"],
+          "message": "Dropping a missing item should not change the list."
+        },
+        {
+          "kind": "function",
+          "function": "drop_item",
+          "args": [[], "gem"],
+          "expected": [],
+          "message": "An empty inventory should stay empty."
+        },
+        {
+          "kind": "function",
+          "function": "drop_item",
+          "args": [["a", "b", "a"], "a"],
+          "expected": ["b", "a"],
+          "message": "remove deletes only the first matching value."
+        }
+      ]
+    }
+  ]
+}
