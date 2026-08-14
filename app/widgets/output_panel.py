@@ -1,9 +1,17 @@
-"""Output strip for run/check results."""
+"""Output strip for run results (stdout, tracebacks)."""
 
 from __future__ import annotations
 
 from PySide6.QtGui import QColor, QTextCharFormat
-from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QTextEdit, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QSizePolicy,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
 
 from app.theme import Theme
 
@@ -32,8 +40,11 @@ class OutputPanel(QFrame):
         self._view = QTextEdit()
         self._view.setObjectName("OutputView")
         self._view.setReadOnly(True)
-        self._view.setFixedHeight(96)
-        layout.addWidget(self._view)
+        self._view.setMinimumHeight(140)
+        self._view.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
+        layout.addWidget(self._view, stretch=1)
 
     def apply_theme(self, theme: Theme) -> None:
         self._theme = theme
@@ -72,3 +83,7 @@ class OutputPanel(QFrame):
             "plain": "Output",
         }
         self._status.setText(labels.get(kind, "Output"))
+
+    @property
+    def plain_text(self) -> str:
+        return self._view.toPlainText()

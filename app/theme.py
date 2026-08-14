@@ -449,6 +449,23 @@ def build_stylesheet(theme: Theme) -> str:
         font-size: 12px;
         padding: 10px;
     }}
+    QTextEdit#FeedbackView {{
+        background-color: {theme.bg_elevated};
+        color: {theme.text_muted};
+        border: 1px solid {theme.border_subtle};
+        border-radius: 8px;
+        font-size: 13px;
+        padding: 8px 10px;
+    }}
+    QRadioButton#ChoiceOption {{
+        color: {theme.text};
+        font-size: 13px;
+        spacing: 8px;
+    }}
+    QRadioButton#ChoiceOption::indicator {{
+        width: 14px;
+        height: 14px;
+    }}
     QProgressBar {{
         background-color: {theme.bg_elevated};
         border: none;

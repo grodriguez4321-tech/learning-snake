@@ -371,17 +371,21 @@ class CourseApp(QMainWindow):
         ide = self.lessons_page.ide
         ide.set_starter(exercise.starter_code)
         ide.set_code(code)
+        if exercise.is_choice_exercise:
+            ide.clear_choices()
+            ide.set_choices(list(exercise.choices))
+        else:
+            ide.clear_choices()
+            ide.set_answer_visible(exercise.uses_free_text_answer)
         ide.set_answer(record.last_answer)
-        needs_answer = exercise.uses_free_text_answer or exercise.is_choice_exercise
-        ide.set_answer_visible(needs_answer)
         used = record.hints_used
         ide.set_hint_label(used, len(exercise.hints))
         if record.completed:
-            ide.set_output(
-                "This exercise is already complete. You can still experiment.",
+            ide.clear_output()
+            ide.feedback.set_message(
+                "Nice work — this exercise is complete.",
                 kind="success",
             )
-            ide.feedback.set_message("Nice work — this exercise is complete.")
         else:
             ide.clear_output()
             ide.feedback.reset()
@@ -490,8 +494,7 @@ class CourseApp(QMainWindow):
                     lines.append("")
                     lines.append(result.run.error)
             kind = "success" if result.passed else "error"
-            self.lessons_page.ide.set_output("\n".join(lines), kind=kind)
-            self.lessons_page.ide.feedback.set_message(result.message)
+            self.lessons_page.ide.feedback.set_message("\n".join(lines), kind=kind)
             self.sidebar.refresh_lessons(selected_lesson_id=lesson.id)
             self._refresh_progress_pill()
             record = self.controller.progress.exercise(exercise.id)
@@ -531,8 +534,7 @@ class CourseApp(QMainWindow):
             )
         else:
             text = f"Hint {used}: {hint}"
-        ide.append_output(text, kind="hint")
-        ide.feedback.set_message(text)
+        ide.feedback.set_message(text, kind="hint")
         ide.set_hint_label(used, len(self._current_exercise.hints))
 
     def _run_playground(self, code: str) -> None:

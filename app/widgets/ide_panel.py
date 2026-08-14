@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
+    QButtonGroup,
     QFrame,
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
+    QRadioButton,
     QSizePolicy,
     QVBoxLayout,
     QWidget,
@@ -58,17 +60,26 @@ class IdePanel(QFrame):
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
         self.editor.runRequested.connect(self.runClicked.emit)
-        body_l.addWidget(self.editor, stretch=1)
+        body_l.addWidget(self.editor, stretch=3)
 
         self._answer_label = QLabel("Your answer")
         self._answer_label.setObjectName("MutedLabel")
         body_l.addWidget(self._answer_label)
+
         self._answer = QLineEdit()
         self._answer.setObjectName("AnswerField")
-        self._answer.setPlaceholderText("Type predicted output or choice here…")
+        self._answer.setPlaceholderText("Type predicted output here…")
         self._answer.setFixedHeight(34)
         body_l.addWidget(self._answer)
-        self.set_answer_visible(False)
+
+        self._choice_host = QWidget()
+        self._choice_layout = QVBoxLayout(self._choice_host)
+        self._choice_layout.setContentsMargins(0, 0, 0, 0)
+        self._choice_layout.setSpacing(6)
+        self._choice_group = QButtonGroup(self)
+        self._choice_buttons: list[QRadioButton] = []
+        body_l.addWidget(self._choice_host)
+        self._choice_host.hide()
 
         actions = QHBoxLayout()
         actions.setSpacing(8)
@@ -95,17 +106,19 @@ class IdePanel(QFrame):
         body_l.addLayout(actions)
 
         self.output = OutputPanel(theme)
-        body_l.addWidget(self.output)
+        body_l.addWidget(self.output, stretch=2)
 
         self.feedback = FeedbackPanel()
-        body_l.addWidget(self.feedback)
+        body_l.addWidget(self.feedback, stretch=0)
 
         root.addWidget(body, stretch=1)
         self._starter = ""
+        self.set_answer_visible(False)
 
     def apply_theme(self, theme: Theme) -> None:
         self.editor.apply_theme(theme)
         self.output.apply_theme(theme)
+        self.feedback.apply_theme(theme)
 
     def set_busy(self, busy: bool, message: str = "Running…") -> None:
         for btn in (self._run, self._check, self._hint, self._reset):
@@ -117,8 +130,41 @@ class IdePanel(QFrame):
         self._hint.setText(f"💡  Hint ({remaining})")
 
     def set_answer_visible(self, visible: bool) -> None:
-        self._answer_label.setVisible(visible)
-        self._answer.setVisible(visible)
+        self._answer_label.setVisible(visible and not self._choice_buttons)
+        self._answer.setVisible(visible and not self._choice_buttons)
+
+    def set_choices(self, choices: list[str]) -> None:
+        self._clear_choices()
+        if not choices:
+            self._choice_host.hide()
+            return
+        for index, choice in enumerate(choices, start=1):
+            label = f"{index}. {choice}"
+            button = QRadioButton(label)
+            button.setObjectName("ChoiceOption")
+            self._choice_group.addButton(button, index)
+            self._choice_layout.addWidget(button)
+            self._choice_buttons.append(button)
+        self._answer_label.setText("Choose an option")
+        self._answer_label.setVisible(True)
+        self._answer.setVisible(False)
+        self._choice_host.show()
+
+    def _clear_choices(self) -> None:
+        for button in self._choice_buttons:
+            self._choice_group.removeButton(button)
+            button.deleteLater()
+        self._choice_buttons.clear()
+        while self._choice_layout.count():
+            item = self._choice_layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+
+    def clear_choices(self) -> None:
+        self._clear_choices()
+        self._choice_host.hide()
+        self._answer_label.setText("Your answer")
 
     def get_code(self) -> str:
         return self.editor.get_text()
@@ -133,9 +179,26 @@ class IdePanel(QFrame):
         self.editor.set_text(self._starter)
 
     def get_answer(self) -> str:
+        if self._choice_buttons:
+            checked_id = self._choice_group.checkedId()
+            if checked_id >= 1:
+                return str(checked_id)
+            return ""
         return self._answer.text()
 
     def set_answer(self, text: str) -> None:
+        cleaned = (text or "").strip()
+        if self._choice_buttons:
+            for index, button in enumerate(self._choice_buttons, start=1):
+                choice_text = button.text().split(". ", 1)[-1]
+                if cleaned == str(index) or cleaned == choice_text:
+                    button.setChecked(True)
+                    return
+            for button in self._choice_buttons:
+                button.setAutoExclusive(False)
+                button.setChecked(False)
+                button.setAutoExclusive(True)
+            return
         self._answer.setText(text)
 
     def clear_output(self) -> None:
@@ -144,8 +207,8 @@ class IdePanel(QFrame):
     def set_output(self, text: str, *, kind: str = "plain") -> None:
         self.output.set_text(text, kind=kind)
 
-    def append_output(self, text: str, *, kind: str = "plain") -> None:
-        self.output.append_text(text, kind=kind)
+    def output_text(self) -> str:
+        return self.output.plain_text
 
     def focus_editor(self) -> None:
         self.editor.setFocus()
