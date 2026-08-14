@@ -14,6 +14,7 @@ from engine.course_controller import CourseController
 from engine.exercise_checker import ExerciseChecker
 from engine.progress import ProgressStore
 from main import build_controller
+from tests.exercise_solutions import submit_solution
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,10 +24,21 @@ class CatalogTests(unittest.TestCase):
     def test_loads_ordered_lessons(self) -> None:
         catalog = CourseCatalog(ROOT / "course" / "lessons")
         catalog.load()
-        self.assertGreaterEqual(len(catalog.lessons), 5)
+        self.assertGreaterEqual(len(catalog.lessons), 8)
         ids = [lesson.id for lesson in catalog.lessons]
-        self.assertEqual(ids[0], "fundamentals_01_print")
-        self.assertIn("functions_01_basics", ids)
+        self.assertEqual(
+            ids,
+            [
+                "fundamentals_01_print",
+                "fundamentals_02_variables",
+                "fundamentals_03_fstrings",
+                "decisions_01_conditionals",
+                "collections_01_lists",
+                "collections_02_append",
+                "collections_03_loops",
+                "functions_01_basics",
+            ],
+        )
         # Ordering is stable by section_order then order.
         for left, right in zip(catalog.lessons, catalog.lessons[1:]):
             self.assertLessEqual(
@@ -219,16 +231,7 @@ class ProgressTests(unittest.TestCase):
             self.assertFalse(controller.is_unlocked(second))
 
             for exercise in first.exercises:
-                if exercise.is_code_exercise:
-                    result = controller.submit_exercise(
-                        first,
-                        exercise,
-                        code='print("Hello, Adventurer!")',
-                    )
-                else:
-                    result = controller.submit_exercise(
-                        first, exercise, answer=exercise.expected_answer
-                    )
+                result = submit_solution(controller, first, exercise)
                 self.assertTrue(result.passed, result.message)
 
             record = store.exercise(first.exercises[0].id)
@@ -272,7 +275,10 @@ class EndToEndLessonFlowTests(unittest.TestCase):
             second = catalog.lessons[1]
 
             exercise = lesson.exercises[0]
-            bad = controller.submit_exercise(lesson, exercise, code="print('Nope')")
+            if exercise.is_code_exercise:
+                bad = controller.submit_exercise(lesson, exercise, code="print('Nope')")
+            else:
+                bad = controller.submit_exercise(lesson, exercise, answer="Nope")
             self.assertFalse(bad.passed)
 
             used1, hint1 = controller.request_hint(exercise)
@@ -296,22 +302,11 @@ class EndToEndLessonFlowTests(unittest.TestCase):
             self.assertFalse(controller.is_unlocked(second))
 
             controller = CourseController(catalog, progress_reopen, ExerciseChecker())
-            # Single-quoted alternative solution still passes stdout check.
-            good = controller.submit_exercise(
-                lesson, exercise, code="print('Hello, Adventurer!')"
-            )
-            self.assertTrue(good.passed)
+            good = submit_solution(controller, lesson, exercise)
+            self.assertTrue(good.passed, good.message)
 
-            # Finish remaining exercises in lesson 1.
             for remaining in lesson.exercises[1:]:
-                if remaining.is_code_exercise:
-                    result = controller.submit_exercise(
-                        lesson, remaining, code='print("Hello, Adventurer!")'
-                    )
-                else:
-                    result = controller.submit_exercise(
-                        lesson, remaining, answer=remaining.expected_answer
-                    )
+                result = submit_solution(controller, lesson, remaining)
                 self.assertTrue(result.passed, result.message)
 
             self.assertTrue(controller.is_unlocked(second))
@@ -323,7 +318,7 @@ class EndToEndLessonFlowTests(unittest.TestCase):
 class BuildControllerTests(unittest.TestCase):
     def test_build_controller(self) -> None:
         controller, runner = build_controller(ROOT)[:2]
-        self.assertGreaterEqual(len(controller.catalog.lessons), 5)
+        self.assertGreaterEqual(len(controller.catalog.lessons), 8)
         self.assertIsInstance(runner, CodeRunner)
 
 

@@ -1,8 +1,8 @@
-"""Top application bar: breadcrumb, progress, theme toggle."""
+"""Top application bar: breadcrumb, panel toggles, progress, theme."""
 
 from __future__ import annotations
 
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QWidget
 
 from app.widgets.progress_widget import ProgressWidget
@@ -10,6 +10,10 @@ from app.widgets.progress_widget import ProgressWidget
 
 class TopBar(QFrame):
     themeChanged = Signal(str)
+    toggleSidebarClicked = Signal()
+    toggleEditorClicked = Signal()
+    saveClicked = Signal()
+    resetProgressClicked = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -17,8 +21,8 @@ class TopBar(QFrame):
         self.setFixedHeight(48)
 
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(20, 0, 16, 0)
-        layout.setSpacing(12)
+        layout.setContentsMargins(16, 0, 12, 0)
+        layout.setSpacing(8)
 
         self._breadcrumb = QLabel("Python Fundamentals")
         self._breadcrumb.setObjectName("Breadcrumb")
@@ -27,12 +31,41 @@ class TopBar(QFrame):
         self._progress = ProgressWidget()
         layout.addWidget(self._progress)
 
-        self._theme_btn = QPushButton("Theme · Dark")
-        self._theme_btn.setObjectName("GhostButton")
-        self._theme_btn.setFixedHeight(30)
+        self._sidebar_btn = self._tool_button("Sidebar", "Ctrl+B")
+        self._sidebar_btn.setCheckable(True)
+        self._sidebar_btn.setChecked(True)
+        self._sidebar_btn.clicked.connect(self.toggleSidebarClicked.emit)
+        layout.addWidget(self._sidebar_btn)
+
+        self._editor_btn = self._tool_button("Editor", "Ctrl+J")
+        self._editor_btn.setCheckable(True)
+        self._editor_btn.setChecked(True)
+        self._editor_btn.clicked.connect(self.toggleEditorClicked.emit)
+        layout.addWidget(self._editor_btn)
+
+        self._save_btn = self._tool_button("Save", "Ctrl+S")
+        self._save_btn.clicked.connect(self.saveClicked.emit)
+        layout.addWidget(self._save_btn)
+
+        self._reset_btn = self._tool_button("Reset…", None)
+        self._reset_btn.setToolTip("Reset all progress")
+        self._reset_btn.clicked.connect(self.resetProgressClicked.emit)
+        layout.addWidget(self._reset_btn)
+
+        self._theme_btn = self._tool_button("Theme · Dark", "Ctrl+Shift+D")
         self._theme_btn.clicked.connect(self._toggle_theme)
         layout.addWidget(self._theme_btn)
         self._theme = "dark"
+
+    @staticmethod
+    def _tool_button(label: str, shortcut: str | None) -> QPushButton:
+        btn = QPushButton(label)
+        btn.setObjectName("ToolButton")
+        btn.setFixedHeight(30)
+        btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        if shortcut:
+            btn.setToolTip(f"{label} ({shortcut})")
+        return btn
 
     def set_breadcrumb(self, text: str) -> None:
         self._breadcrumb.setText(text)
@@ -44,6 +77,23 @@ class TopBar(QFrame):
         self._theme = theme
         label = "Dark" if theme == "dark" else "Light"
         self._theme_btn.setText(f"Theme · {label}")
+        self._theme_btn.setToolTip(f"Theme · {label} (Ctrl+Shift+D)")
+
+    def set_sidebar_visible(self, visible: bool) -> None:
+        self._sidebar_btn.blockSignals(True)
+        self._sidebar_btn.setChecked(visible)
+        self._sidebar_btn.blockSignals(False)
+
+    def set_editor_visible(self, visible: bool) -> None:
+        self._editor_btn.blockSignals(True)
+        self._editor_btn.setChecked(visible)
+        self._editor_btn.blockSignals(False)
+
+    def flash_saved(self) -> None:
+        self._save_btn.setText("Saved")
+        from PySide6.QtCore import QTimer
+
+        QTimer.singleShot(1200, lambda: self._save_btn.setText("Save"))
 
     def _toggle_theme(self) -> None:
         nxt = "light" if self._theme == "dark" else "dark"

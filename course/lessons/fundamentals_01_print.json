@@ -4,10 +4,11 @@
   "section_order": 1,
   "order": 1,
   "title": "Print and Comments",
-  "topics": ["variables"],
-  "content": "What problem does this solve?\nYou need a way to see what your program is doing. print() sends text to the console so you can observe values while you learn.\n\nBasic syntax\n  print(value)\n  print(value1, value2)\n\nWhat actually happens\nWhen Python reaches a print() call, it converts each argument to text, joins them with spaces by default, writes that text to standard output, then continues with the next line.\n\nComments start with #. Python ignores them entirely — they are notes for humans, not instructions for the computer.",
+  "topics": ["print"],
+  "content": "What problem does this solve?\nYou need a way to see what your program is doing. print() sends text to the console so you can observe values while you learn.\n\nBasic syntax\n  print(value)\n  print(value1, value2)\n\nWhat actually happens\nWhen Python reaches a print() call, it converts each argument to text, joins them with spaces by default, writes that text to the console, then continues with the next line. An argument is a value you pass into print() inside the parentheses.\n\nComments start with #. Python ignores them entirely — they are notes for humans, not instructions for the computer.\n\nWhen this is useful\nUse print() to check a greeting, a score, or any value you want to see. Use comments to record why a line exists.",
   "concepts": [
     "print() writes values to the console",
+    "Text in quotes is a string — a piece of text Python should take literally",
     "Multiple arguments to print are separated by spaces",
     "Lines starting with # are comments and do not run"
   ],
@@ -15,12 +16,12 @@
     {
       "title": "A simple greeting",
       "code": "print(\"Hello, adventurer!\")",
-      "explanation": "Python evaluates the string, then print writes it followed by a newline."
+      "explanation": "The quotes mark a string. print writes that string, then a newline."
     },
     {
       "title": "Comments explain intent",
       "code": "# Show the starting gold amount\nprint(\"Gold:\", 50)",
-      "explanation": "The comment is skipped. print receives two arguments and inserts a space between them."
+      "explanation": "The comment is skipped. print receives two arguments — a string and a number — and inserts a space between them."
     }
   ],
   "common_mistakes": [
@@ -29,12 +30,26 @@
   ],
   "exercises": [
     {
+      "id": "fundamentals_01_ex2",
+      "type": "predict_output",
+      "title": "Predict the print",
+      "prompt": "What does the following program print? Type the exact output (no quotes).",
+      "code_to_predict": "print(\"HP:\", 100)",
+      "expected_answer": "HP: 100",
+      "topics": ["print"],
+      "hints": [
+        "print joins multiple arguments with a single space.",
+        "There is no extra punctuation added between HP: and 100.",
+        "The two arguments become one line with a space between them."
+      ]
+    },
+    {
       "id": "fundamentals_01_ex1",
       "type": "write_code",
       "title": "Greet the adventurer",
       "prompt": "Write a program that prints exactly:\nHello, Adventurer!\n\nUse print and a string.",
       "starter_code": "# Print the greeting below\n",
-      "topics": ["variables"],
+      "topics": ["print"],
       "hints": [
         "print() needs parentheses, and text needs quotes.",
         "Use double or single quotes around the whole message.",
@@ -48,17 +63,27 @@
       ]
     },
     {
-      "id": "fundamentals_01_ex2",
-      "type": "predict_output",
-      "title": "Predict the print",
-      "prompt": "What does the following program print? Type the exact output (no quotes).",
-      "code_to_predict": "print(\"HP:\", 100)",
-      "expected_answer": "HP: 100",
-      "topics": ["variables"],
+      "id": "fundamentals_01_ex3",
+      "type": "write_code",
+      "title": "Comment and two arguments",
+      "prompt": "Print exactly:\nGold: 50\n\nUse print with two arguments (the label and the number). Put a real comment on the line above print that explains what the line shows.",
+      "starter_code": "print(\"Gold:\", 50)\n",
+      "topics": ["print"],
       "hints": [
-        "print joins multiple arguments with a single space.",
-        "There is no extra punctuation added between HP: and 100.",
-        "The full output is: HP: 100"
+        "A comment starts with # and is a note for humans.",
+        "print can take two arguments: a string, then a number, separated by a comma.",
+        "Put a # comment on its own line above the print call."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "comment",
+          "message": "Add a comment that starts with # and explains the next line."
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "Gold: 50\n"
+        }
       ]
     }
   ]

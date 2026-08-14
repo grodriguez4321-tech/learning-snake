@@ -255,6 +255,16 @@ def build_stylesheet(theme: Theme) -> str:
         border: 1px solid {theme.accent_soft};
         border-radius: 10px;
     }}
+    QFrame#MistakesCard {{
+        background-color: {theme.bg_card};
+        border: 1px solid {theme.warning_soft};
+        border-radius: 10px;
+    }}
+    QLabel#SectionHeading {{
+        color: {theme.text};
+        font-weight: 600;
+        font-size: 13px;
+    }}
     QFrame#ExampleBlock {{
         background: transparent;
         border: none;
@@ -332,6 +342,25 @@ def build_stylesheet(theme: Theme) -> str:
     QPushButton#PrimaryButton:hover {{
         background-color: {theme.accent_hover};
         border-color: {theme.accent_hover};
+    }}
+    QPushButton#ToolButton {{
+        background-color: transparent;
+        border: 1px solid {theme.border_subtle};
+        border-radius: 7px;
+        color: {theme.text_muted};
+        padding: 5px 10px;
+        font-size: 12px;
+        font-weight: 500;
+    }}
+    QPushButton#ToolButton:hover {{
+        background-color: {theme.bg_elevated};
+        color: {theme.text};
+        border-color: {theme.border};
+    }}
+    QPushButton#ToolButton:checked {{
+        background-color: {theme.nav_active};
+        color: {theme.text};
+        border-color: {theme.accent_soft};
     }}
     QPushButton#GhostButton, QPushButton#SecondaryButton {{
         background-color: transparent;

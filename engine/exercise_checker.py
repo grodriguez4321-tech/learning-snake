@@ -8,6 +8,7 @@ expression/class checks declared in lesson JSON.
 
 from __future__ import annotations
 
+import ast
 from dataclasses import asdict, dataclass, field
 from typing import Any, Optional
 
@@ -68,13 +69,15 @@ class ExerciseChecker:
             return CheckResult(True, "Correct! Your prediction matches the output.")
 
         # Do not reveal the exact expected text immediately.
-        hint = "Check spacing, punctuation, and capitalization carefully."
-        if exercise.code_to_predict and "print(" in exercise.code_to_predict:
-            hint = (
-                "Remember that print() separates multiple arguments with a single "
-                "space and adds a newline at the end (you usually omit the newline "
-                "when typing your answer)."
-            )
+        hint = exercise.failure_message.strip() if exercise.failure_message else ""
+        if not hint:
+            hint = "Check spacing, punctuation, and capitalization carefully."
+            if _print_positional_arg_count(exercise.code_to_predict) >= 2:
+                hint = (
+                    "Remember that print() separates multiple arguments with a single "
+                    "space and adds a newline at the end (you usually omit the newline "
+                    "when typing your answer)."
+                )
         return CheckResult(False, f"Not quite. {hint}")
 
     def _check_architecture(self, exercise: Exercise, answer: str) -> CheckResult:
@@ -86,12 +89,15 @@ class ExerciseChecker:
         actual = self._resolve_choice(exercise, cleaned)
 
         if actual == expected:
-            return CheckResult(True, "Good design reasoning — that relationship fits.")
-        return CheckResult(
-            False,
-            "That design choice does not fit this situation. Re-read the question "
-            "and think about 'is-a' versus 'has-a'.",
+            message = exercise.success_message.strip() or (
+                "Good reasoning — that choice fits this situation."
+            )
+            return CheckResult(True, message)
+        message = exercise.failure_message.strip() or (
+            "That choice does not fit this situation. Re-read the question "
+            "and think about what the rest of the program needs."
         )
+        return CheckResult(False, message)
 
     def _resolve_choice(self, exercise: Exercise, value: str) -> str:
         cleaned = value.strip()
@@ -150,3 +156,17 @@ class ExerciseChecker:
             )
 
         return CheckResult(True, "All checks passed. Nice work!", details=details, run=run)
+
+
+def _print_positional_arg_count(code: str) -> int:
+    if not (code or "").strip():
+        return 0
+    try:
+        tree = ast.parse(code)
+    except SyntaxError:
+        return 0
+    max_args = 0
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "print":
+            max_args = max(max_args, len(node.args))
+    return max_args

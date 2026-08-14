@@ -5,7 +5,7 @@ behavior-checked exercises, progressive hints, and saved progress.
 
 Phase 1 focuses on a working architecture: GUI shell, lesson loading, isolated
 code execution with timeouts, exercise checking, unlocking, and progress
-persistence — with a small set of sample lessons to prove the loop.
+persistence — plus a beginner path from print through functions.
 
 ## How to run
 
@@ -23,9 +23,11 @@ On Debian/Ubuntu you may also need Qt platform libraries (for example
 
 | Action | Shortcut | Also |
 | --- | --- | --- |
-| Toggle sidebar | `Ctrl+B` | — |
-| Toggle editor column | `Ctrl+J` | — |
-| Toggle Dark/Light | `Ctrl+Shift+D` | Theme control in the top bar |
+| Toggle sidebar | `Ctrl+B` | **Sidebar** in the top toolbar |
+| Toggle editor column | `Ctrl+J` | **Editor** in the top toolbar |
+| Toggle Dark/Light | `Ctrl+Shift+D` | **Theme · …** in the top toolbar |
+| Save progress | `Ctrl+S` | **Save** in the top toolbar (also Settings) |
+| Reset progress | — | **Reset…** in the top toolbar (also Settings) |
 | Run code | `Ctrl+Enter` | **Run Code** button |
 
 UI preferences (theme + panel visibility) are saved in `data/ui_prefs.json`.
@@ -91,7 +93,7 @@ Each file in `course/lessons/` is a lesson document, for example:
   "section_order": 1,
   "order": 1,
   "title": "Print and Comments",
-  "topics": ["variables"],
+  "topics": ["print"],
   "content": "Explanation text...",
   "concepts": ["..."],
   "examples": [{"title": "...", "code": "...", "explanation": "..."}],
@@ -119,6 +121,7 @@ Supported checks include:
 - `class_defined` — require a class name
 - `raises` — expect an exception type from an expression
 - `runs_successfully` — require clean execution
+- `source_uses` — require a construct (f-string, append, index, `if`, `for`, …) when that construct is the learning objective
 - Predict-output / architecture answers — compare the learner's response
 
 Example function tests for `double(number)` call several inputs so a hardcoded
@@ -203,7 +206,7 @@ needed.
 
 ## Phase roadmap
 
-- **Phase 1 (this)**: architecture + 5 sample lessons proving the learning loop
+- **Phase 1 (this)**: architecture + beginner path from print through functions
 - **Phase 2**: polished beginner curriculum (variables → basic classes)
 - **Phase 3**: composition, inheritance, debugging, intermediate Python
 - **Phase 4**: review/mastery adaptation + final RPG project milestones

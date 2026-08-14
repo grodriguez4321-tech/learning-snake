@@ -3,11 +3,12 @@
   "section": "Python Fundamentals",
   "section_order": 1,
   "order": 2,
-  "title": "Variables and Assignment",
+  "title": "Variables, Types, and Assignment",
   "topics": ["variables"],
-  "content": "What problem does this solve?\nPrograms need to remember values — a character's name, current health, or score — and reuse them later.\n\nBasic syntax\n  name = expression\n\nWhat actually happens\nThe right-hand side is evaluated first. Then Python attaches that resulting object to the name on the left. A variable is a label pointing at a value, not a fixed box that permanently owns one type.\n\nPractical example: a character sheet uses names like health and level so later code can update them without rewriting every print statement.",
+  "content": "What problem does this solve?\nPrograms need to remember values — a character's name, current health, or score — and reuse them later.\n\nBasic syntax\n  name = expression\n\nWhat actually happens\nThe right-hand side is evaluated first. Then Python attaches that resulting value to the name on the left. A variable is a label pointing at a value, not a fixed box that permanently owns one type.\n\nA string is text in quotes, such as \"Rook\". An integer is a whole number without quotes, such as 80. An expression is anything Python can evaluate, including a name, a number, or strength + 3.\n\nWhen this is useful\nA character sheet uses names like health and level so later code can update them without rewriting every print statement.",
   "concepts": [
     "Assignment evaluates the right side, then binds the name on the left",
+    "Strings are quoted text; integers are whole numbers without quotes",
     "Variable names should describe meaning (health, not x)",
     "Reassigning a name makes it point at a new value"
   ],
@@ -15,19 +16,67 @@
     {
       "title": "Create and use variables",
       "code": "name = \"Aria\"\nhealth = 100\nprint(name)\nprint(health)",
-      "explanation": "name refers to the string object \"Aria\". health refers to the integer 100."
+      "explanation": "name refers to the string Aria. health refers to the integer 100. print uses those names instead of repeating the values."
     },
     {
       "title": "Reassignment",
       "code": "gold = 50\ngold = gold + 10\nprint(gold)",
-      "explanation": "gold + 10 creates 60, then gold is rebound to 60. The old 50 may be discarded."
+      "explanation": "gold + 10 creates 60, then gold is rebound to 60. The old 50 is no longer used."
     }
   ],
   "common_mistakes": [
-    "Writing health == 100 when you meant to assign ( == compares )",
-    "Using a variable before assigning it — that raises NameError"
+    "Writing health == 100 when you meant to assign ( == compares two values )",
+    "Using a variable before assigning it — that raises NameError",
+    "Putting quotes around a number when you needed an integer: \"80\" is a string"
   ],
   "exercises": [
+    {
+      "id": "fundamentals_02_ex2",
+      "type": "fill_blank",
+      "title": "Finish the assignment",
+      "prompt": "Complete the code so attack equals strength plus the weapon bonus. Replace the placeholder so the expression uses both variable names.",
+      "starter_code": "strength = 12\nweapon_bonus = 3\nattack = None  # TODO: set this to strength + weapon_bonus\nprint(attack)\n",
+      "topics": ["variables"],
+      "hints": [
+        "Replace None with an expression using the two variables.",
+        "Use the + operator to add the integers those names refer to.",
+        "The left side is attack; the right side should mention strength and weapon_bonus."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "binop_names",
+          "name": "attack",
+          "names": ["strength", "weapon_bonus"],
+          "message": "Build attack from the names strength and weapon_bonus, not a hardcoded number."
+        },
+        {"kind": "globals", "name": "attack", "expected": 15},
+        {"kind": "stdout_equals", "expected": "15\n"}
+      ]
+    },
+    {
+      "id": "fundamentals_02_ex3",
+      "type": "write_code",
+      "title": "Collect more gold",
+      "prompt": "gold already starts at 50. Reassign gold so it becomes 10 more than its current value, then print gold. Do not just write 60 — use gold on the right-hand side.",
+      "starter_code": "gold = 50\n# Add 10 gold, then print gold\n",
+      "topics": ["variables"],
+      "hints": [
+        "Reassignment uses the current value of a name to compute a new one.",
+        "The pattern is: the same name on the left and the right of =.",
+        "Add 10 to gold, store the result back in gold, then print it."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "rebind_self",
+          "name": "gold",
+          "message": "Give gold a new value that uses gold on the right-hand side."
+        },
+        {"kind": "globals", "name": "gold", "type_name": "int", "expected": 60},
+        {"kind": "stdout_equals", "expected": "60\n"}
+      ]
+    },
     {
       "id": "fundamentals_02_ex1",
       "type": "write_code",
@@ -37,31 +86,14 @@
       "topics": ["variables"],
       "hints": [
         "Strings need quotes; integers do not.",
-        "Assign all three names first, then call print three times.",
-        "Example shape:\nname = \"Rook\"\nhealth = 80\nlevel = 3\nprint(name)\nprint(health)\nprint(level)"
+        "Assign all three names first, then call print three times using those names.",
+        "Print the variables themselves, not copies of the text you assigned."
       ],
       "tests": [
         {"kind": "globals", "name": "name", "type_name": "str", "expected": "Rook"},
         {"kind": "globals", "name": "health", "type_name": "int", "expected": 80},
         {"kind": "globals", "name": "level", "type_name": "int", "expected": 3},
         {"kind": "stdout_equals", "expected": "Rook\n80\n3\n"}
-      ]
-    },
-    {
-      "id": "fundamentals_02_ex2",
-      "type": "fill_blank",
-      "title": "Finish the assignment",
-      "prompt": "Complete the code so attack equals strength plus the weapon bonus. Replace the placeholder value.",
-      "starter_code": "strength = 12\nweapon_bonus = 3\nattack = None  # TODO: set this to strength + weapon_bonus\nprint(attack)\n",
-      "topics": ["variables"],
-      "hints": [
-        "Replace None with an expression using the two variables.",
-        "Use the + operator to add integers.",
-        "attack = strength + weapon_bonus"
-      ],
-      "tests": [
-        {"kind": "globals", "name": "attack", "expected": 15},
-        {"kind": "stdout_equals", "expected": "15\n"}
       ]
     }
   ]

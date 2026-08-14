@@ -115,6 +115,10 @@ class CourseApp(QMainWindow):
 
         self.top_bar = TopBar()
         self.top_bar.themeChanged.connect(self._on_theme_changed)
+        self.top_bar.toggleSidebarClicked.connect(self.toggle_sidebar)
+        self.top_bar.toggleEditorClicked.connect(self.toggle_editor)
+        self.top_bar.saveClicked.connect(self._save_progress)
+        self.top_bar.resetProgressClicked.connect(self._reset_progress)
         self.top_bar.set_theme(self._theme.name)
         right_l.addWidget(self.top_bar)
 
@@ -203,11 +207,13 @@ class CourseApp(QMainWindow):
     def show_sidebar(self) -> None:
         self._sidebar_visible = True
         self.sidebar.setVisible(True)
+        self.top_bar.set_sidebar_visible(True)
         self.prefs_store.update(sidebar_visible=True)
 
     def hide_sidebar(self) -> None:
         self._sidebar_visible = False
         self.sidebar.setVisible(False)
+        self.top_bar.set_sidebar_visible(False)
         self.prefs_store.update(sidebar_visible=False)
 
     def toggle_editor(self) -> None:
@@ -219,12 +225,14 @@ class CourseApp(QMainWindow):
     def show_editor(self) -> None:
         self._editor_visible = True
         self.lessons_page.set_editor_visible(True)
+        self.top_bar.set_editor_visible(True)
         self.prefs_store.update(editor_visible=True)
         self.lessons_page.ide.focus_editor()
 
     def hide_editor(self) -> None:
         self._editor_visible = False
         self.lessons_page.set_editor_visible(False)
+        self.top_bar.set_editor_visible(False)
         self.prefs_store.update(editor_visible=False)
 
     def _sync_panel_visibility(self) -> None:
@@ -562,6 +570,7 @@ class CourseApp(QMainWindow):
         self._persist_current_draft()
         self.controller.progress.save()
         self.prefs_store.save()
+        self.top_bar.flash_saved()
 
     def _reset_progress(self) -> None:
         if self._busy:
@@ -580,8 +589,12 @@ class CourseApp(QMainWindow):
             self.controller.progress.save()
             self._current_exercise = None
             self._show_lesson(first)
+            self._on_nav("lessons")
         self._refresh_progress_pill()
         self.progress_page.refresh()
+        self.sidebar.refresh_lessons(
+            selected_lesson_id=first.id if first else None
+        )
         QMessageBox.information(self, "Reset", "Progress has been reset.")
 
     def _maybe_warn_progress_recovery(self) -> None:
