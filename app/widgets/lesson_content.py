@@ -303,12 +303,6 @@ class ExerciseCard(QFrame):
         self._predict.setFont(_mono_font(12))
         layout.addWidget(self._predict)
 
-        self._choices_label = QLabel()
-        self._choices_label.setWordWrap(True)
-        self._choices_label.setObjectName("BodyText")
-        self._choices_label.setTextFormat(Qt.TextFormat.RichText)
-        layout.addWidget(self._choices_label)
-
         self._instructions = QLabel()
         self._instructions.setWordWrap(True)
         self._instructions.setObjectName("BodyText")
@@ -328,7 +322,6 @@ class ExerciseCard(QFrame):
             self._ex_meta.setText("")
             self._predict_label.setVisible(False)
             self._predict.setVisible(False)
-            self._choices_label.setVisible(False)
             self._instructions.setText("")
             self._prev_ex.setEnabled(False)
             self._next_ex.setEnabled(False)
@@ -348,18 +341,6 @@ class ExerciseCard(QFrame):
         else:
             self._predict_label.setVisible(False)
             self._predict.setVisible(False)
-
-        if exercise.is_choice_exercise and exercise.choices:
-            items = "".join(
-                f"<li style='margin:5px 0;'>{index}. {_escape(choice)}</li>"
-                for index, choice in enumerate(exercise.choices, start=1)
-            )
-            self._choices_label.setText(
-                f"<b>Options</b><ol style='margin:6px 0; padding-left:22px;'>{items}</ol>"
-            )
-            self._choices_label.setVisible(True)
-        else:
-            self._choices_label.setVisible(False)
 
         tips: list[str] = []
         if exercise.is_code_exercise:

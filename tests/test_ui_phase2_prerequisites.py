@@ -85,7 +85,7 @@ class ExerciseCardPredictTests(unittest.TestCase):
         card.set_exercise(exercise, index=0, total=1)
         self.assertGreater(card._predict.maximumHeight(), 88)
 
-    def test_architecture_choices_render_in_card(self) -> None:
+    def test_architecture_choices_not_duplicated_in_card(self) -> None:
         card = ExerciseCard()
         exercise = Exercise(
             id="t_arch",
@@ -96,9 +96,24 @@ class ExerciseCardPredictTests(unittest.TestCase):
             expected_answer="2",
         )
         card.set_exercise(exercise, index=0, total=1)
-        html = card._choices_label.text()
-        self.assertIn("Only print", html)
-        self.assertIn("Return the new health", html)
+        self.assertIn("Should heal print or return?", card._prompt.text())
+        self.assertIn("Select an option on the right", card._instructions.text())
+        # Choices belong in the IDE panel only — not repeated in the lesson card.
+        combined = card._prompt.text() + card._instructions.text()
+        self.assertNotIn("Only print", combined)
+        self.assertNotIn("Return the new health", combined)
+
+    def test_architecture_choices_render_in_ide_panel(self) -> None:
+        panel = IdePanel(DARK)
+        panel.show()
+        self.app.processEvents()
+        panel.set_choices(["Only print", "Return the new health"])
+        self.app.processEvents()
+        self.assertEqual(len(panel._choice_buttons), 2)
+        labels = [button.text() for button in panel._choice_buttons]
+        self.assertIn("1. Only print", labels)
+        self.assertIn("2. Return the new health", labels)
+        panel.close()
 
 
 class RunCheckSeparationTests(unittest.TestCase):
@@ -219,8 +234,12 @@ class ArchitectureExerciseIntegrationTests(unittest.TestCase):
             self.app.processEvents()
 
             ide = course.lessons_page.ide
+            card = course.lessons_page.content._exercise
             self.assertTrue(ide._choice_host.isVisible())
             self.assertEqual(len(ide._choice_buttons), 2)
+            combined_card_text = card._prompt.text() + card._instructions.text()
+            self.assertNotIn("Only print the new health inside heal", combined_card_text)
+            self.assertNotIn("Return the new health so callers can use it", combined_card_text)
             ide.set_answer("2")
             course._check_answer()
             _wait_until(self.app, course)
