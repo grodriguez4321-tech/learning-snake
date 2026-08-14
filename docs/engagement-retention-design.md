@@ -165,6 +165,7 @@ Future phases may add save/load, larger architecture, and additional systems.
 3. **Runnable at every stage** — the project should always be a small working script, not a pile of disconnected fragments.
 4. **Theme serves pedagogy** — switch context when the RPG framing obscures the concept.
 5. **Callback references** — later lessons refer to structures built in earlier lessons ("the party list you built in Lesson 18").
+6. **Shared vocabulary, not a single codebase (Lessons 9–18)** — reuse names (Mira, gold, party) and canonical specs (`make_stats`), but do not require carrying forward buggy learner code until nested data and capstone work (Lessons 19–28). Early mistakes in a monolithic project obscure concept debugging.
 
 ### Project artifacts (future metadata)
 
@@ -262,6 +263,24 @@ When mastery data exists, the engine may:
 1. Detect a `retrieved` concept with `potentially_forgotten` status
 2. Insert or surface a **Quick Challenge** before the next lesson that depends heavily on it
 3. Never block forward progress — review is offered, not mandatory gatekeeping
+
+### Concept exposure budget (authoring rule)
+
+Avoid stacking retrieval mechanisms in one lesson. Per lesson:
+
+| Budget | Limit |
+|--------|-------|
+| **Introduced** (major new concept) | 1 |
+| **Retrieved** (prior concepts) | 0–2 |
+| **Debug/predict touch** | ≥1 on introduced or retrieved concept |
+
+Boss challenges, Quick Challenges, and Bug Hunt exercises draw from the retrieval budget — they do not add extra concept load on top of a full lesson.
+
+### Spacing and interference
+
+- **Minimum spacing:** Re-test a concept as `practiced` no sooner than 2 lessons after introduction unless it appears as lightweight `retrieved`.
+- **Interference pairs:** Avoid introducing multiple high-load constructs in one lesson (e.g., do not combine new `elif`, new boolean ops, and new dicts). Lesson 13 follows boolean logic — do not also boss-test Lessons 9–11 there.
+- **Fixed path (Phase 2–3):** Adaptation may insert optional retrieval exercises only; never skip core lessons.
 
 ---
 
@@ -656,8 +675,14 @@ Future agents and developers must **avoid** these engagement patterns:
 | Artificial time gates | "Wait 4 hours to continue" |
 | Punishing hints | Discourages help-seeking |
 | Leaderboard pressure | Compares learners; irrelevant for solo course |
+| Social comparison / ranking | Peer pressure unrelated to solo learning |
 | Constant reward interruption | Breaks flow state during coding |
 | Easier tests to preserve completion rate | Fake progress |
+| Predict exercises answerable only by running | Skips mental model; requires commit-before-run |
+| Debug exercise with error only in prompt, not runnable code | Cannot Run → observe → fix |
+| Boss introducing new syntax | Integration only, not new constructs |
+| Parsons with multiple valid orderings | Busywork without transfer test |
+| `source_uses` when behavior tests suffice | Over-constrains valid implementations |
 | Copy-paste exercises | No reasoning required |
 | "Review" labels on retrieval | Feels like remedial punishment |
 | Fake precision ("87% master") | Misleading confidence |
@@ -880,6 +905,24 @@ Document now; do not delay Lessons 9–13.
 
 ---
 
+### D. Governing principles for Lessons 9–13
+
+These five principles take precedence when authoring the first Phase 2 batch. When in doubt, choose the option that strengthens **reasoning and retrieval**, not completion speed.
+
+1. **Interaction before independence** — Every lesson opens with prediction or guided practice before the hardest `write_code` exercise. No lesson is "read, then three writes."
+
+2. **Retrieval without labeling** — Each lesson silently reuses 2–3 prior concepts (f-strings, conditionals, loops) in at least one exercise. Never prefix exercises with "review" or "reminder."
+
+3. **Debug and predict every lesson** — At least one `predict_output`, `debug`, or `architecture` exercise per lesson. Debugging is habit formation, not a future topic.
+
+4. **Competence feedback, not gamification** — Use behavioral `message` fields and `success_message` that name what the learner demonstrated. No XP, streaks, or shame framing.
+
+5. **Persistent project continuity** — Extend the RPG thread with stable function/structure names (`wound_label`, `can_enter`, `make_stats`) that later lessons can reference. Learners build, not receive, the growing program.
+
+Supporting principles: 4 progressive hints per exercise; 4+ `function` test cases on write exercises; examples teach structure without duplicating solutions; difficulty stays in 2–3 range for this batch.
+
+---
+
 ## Appendix A: Parsons problems evaluation
 
 **Not implementing drag-and-drop in this phase.**
@@ -943,6 +986,8 @@ Short retrieval tasks surfaced by spacing/mastery engine.
 - Draw from `concepts_retrieved` pools
 - 2–4 minute target duration
 
+**Defer until Phase 3/4:** Quick Challenges should not block Lessons 9–13 authoring. Until an adaptive engine exists, embedded retrieval exercises in forward lessons suffice.
+
 ---
 
 ## Appendix C: Prediction exercise progression
@@ -1001,22 +1046,29 @@ Until P0 ships, Phase 2 lesson authoring for 9–13 should wait — engagement d
 
 ## Appendix E: Specialist review synthesis
 
-This document was reviewed by curriculum-design, assessment-design, and learning-UX perspectives. Key integrated recommendations:
+This document was reviewed by [curriculum-designer](bc-285a2f6f-446b-56ba-aae2-e6c28cb5cf5e), [assessment-designer](bc-e7dd41f1-807f-5ed5-bb9a-ee310a6864f0), and learning-UX perspectives. Key integrated recommendations:
 
 ### Curriculum
 
 - Treat `docs/phase2-curriculum-plan.md` as the **authoritative lesson spec** for 9–28; this document governs *why* and *how*, not duplicate per-lesson tables.
+- **Do not implement the full engagement stack before Lessons 9–13 exist** — feature sprawl risks thin exercises and blocks curriculum on engine work.
 - Persistent project naming must be **stable from Lesson 9** (`wound_label`, `can_enter`, `make_stats`) so Lesson 18–19 can reference prior artifacts.
-- Boss 1 (after Lesson 10) may initially ship as a **final capstone-style exercise** within or immediately after Lesson 10 until a distinct `boss_challenge` type exists.
-- Do not skip the debugging spine in 9–13 while waiting for dedicated error lessons (22–23).
+- RPG thread = **shared vocabulary** through Lesson 18; cumulative project file deferred until nested data (Lesson 19) and capstone (Lesson 28).
+- **Lesson 10 is the first section boss** — integrator `can_enter` with 5+ function cases; not a new exercise type yet.
+- **Lesson 13 is the hardest jump** — keep 4 exercises, heavy scaffolding; no Parsons, mystery, or boss there.
+- Reflection: use lightweight MCQ only (e.g., post-boss architecture); avoid open-ended journaling in Phase 2.
+- Defer Parsons (6–8 total in Phase 2 max), Quick Challenges (Phase 3/4), context-choice variants, skill tree, and mastery UI.
 
 ### Assessment
 
 - Prefer **behavioral tests** (`function`, `stdout_equals`, `expression`) over source comparison.
-- Use `source_uses` only when construct use is the learning objective and hardcoded output would pass otherwise.
-- Debug exercises: include `runs_successfully` plus behavioral tests on the fixed code.
-- Multiple valid implementations: avoid over-constraining with `source_uses` unless teaching a specific construct.
-- Concept metadata is **authoring discipline now**, engine enforcement later — start tagging in JSON comments or sidecar notes if schema not yet extended.
+- **`write_code` minimum:** ≥3 visible cases + ≥1 hidden edge per exercise where generalization matters.
+- Use `source_uses` only when construct use is the learning objective; extend features for Phase 2: `elif_branch`, `while_loop`, `boolean_op`, `dict_literal`.
+- Debug exercises: `runs_successfully` + behavioral tests on fixed code; tag bug class in metadata (`logic|syntax|runtime`).
+- **Hidden tests:** mark `tests[].hidden: true`; show first failing visible test only in feedback.
+- Predict integrity requires **commit-before-run** (UI + metadata); until then, prompt copy must say "Before running, answer…"
+- Mastery: replace opaque floats with qualitative bands driven by weighted events (pass independent > pass with hints > predict correct); hints inform bands, never punish.
+- Failure taxonomy (future): distinguish `conceptual` vs `careless` vs `incomplete` for routing to review vs retry.
 
 ### Learning UX
 
@@ -1025,6 +1077,21 @@ This document was reviewed by curriculum-design, assessment-design, and learning
 - Hints are help, not penalty — UI should never show "hint penalty" or reduced score.
 - Completion feedback should grow from per-exercise `success_message` toward lesson-level capability summaries.
 - Avoid discovery/mystery exercises in 9–13 batch — focus on core loop establishment first.
+- Run/Check separation (P0-3) is a **pedagogical prerequisite**, not polish — debug assessment fails without it.
+
+### Engine compatibility matrix (what works today)
+
+| Feature | Works now | Requires P0 UI | Requires engine extension |
+|---------|-----------|----------------|---------------------------|
+| predict_output, fill_blank, write_code, debug | ✓ | | |
+| architecture with choices | | P0-1 | |
+| Debug Run → observe | | P0-3 | |
+| Multi-line output / tracebacks | | P0-2 | |
+| Concept role tags | ✓ (authoring) | | schema validation |
+| Hidden test differentiation | | | `tests[].hidden` |
+| Commit-before-run | | UI lock | progress fields |
+| Quick/Boss/Parsons types | | | new checkers |
+| Hint-weighted mastery | | | progress schema |
 
 ---
 
@@ -1033,3 +1100,4 @@ This document was reviewed by curriculum-design, assessment-design, and learning
 | Date | Change |
 |------|--------|
 | 2026-08-14 | Initial design document synthesized from engagement proposal, Phase 2 plan, and specialist review |
+| 2026-08-14 | Post-review: exposure budgets, spacing rules, RPG vocabulary scope, assessment specs, anti-patterns, compatibility matrix |
