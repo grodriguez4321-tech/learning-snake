@@ -338,16 +338,14 @@ Boss challenges introduce **no major new syntax**. They combine previously taugh
 
 ### Placement
 
-| Checkpoint | After lessons | Combines (example) |
-|------------|---------------|----------------------|
-| Boss 1 | 10 (end of Decisions section) | variables, if/else, elif, boolean logic, f-strings |
+| Checkpoint | After lessons | Combines (example) | Notes |
+|------------|---------------|----------------------|-------|
+| Boss 1 | 10 (end of Decisions section) | variables, if/else, elif, boolean logic, f-strings | May ship as final Lesson 10 capstone (`can_enter` + architecture) before a distinct `boss_challenge` type |
+| Boss 2 | 15 (mid-Collections) | lists, loops, len/range, conditionals, dicts *(introduced by 13)* | |
+| Boss 3 | 20 (end of Functions + nested data) | functions, dicts, nested data, loops, conditionals | |
+| Boss 4 | 28 (Phase 2 capstone) | classes, methods, composition, cumulative skills | Lesson 28 composition capstone |
 
-Boss 1 may ship first as a **multi-part final exercise** in Lesson 10 (sequential `write_code` + `architecture`) before a dedicated `boss_challenge` exercise type exists.
-| Boss 2 | 15 (mid-Collections) | lists, loops, len/range, conditionals, dicts *(introduced by 13)* |
-| Boss 3 | 20 (end of Functions + nested data) | functions, dicts, nested data, loops, conditionals |
-| Boss 4 | 28 (Phase 2 capstone) | classes, methods, composition, cumulative skills |
-
-Phase 2 already defines Lesson 28 as a composition capstone; earlier bosses may be implemented as dedicated exercises or mini-project sequences within existing lesson slots until a distinct `boss_challenge` type exists.
+Phase 2 already defines Lesson 28 as a composition capstone; earlier bosses may be implemented as dedicated exercises or mini-project sequences within existing lesson slots until a distinct `boss_challenge` type exists. Label in UI as **Capstone**, not a separate game mode.
 
 ### Difficulty progression
 
@@ -1012,7 +1010,16 @@ Train mental execution with increasing complexity:
 4. Actual output shown
 5. Compare prediction vs reality
 
-Until UI enforces locking, prompt copy and exercise ordering achieve most of the benefit.
+### Interim predict UX standard (until commit-lock ships)
+
+Until UI enforces locking, every `predict_output` exercise must:
+
+1. **Prompt copy** — Include explicit instruction: *"Decide your answer before running anything."* Place predict exercises **before** any related code exercise in the lesson.
+2. **Compare step** — After Check on the prediction, feedback must state whether the answer matched and, on mismatch, show expected vs learner answer without revealing downstream write-code solutions.
+3. **Honor-system fallback** — Do not rely on Run being disabled yet; author prompts as if Run were unavailable for the snippet in `code_to_predict`.
+4. **Future override** — When commit-lock ships: optional "show me output" after 2 failed Checks, logged as hint-equivalent (never penalized).
+
+Predict exercises on `code_to_predict` only — not on the learner's editor code for the same task.
 
 ---
 
@@ -1042,11 +1049,24 @@ Several engagement patterns **depend on UI work** documented in `docs/phase2-cur
 
 Until P0 ships, Phase 2 lesson authoring for 9–13 should wait — engagement design must not be undermined by UI limitations.
 
+### P0 acceptance criteria (learner-visible)
+
+Authors and UI developers should verify these behaviors before shipping Lessons 9+:
+
+| ID | Learner-visible behavior | Pass criteria |
+|----|--------------------------|---------------|
+| **P0-1** | Architecture / predict choices | `exercise.choices` render as selectable options (radio or numbered list) in one authoritative location; selection persists until Check |
+| **P0-2** | Output panel | Multi-line stdout and tracebacks readable without manual resize; min ~140px height with vertical stretch |
+| **P0-3** | Run vs Check | **Run** → Output panel only (tracebacks, print output). **Check** → Feedback panel only (pass/fail, hints). Hints never append to Run output |
+| **P0-3** | Debug workflow | Learner can Run broken starter, read error in Output, fix code, Run again, then Check — without losing the traceback |
+
+**P1-1 (predict panel):** Code in `code_to_predict` visible without clipping for snippets up to ~8 lines; scroll beyond that.
+
 ---
 
 ## Appendix E: Specialist review synthesis
 
-This document was reviewed by [curriculum-designer](bc-285a2f6f-446b-56ba-aae2-e6c28cb5cf5e), [assessment-designer](bc-e7dd41f1-807f-5ed5-bb9a-ee310a6864f0), and learning-UX perspectives. Key integrated recommendations:
+This document was reviewed by [curriculum-designer](bc-285a2f6f-446b-56ba-aae2-e6c28cb5cf5e), [assessment-designer](bc-e7dd41f1-807f-5ed5-bb9a-ee310a6864f0), and [learning-ux-reviewer](bc-93ee6544-e0f7-5383-a905-e348af502f7b). Key integrated recommendations:
 
 ### Curriculum
 
@@ -1074,10 +1094,16 @@ This document was reviewed by [curriculum-designer](bc-285a2f6f-446b-56ba-aae2-e
 
 - Short sessions require **interaction early** — first exercise should often be predict, not write.
 - Failure copy must name the **behavior** that failed, never the learner.
-- Hints are help, not penalty — UI should never show "hint penalty" or reduced score.
+- Hints are help, not penalty — UI should never show "hint penalty" or reduced score; never display hint count on success.
 - Completion feedback should grow from per-exercise `success_message` toward lesson-level capability summaries.
 - Avoid discovery/mystery exercises in 9–13 batch — focus on core loop establishment first.
 - Run/Check separation (P0-3) is a **pedagogical prerequisite**, not polish — debug assessment fails without it.
+- **Reflect step (future):** lightweight optional post-success consolidation ("What rule made this work?") — ungraded, one sentence; defer full implementation.
+- **Retrieval naming:** in-world labels ("Field test," "Scout report") — never "Review homework" or "Spaced repetition."
+- **Boss presentation:** same Run/Check/hints as normal exercises; label "Capstone," not a separate game mode.
+- **Four loops need homes:** lesson → Lessons page; project → Dashboard card (defer until L18+); retrieval → optional Dashboard tile (L15+); playground → Experiment nav. Never stack more than two loops on one screen.
+- **Quick Challenges:** opt-in from Dashboard only; no mid-lesson interruptions until Phase 3/4.
+- **Persistent project UI:** defer editable game state until L18+; optional read-only "party log" card later.
 
 ### Engine compatibility matrix (what works today)
 
@@ -1101,3 +1127,4 @@ This document was reviewed by [curriculum-designer](bc-285a2f6f-446b-56ba-aae2-e
 |------|--------|
 | 2026-08-14 | Initial design document synthesized from engagement proposal, Phase 2 plan, and specialist review |
 | 2026-08-14 | Post-review: exposure budgets, spacing rules, RPG vocabulary scope, assessment specs, anti-patterns, compatibility matrix |
+| 2026-08-14 | UX review: Boss table fix, P0 acceptance criteria, interim predict UX standard, UX synthesis in Appendix E |
