@@ -14,6 +14,55 @@ from course.exercise import Exercise, exercise_from_dict
 
 
 @dataclass
+class ContentSection:
+    heading: str
+    body: str
+
+
+def _looks_like_heading(line: str) -> bool:
+    text = line.strip()
+    if not text or len(text) > 60:
+        return False
+    if text.endswith("?"):
+        return True
+    if any(char in text for char in ".{}()[]"):
+        return False
+    return True
+
+
+def parse_lesson_content(content: str) -> tuple[str, list[ContentSection]]:
+    """Split lesson content into a lead intro plus titled explanation sections."""
+    text = (content or "").strip()
+    if not text:
+        return "", []
+
+    blocks = [part.strip() for part in text.split("\n\n") if part.strip()]
+    intro = ""
+    sections: list[ContentSection] = []
+
+    for index, block in enumerate(blocks):
+        lines = [line.rstrip() for line in block.split("\n") if line.strip() or line.startswith(" ")]
+        if not lines:
+            continue
+        first = lines[0].strip()
+        rest = "\n".join(lines[1:]).strip()
+        if _looks_like_heading(first) and rest:
+            heading = first
+            body = rest
+            if index == 0 and heading.lower().startswith("what problem"):
+                intro = body
+                continue
+            sections.append(ContentSection(heading=heading, body=body))
+            continue
+        if index == 0 and not intro:
+            intro = block.replace("\n", " ")
+        else:
+            sections.append(ContentSection(heading="", body=block))
+
+    return intro, sections
+
+
+@dataclass
 class CodeExample:
     title: str
     code: str
@@ -37,6 +86,16 @@ class Lesson:
     @property
     def exercise_ids(self) -> list[str]:
         return [ex.id for ex in self.exercises]
+
+    @property
+    def intro(self) -> str:
+        lead, _ = parse_lesson_content(self.content)
+        return lead
+
+    @property
+    def explanation_sections(self) -> list[ContentSection]:
+        _, sections = parse_lesson_content(self.content)
+        return sections
 
 
 def lesson_from_dict(data: dict[str, Any]) -> Lesson:

@@ -1,0 +1,104 @@
+{
+  "id": "collections_02_append",
+  "section": "Collections",
+  "section_order": 3,
+  "order": 2,
+  "title": "Growing a List",
+  "topics": ["collections"],
+  "content": "What problem does this solve?\nInventories change. You need to add an item to a list you already have, without building a brand-new list from scratch every time.\n\nBasic syntax\n  inventory.append(\"torch\")\n\nWhat actually happens\nA list can be changed after you create it. append adds another element at the end of the same list. The name inventory still refers to that same list; it now has one more item.\n\nWhen this is useful\nUse append when something new should join a collection you already named — a picked-up item, a new party member, another turn.",
+  "concepts": [
+    "You can change a list after you create it",
+    "append adds an item at the end of the same list",
+    "After append, the name still refers to that same list"
+  ],
+  "examples": [
+    {
+      "title": "A new party member",
+      "code": "party = [\"Aria\", \"Rook\"]\nparty.append(\"Mira\")\nprint(party)",
+      "explanation": "append changes the list in place. party now has three names."
+    }
+  ],
+  "common_mistakes": [
+    "Expecting append to return a new list — it changes the existing one and returns None",
+    "Replacing the whole list with a four-item literal instead of adding to the list you already have"
+  ],
+  "exercises": [
+    {
+      "id": "collections_02_ex1",
+      "type": "predict_output",
+      "title": "Predict after append",
+      "prompt": "What does this print? Type the exact output, including square brackets and quotes.",
+      "code_to_predict": "party = [\"Aria\", \"Rook\"]\nparty.append(\"Mira\")\nprint(party)",
+      "expected_answer": "['Aria', 'Rook', 'Mira']",
+      "topics": ["collections"],
+      "hints": [
+        "append adds to the end of the existing list.",
+        "print(party) shows the whole list, not just the new name.",
+        "Python prints lists with square brackets and quotes around each string."
+      ]
+    },
+    {
+      "id": "collections_02_ex2",
+      "type": "write_code",
+      "title": "Pick up a torch",
+      "prompt": "inventory already has three items. Add \"torch\" to the end of that list, then print the list. Do not replace inventory with a brand-new four-item list.",
+      "starter_code": "inventory = [\"sword\", \"shield\", \"potion\"]\n# Add torch, then print inventory\n",
+      "topics": ["collections"],
+      "hints": [
+        "Call a method on inventory to add one string at the end.",
+        "After adding, print the list variable itself.",
+        "Use append on inventory, then print inventory."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "append_or_extend",
+          "name": "inventory",
+          "message": "Add torch to the existing inventory list with append, extend, or +=."
+        },
+        {
+          "kind": "globals",
+          "name": "inventory",
+          "type_name": "list",
+          "expected": ["sword", "shield", "potion", "torch"]
+        },
+        {
+          "kind": "stdout_contains",
+          "contains": "sword"
+        },
+        {
+          "kind": "stdout_contains",
+          "contains": "torch"
+        }
+      ]
+    },
+    {
+      "id": "collections_02_ex3",
+      "type": "write_code",
+      "title": "Announce the first item",
+      "prompt": "inventory is already created. Print exactly:\nWielding sword\n\nUse an f-string and inventory[0] so the item comes from the list.",
+      "starter_code": "inventory = [\"sword\", \"shield\", \"potion\"]\n# Print what they are wielding\n",
+      "topics": ["collections", "strings"],
+      "hints": [
+        "The first item in a list is at index 0.",
+        "An f-string can include inventory[0] inside braces.",
+        "Print a line that starts with Wielding and inserts the first inventory item."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "fstring",
+          "names": ["inventory"],
+          "message": "Use an f-string that reads from the list."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "subscript",
+          "name": "inventory",
+          "message": "Read the item with inventory[0], not a hardcoded sword."
+        },
+        {"kind": "stdout_equals", "expected": "Wielding sword\n"}
+      ]
+    }
+  ]
+}

@@ -11,6 +11,7 @@ from engine.code_runner import CodeRunner
 from engine.course_controller import CourseController
 from engine.exercise_checker import ExerciseChecker
 from engine.progress import ProgressStore
+from tests.exercise_solutions import submit_solution
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,8 +34,10 @@ class LearningLoopTests(unittest.TestCase):
             assert nxt is not None
             exercise = lesson.exercises[0]
 
-            # Incorrect
-            bad = controller.submit_exercise(lesson, exercise, code="print('nope')")
+            if exercise.is_code_exercise:
+                bad = controller.submit_exercise(lesson, exercise, code="print('nope')")
+            else:
+                bad = controller.submit_exercise(lesson, exercise, answer="nope")
             self.assertFalse(bad.passed)
             self.assertTrue(bad.message)
 
@@ -63,22 +66,13 @@ class LearningLoopTests(unittest.TestCase):
             controller = CourseController(catalog, reloaded, ExerciseChecker(runner))
             self.assertFalse(controller.is_unlocked(nxt))
 
-            # Alternative valid solution (single quotes)
-            good = controller.submit_exercise(
-                lesson, exercise, code="print('Hello, Adventurer!')"
-            )
-            self.assertTrue(good.passed)
+            # Alternative valid solution
+            good = submit_solution(controller, lesson, exercise)
+            self.assertTrue(good.passed, good.message)
 
             # Finish lesson
             for remaining in lesson.exercises[1:]:
-                if remaining.is_code_exercise:
-                    result = controller.submit_exercise(
-                        lesson, remaining, code="print('Hello, Adventurer!')"
-                    )
-                else:
-                    result = controller.submit_exercise(
-                        lesson, remaining, answer=remaining.expected_answer
-                    )
+                result = submit_solution(controller, lesson, remaining)
                 self.assertTrue(result.passed, result.message)
 
             self.assertTrue(controller.is_unlocked(nxt))

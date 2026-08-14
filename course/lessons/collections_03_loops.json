@@ -1,0 +1,89 @@
+{
+  "id": "collections_03_loops",
+  "section": "Collections",
+  "section_order": 3,
+  "order": 3,
+  "title": "Repeating with for",
+  "topics": ["loops"],
+  "content": "What problem does this solve?\nA list can grow. Visiting item1, item2, item3 by hand does not scale. A for loop runs the same block once for each value in a list.\n\nBasic syntax\n  for item in inventory:\n      print(item)\n\nWhat actually happens\nPython takes the first value in inventory, binds it to item, and runs the indented block. Then it repeats with the next value, until the list is finished.\n\nWhen this is useful\nUse a for loop whenever you want to do the same thing to every item — print them, check them, or format a line for each one.",
+  "concepts": [
+    "for item in a_list repeats a block once per value",
+    "The loop variable holds the current item, not an index",
+    "The indented block is the work that repeats"
+  ],
+  "examples": [
+    {
+      "title": "Print every item",
+      "code": "inventory = [\"sword\", \"shield\"]\nfor item in inventory:\n    print(item)",
+      "explanation": "The block runs twice: first with sword, then with shield."
+    }
+  ],
+  "common_mistakes": [
+    "Forgetting the colon after the for line",
+    "Forgetting to indent the repeated line",
+    "Printing the whole list once instead of looping over items"
+  ],
+  "exercises": [
+    {
+      "id": "collections_03_ex1",
+      "type": "predict_output",
+      "title": "Predict the loop",
+      "prompt": "What does this print? Type each line of output.",
+      "code_to_predict": "inventory = [\"sword\", \"shield\"]\nfor item in inventory:\n    print(item)",
+      "expected_answer": "sword\nshield",
+      "topics": ["loops"],
+      "hints": [
+        "The loop body runs once per item, in order.",
+        "Each print ends a line, so you get one name per line.",
+        "First sword, then shield."
+      ]
+    },
+    {
+      "id": "collections_03_ex2",
+      "type": "write_code",
+      "title": "List the party",
+      "prompt": "party is already created. Print each member on its own line, in order, using a for loop.",
+      "starter_code": "party = [\"Aria\", \"Rook\", \"Mira\"]\n# Print each party member\n",
+      "topics": ["loops"],
+      "hints": [
+        "for some_name in party: repeats a block for each value.",
+        "Print the loop variable, not the whole list.",
+        "One print inside the loop is enough."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "message": "Use a for loop to visit each party member."
+        },
+        {"kind": "stdout_equals", "expected": "Aria\nRook\nMira\n"}
+      ]
+    },
+    {
+      "id": "collections_03_ex3",
+      "type": "write_code",
+      "title": "Label each item",
+      "prompt": "inventory is already created. For each item, print a line like:\n- sword\n\nUse a for loop and an f-string. The three lines should be:\n- sword\n- shield\n- potion",
+      "starter_code": "inventory = [\"sword\", \"shield\", \"potion\"]\n# Print a labeled line for each item\n",
+      "topics": ["loops", "strings"],
+      "hints": [
+        "Loop over inventory so item is each string in turn.",
+        "An f-string can start with - and insert the current item.",
+        "Print once inside the loop, not three separate print calls."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "message": "Use a for loop so the work repeats for each item."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "fstring",
+          "message": "Build each line with an f-string."
+        },
+        {"kind": "stdout_equals", "expected": "- sword\n- shield\n- potion\n"}
+      ]
+    }
+  ]
+}

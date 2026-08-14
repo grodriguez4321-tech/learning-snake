@@ -1,0 +1,84 @@
+{
+  "id": "decisions_01_conditionals",
+  "section": "Making Decisions",
+  "section_order": 2,
+  "order": 1,
+  "title": "If and else",
+  "topics": ["conditionals"],
+  "content": "What problem does this solve?\nPrograms need to choose between paths: stand or fall, buy an item or walk away. An if statement runs a block of code only when a condition is true.\n\nBasic syntax\n  if health > 0:\n      print(\"Standing\")\n  else:\n      print(\"KO\")\n\nWhat actually happens\nPython evaluates the condition. If it is true, the indented block under if runs. Otherwise the indented block under else runs. Comparisons such as >, >=, and == ask a yes-or-no question; they do not assign a new value.\n\nWhen this is useful\nUse if/else when two outcomes are possible and the program must pick one before continuing.",
+  "concepts": [
+    "if runs a block only when a condition is true",
+    "else runs when the condition is false",
+    ">, >=, and == compare values; = assigns a name"
+  ],
+  "examples": [
+    {
+      "title": "Standing or KO",
+      "code": "health = 40\nif health > 0:\n    print(\"Standing\")\nelse:\n    print(\"KO\")",
+      "explanation": "40 is greater than 0, so only Standing is printed."
+    }
+  ],
+  "common_mistakes": [
+    "Using = where you meant == — assignment is not a comparison",
+    "Forgetting the colon after if or else",
+    "Forgetting to indent the lines that belong inside the if"
+  ],
+  "exercises": [
+    {
+      "id": "decisions_01_ex1",
+      "type": "predict_output",
+      "title": "Predict the branch",
+      "prompt": "What does this print?",
+      "code_to_predict": "health = 0\nif health > 0:\n    print(\"Standing\")\nelse:\n    print(\"KO\")",
+      "expected_answer": "KO",
+      "topics": ["conditionals"],
+      "hints": [
+        "Check whether the condition health > 0 is true or false.",
+        "When the condition is false, the else block runs.",
+        "health is 0, so the program takes the else path."
+      ]
+    },
+    {
+      "id": "decisions_01_ex2",
+      "type": "fill_blank",
+      "title": "Finish the condition",
+      "prompt": "Print Standing if health is greater than 0, otherwise print KO. Replace None with the correct comparison.",
+      "starter_code": "health = 80\nif None:  # TODO: compare health with 0\n    print(\"Standing\")\nelse:\n    print(\"KO\")\n",
+      "topics": ["conditionals"],
+      "hints": [
+        "The condition should ask whether health is greater than 0.",
+        "Use the > comparison, not =.",
+        "The if line should compare health to 0, then keep the two print blocks."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "if_statement",
+          "message": "Use if and else to choose what to print."
+        },
+        {"kind": "stdout_equals", "expected": "Standing\n"}
+      ]
+    },
+    {
+      "id": "decisions_01_ex3",
+      "type": "write_code",
+      "title": "Can they buy a potion?",
+      "prompt": "gold is already set. If gold is at least 10, print exactly:\nenough\n\nOtherwise print exactly:\ntoo little",
+      "starter_code": "gold = 8\n# Print enough or too little\n",
+      "topics": ["conditionals"],
+      "hints": [
+        "at least 10 means gold >= 10.",
+        "Use if and else, each with its own print.",
+        "The else path should print too little because gold starts at 8."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "if_statement",
+          "message": "Use if and else to choose what to print."
+        },
+        {"kind": "stdout_equals", "expected": "too little\n"}
+      ]
+    }
+  ]
+}
