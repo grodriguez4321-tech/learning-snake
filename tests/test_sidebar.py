@@ -66,8 +66,9 @@ class LessonRowElideTests(unittest.TestCase):
         self.assertLessEqual(metrics.horizontalAdvance(displayed), row._label.width())
 
     def test_short_title_is_not_elided(self) -> None:
-        title = "1. Print and Comments"
-        row = self._shown_row(title, label_width=200)
+        title = "1. Print"
+        row = self._shown_row(title, label_width=120)
+        self.assertFalse(_is_elided(row._label.text(), title), row._label.text())
         self.assertEqual(row._label.text(), title)
         self.assertEqual(row.toolTip(), title)
 

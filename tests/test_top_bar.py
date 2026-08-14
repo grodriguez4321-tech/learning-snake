@@ -72,7 +72,8 @@ class TopBarBreadcrumbElideTests(unittest.TestCase):
 
     def test_elide_updates_on_resize(self) -> None:
         text = "📖  Python Fundamentals  ›  Defining Functions and return"
-        bar = self._shown_bar(text, width=900, breadcrumb_width=420)
+        bar = self._shown_bar(text, width=900, breadcrumb_width=600)
+        self.assertFalse(_is_elided(bar._breadcrumb.text(), text), bar._breadcrumb.text())
         self.assertEqual(bar._breadcrumb.text(), text)
         bar._breadcrumb.setFixedWidth(140)
         bar.resizeEvent(QResizeEvent(QSize(720, 48), QSize(720, 48)))
