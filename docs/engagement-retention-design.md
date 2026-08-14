@@ -88,8 +88,18 @@ Four nested loops reinforce one another. Curriculum and product features should 
 
 ### Micro loop (within one exercise)
 
+The micro loop differs by exercise type:
+
+**`predict_output` / `architecture` (non-code):**
+
 ```
-Learn → Predict → Attempt → Run → Observe → Debug → Succeed → Reflect
+Read → Commit answer → Check → (optional) self-verify by copying snippet to editor and Run
+```
+
+**`write_code` / `debug` / `fill_blank` / `mini_project`:**
+
+```
+Learn → Attempt → Run → Observe → Debug → Check → Reflect
 ```
 
 | Stage | Purpose |
@@ -97,15 +107,15 @@ Learn → Predict → Attempt → Run → Observe → Debug → Succeed → Refl
 | **Learn** | Minimal explanation + example prepares the attempt |
 | **Predict** | Mental model before execution; discourages blind trial-and-error |
 | **Attempt** | Learner writes, fixes, or chooses |
-| **Run** | Observe real behavior (especially for debug exercises) |
+| **Run** | Observe real behavior (code exercises; optional self-verify for predict) |
 | **Observe** | Compare actual output/errors to expectation |
 | **Debug** | Hypothesis → change → re-run (not random editing) |
-| **Succeed** | Behavioral tests pass |
+| **Succeed** | Behavioral tests pass (Check) |
 | **Reflect** | Completion feedback names capabilities demonstrated |
 
 **Anti-pattern to avoid:** Read paragraph → copy syntax → submit → next lesson.
 
-Every lesson should contain at least one exercise that forces **prediction, debugging, or design reasoning** — not only `write_code`.
+Every **Phase 2 lesson (9–28)** should contain at least one exercise that forces **prediction, debugging, or design reasoning** — not only `write_code`. Phase 1 lessons are a baseline exception (e.g., `functions_01` opens with `write_code`).
 
 ### Lesson loop (within one lesson)
 
@@ -138,6 +148,8 @@ The persistent project evolves from a single variable through nested data, funct
 ### Concept
 
 A single **RPG/adventure program** grows throughout the course. Characters (Aria, Rook, Mira, Selene), health, gold, inventory, party, and quests provide continuity without forcing every concept into the theme.
+
+**Phase 1 baseline:** Thematic continuity only (shared names/contexts in isolated exercises) — **no cumulative learner-owned program file**. The persistent artifact pattern **begins in Lesson 9** with named functions (`wound_label`, `can_enter`, `make_stats`). Callback references to prior work start in Lesson 14+.
 
 Use simpler non-RPG examples when they teach more clearly (e.g., a shop checkout for pure arithmetic, a score analyzer for list processing).
 
@@ -184,19 +196,19 @@ project:
 
 Future lessons should **deliberately vary cognitive activity**. Avoid using `write_code` for everything.
 
-| Type | What it assesses | Best used for |
-|------|------------------|---------------|
-| **predict_output** | Mental execution, branch/loop tracing | Before new syntax; after mutations |
-| **fill_blank** | Syntax placement, keyword recall | First contact with a construct |
-| **write_code** | Independent implementation | Application after scaffolding |
-| **debug** | Error reading, hypothesis testing | Throughout course, not one chapter |
-| **architecture** | Design reasoning, trade-offs | print vs return, mutate vs copy, data model choice |
-| **modify_existing** | Reading + targeted change | Refactoring, extending behavior |
-| **complete_partial** | Assembly from given pieces | Bridge between fill-in and write |
-| **parsons** *(future)* | Program structure, ordering | Before full independent writing |
-| **retrieval_challenge** *(future)* | Recall without re-reading lesson | Spaced review |
-| **boss_challenge** | Integration under low scaffolding | Section checkpoints |
-| **mini_project** | Multi-step cumulative build | Section/course milestones |
+| Type | What it assesses | Best used for | Status |
+|------|------------------|---------------|--------|
+| **predict_output** | Mental execution, branch/loop tracing | Before new syntax; after mutations | ✅ Supported |
+| **fill_blank** | Syntax placement, keyword recall | First contact with a construct | ✅ Supported |
+| **write_code** | Independent implementation | Application after scaffolding | ✅ Supported |
+| **debug** | Error reading, hypothesis testing | Throughout course, not one chapter | ✅ Supported *(grades same as write_code)* |
+| **architecture** | Design reasoning, trade-offs | print vs return, mutate vs copy, data model choice | ✅ Supported |
+| **mini_project** | Multi-step cumulative build | Section/course milestones | ✅ Supported *(grades as write_code; no milestone UI yet)* |
+| **modify_existing** | Reading + targeted change | Refactoring, extending behavior | *(future; use `fill_blank` or `debug`)* |
+| **complete_partial** | Assembly from given pieces | Bridge between fill-in and write | *(future; use `fill_blank`)* |
+| **parsons** | Program structure, ordering | Before full independent writing | *(future)* |
+| **retrieval_challenge** | Recall without re-reading lesson | Spaced review | *(future; use tagged `write_code`)* |
+| **boss_challenge** | Integration under low scaffolding | Section checkpoints | *(future type; use multi-test `write_code` until then)* |
 
 ### Recommended lesson mix (guideline)
 
@@ -288,6 +300,16 @@ Boss challenges, Quick Challenges, and Bug Hunt exercises draw from the retrieva
 
 **Not implemented yet.** This section defines a conceptual model for later engine work.
 
+### Current engine behavior (do not ignore)
+
+Today (`engine/progress.py`):
+
+- `ProgressStore.mastery` stores coarse topic **floats** 0.0–1.0 (~11 topics)
+- Pass: +0.15 per topic; fail: −0.05; hints do not reduce pass bump
+- UI may show completion percent via `overall_percent()`
+
+The future band model **replaces display and scheduling**, not lesson unlock. Do not author content that depends on per-concept bands until migration lands. Avoid surfacing fake-precision percentages to learners.
+
 ### Mastery bands (not percentages)
 
 | Band | Meaning | Typical signals |
@@ -311,7 +333,9 @@ Avoid displaying "73% mastery." Prefer qualitative bands and **capability statem
 | Time since last retrieval | − | Drives `potentially_forgotten` |
 | Combined-concept performance | + | Boss and integration exercises are strongest signals |
 | Debug performance | + | Fixing without full solution reveal indicates deep understanding |
-| Prediction accuracy | + | Commit-before-run predictions that match reality |
+| Prediction accuracy | + | Commit-before-run predictions *(future)*; today predict pass is binary Check only |
+
+**Note:** Prediction accuracy is **not** a reliable mastery signal until commit-before-run records first answers separately from post-Run revision.
 
 ### Per-concept record (future schema)
 
@@ -347,6 +371,15 @@ Boss challenges introduce **no major new syntax**. They combine previously taugh
 
 Phase 2 already defines Lesson 28 as a composition capstone; earlier bosses may be implemented as dedicated exercises or mini-project sequences within existing lesson slots until a distinct `boss_challenge` type exists. Label in UI as **Capstone**, not a separate game mode.
 
+**Boss 1–3 are engagement targets**, not yet separate slots in `phase2-curriculum-plan.md`. Only **Lesson 28** is a committed multi-step capstone. Boss 1 may ship as the final exercise(s) in Lesson 10 (`can_enter` integrator) without waiting for a new exercise type.
+
+### Assessment rules
+
+- **Behavior only** — never require a specific variable name unless naming is the objective
+- **Multi-test feedback:** Engine stops at first failure; `improve_function_feedback` may note earlier passing cases for the same function. **Full partial pass is not supported** until engine work lands — do not imply "3/4 tests passed" unlocks success
+- **No punishment for failure** — retry freely; optional hint escalation
+- **Explicit capability summary on success** — via `success_message`; no auto-aggregate until lesson-level UI ships
+
 ### Difficulty progression
 
 | Element | Early boss | Late boss |
@@ -357,13 +390,6 @@ Phase 2 already defines Lesson 28 as a composition capstone; earlier bosses may 
 | Valid solutions | 2–3 patterns acceptable | Many patterns acceptable |
 | Time expectation | 10–20 minutes | 20–40 minutes |
 
-### Assessment rules
-
-- **Behavior only** — never require a specific variable name unless naming is the objective
-- **Partial credit messaging** — if 3/4 tests pass, feedback names what works and what doesn't
-- **No punishment for failure** — retry freely; optional hint escalation
-- **Explicit capability summary on success** — list concepts combined
-
 ---
 
 ## 9. Debugging framework
@@ -372,7 +398,7 @@ Debugging is **normal programming**, not a single chapter.
 
 ### Bug Hunt exercises (recurring)
 
-Every lesson should include at least one of:
+Every **Phase 2 lesson (9–28)** should include at least one of:
 
 - `debug` — fix broken starter code
 - `predict_output` — trace before run
@@ -401,7 +427,9 @@ Observe → form hypothesis → change one thing → Run → evaluate
 
 **Run/Check separation** (UI P0-3) is essential: learners must Run to see tracebacks and output; Check validates the fix.
 
-After UI P0 ships, debug exercises should **not** embed static tracebacks in prompts — the learner reads real runner output.
+After P0 ships, debug exercises should **not** embed static tracebacks in prompts — the learner reads real runner output.
+
+**Pre-P0-3 fallback (historical):** Short embedded error description in prompt only until Run/Check separation shipped; remove once P0-3 is verified.
 
 ### Dedicated debugging lessons (Phase 2)
 
@@ -424,6 +452,8 @@ These anchor the debugging spine; micro-debug exercises in every other lesson re
 | **Hint 4** | Walk toward the solution | Structural guidance without pasting the full answer |
 
 Current lesson JSON supports `hints: []` as a flat list mapping to these levels. Future UI may label them explicitly.
+
+**Phase 2 (Lessons 9+):** **3–4 progressive hints** per exercise (concept → explain → example → scaffold). Phase 1 exercises may retain 3 hints; fourth hint optional on short exercises.
 
 ### Rules
 
@@ -464,6 +494,8 @@ When the same learning objective can be assessed in multiple contexts, occasiona
 2. **Selective use** — at most 1 choice exercise per 5–8 lessons to limit curriculum maintenance
 3. **Default variant** — one variant is always the default; choice is optional enrichment
 4. **No fake choice** — variants must feel meaningfully different, not identical with renamed variables
+
+**Until engine support:** Author the **default variant only** for Phase 2. Do not duplicate maintenance burden for the first batch.
 
 Future metadata:
 
@@ -584,6 +616,8 @@ You fixed 1 logic bug without full guidance.
 - Success messages on individual exercises may already exist (`success_message` field) — use them
 - No confetti, coins, loot boxes, streak pressure, or casino-like reinforcement
 
+**Interim UI contract (Lessons 9–13):** Lesson-level capability summaries require §20B engine/UI work — **not available at launch**. Authors must carry competence narrative via per-exercise `success_message` / `failure_message`, especially on **architecture and final write_code** exercises. The **last exercise's** success message should summarize what the lesson combined.
+
 ### Failure feedback
 
 - Name the **failing behavior**, not the learner
@@ -616,11 +650,11 @@ long reading block → finally code at the end
 |---------|-----------|-------|
 | Explanation block | ≤150 words per section; 2–4 sections per lesson | Split with examples |
 | Example size | ≤8–10 lines | Every line traceable |
-| Exercises per lesson | 3–5 | At least 1 non-write |
+| Exercises per lesson | 3–5 (target 4; Lesson 10 may reach 5) | At least 1 non-write |
 | Predict/debug per lesson | ≥1 | Phase 2 debugging spine |
 | Quick Challenge frequency | 1 per 5–8 lessons *(future)* | When mastery engine exists |
 | Boss frequency | Every 4–6 lessons | May overlap with capstone lessons |
-| Lesson duration | 15–30 min | Longer acceptable for boss/capstone |
+| Lesson duration | 15–25 min standard; up to 30 min for 5-exercise lessons with debug + multi-case write | Longer acceptable for boss/capstone |
 | Session end | Natural stopping point after exercise 2–3 | Progress saves; no "finish or lose" |
 
 ### Cognitive load
@@ -681,7 +715,9 @@ Future agents and developers must **avoid** these engagement patterns:
 | Boss introducing new syntax | Integration only, not new constructs |
 | Parsons with multiple valid orderings | Busywork without transfer test |
 | `source_uses` when behavior tests suffice | Over-constrains valid implementations |
-| Copy-paste exercises | No reasoning required |
+| Duplicate choice UI (list + radios) | Split attention; unclear where to answer |
+| "Run to check" on predict exercises | Run does not grade predictions; Check does |
+| Prompt-embedded static tracebacks (post-P0) | Bypasses real Run/debug habit |
 | "Review" labels on retrieval | Feels like remedial punishment |
 | Fake precision ("87% master") | Misleading confidence |
 | Large pasted starter code | Passive consumption, not construction |
@@ -742,6 +778,19 @@ Game-like **presentation** (RPG narrative, thematic examples) is fine. **Extrins
 
 Existing fields (`topics`, `concepts`, `hints`, `success_message`) remain valid; new fields are additive.
 
+### Metadata rollout (phased)
+
+1. **Authoring notes** — concept roles, scaffolding (no schema change)
+2. **JSON optional fields** — parse-tolerant; catalog validation tests
+3. **Progress extension** — per-concept bands (backward compatible)
+4. **Scheduler** — Quick Challenges
+
+**Phase 2 batch minimum in JSON today:** existing fields only. Concept roles live in authoring notes until schema merge.
+
+### Canonical concept IDs (starter registry)
+
+Align with Phase 2 plan: `elif`, `boolean_logic`, `len_range`, `list_methods`, `dictionaries`, `dict_iteration`, `loops_while`, `nested_data`, `scope`, `debugging_logic`, `references`, `classes`, `composition`. Map legacy `topics` (e.g., `loops` → `for_loops`) consistently to avoid drift.
+
 ---
 
 ## 20. What should affect Lessons 9–13 RIGHT NOW
@@ -758,49 +807,65 @@ Lessons 9–13 are the first Phase 2 batch:
 
 Detailed specs exist in `docs/phase2-curriculum-plan.md`. This section separates engagement principles by implementation horizon.
 
+**This document governs *why* and quality bar; `phase2-curriculum-plan.md` is the authoritative lesson blueprint** for exercise orderings, counts, and assessment details.
+
 ---
 
-### A. APPLY NOW TO LESSONS 9–13
+### PREREQUISITE — UI readiness (Appendix D)
 
-These require **no major new engine features** — only curriculum authoring discipline and existing exercise types (`predict_output`, `fill_blank`, `write_code`, `debug`, `architecture`).
+Verify P0 acceptance criteria before authoring Lesson 9 JSON. See Appendix D status table.
 
-**Prerequisite:** UI P0 (choices rendering, output panel, Run/Check separation) must ship before authoring — see Appendix D. Engagement patterns fail without it.
+---
+
+### A. AUTHORING CHECKLIST (after P0 verified)
+
+Use existing exercise types (`predict_output`, `fill_blank`, `write_code`, `debug`, `architecture`). **Follow per-lesson exercise progressions in `phase2-curriculum-plan.md` § Lessons 9–13** — do not invent alternate orderings.
 
 #### Core learning loop
 
-Every lesson follows:
+Every lesson follows the Phase 2 progression for that lesson ID. General pattern:
 
 ```
-short explanation → example → predict → guided practice → independent write → (optional) architecture/debug
+short explanation → example → predict → guided (fill_blank/debug) → independent write → architecture (where specified)
 ```
 
-Author exercise progressions explicitly; do not default to three `write_code` exercises.
+#### Exercise progressions (authoritative — from Phase 2 plan)
 
-#### Micro-loop exercises (mandatory)
+| Lesson | Progression |
+|--------|-------------|
+| 9 | predict → fill_blank → `wound_label` write_code → architecture |
+| 10 | predict → fill_blank → debug (`=` vs `==`) → `can_enter` write_code → architecture |
+| 11 | predict → fill_blank → debug (off-by-one) → `last_item` → `numbered_lines` *(add debug to Phase 2 plan if missing)* |
+| 12 | predict → membership write_code → debug (wrong `remove`) → conditional remove |
+| 13 | predict → fill_blank → `make_stats` write_code → purchase check write_code |
 
-| Lesson | Minimum non-write activity |
-|--------|---------------------------|
-| 9 | predict (boundary tier) + architecture (if vs elif) |
-| 10 | predict (and/or trace) + debug (`=` vs `==`) |
-| 11 | predict (`range` stop) + debug (off-by-one) |
-| 12 | predict (after `pop`) + debug (wrong `remove`) |
-| 13 | predict (dict update) + debug (key/bracket error) |
+#### Minimum non-write coverage
+
+| Lesson | Required non-write |
+|--------|-------------------|
+| 9 | predict + architecture *(no runnable debug required)* |
+| 10 | predict + debug + architecture |
+| 11 | predict + debug |
+| 12 | predict + debug |
+| 13 | predict + debug |
+
+Rule: **≥1 of predict, debug, or architecture** per lesson — not necessarily all three.
 
 #### Retrieval practice (metadata + authoring)
 
-Tag every exercise with concept roles in authoring notes (even before schema formalization):
+Tag concept roles in **authoring notes** until JSON schema lands:
 
 - Lesson 9 retrieves: f-strings, variables, comparisons
-- Lesson 10 retrieves: elif, if/else
+- Lesson 10 retrieves: elif, if/else, comparisons; introduces boolean logic
 - Lesson 11 retrieves: for loops, indexing, f-strings
 - Lesson 12 retrieves: append, loops, len
-- Lesson 13 retrieves: f-strings, comparisons (purchase check exercise)
+- Lesson 13 retrieves: f-strings, comparisons, variables, strings
 
 Do **not** label exercises as "review."
 
 #### Persistent project thread
 
-Begin extending the RPG thread established in Phase 1:
+**Introduce** stable names in Lesson 9 — Phase 1 provides thematic context only, not a cumulative program:
 
 | Lesson | Project touch |
 |--------|---------------|
@@ -814,7 +879,7 @@ Each function/structure gets a **stable name** reused later (`make_stats`, party
 
 #### Progressive hints
 
-Every exercise: **4 hints** mapping to concept → explain → example → scaffold. Never skip hints on harder exercises.
+**3–4 progressive hints** per exercise (concept → explain → example → scaffold). Fourth hint optional on short exercises.
 
 #### Scaffolding curve (Lessons 9–13 = early-middle Phase 2)
 
@@ -823,24 +888,34 @@ Every exercise: **4 hints** mapping to concept → explain → example → scaff
 - Last exercise: most independent (`write_code` with 4+ function tests)
 - Examples resemble but do not duplicate exercise solutions
 
-#### Prediction with commit-before-run
+#### Prediction workflow
 
-Use `predict_output` with `code_to_predict` early in each lesson. Prompt copy should say "Decide your answer, then run to check" even before UI enforces commit locking.
+Use `predict_output` with `code_to_predict` early in each lesson.
 
-Progression in Lessons 9–13:
+**Today:** Learner reads snippet, types predicted output, **Check** compares to `expected_answer`. Run does **not** grade predictions.
 
-- Simple expression / branch (9, 10)
-- Loop boundary (11)
-- Mutation after method call (12)
-- Dict update (13)
+Prompt copy: *"Decide your answer, then click Check."* Optionally: *"Copy the snippet into the editor and Run if you want to verify before checking."* **Do not** say "run to check."
+
+Progression in Lessons 9–13: branch (9–10) → loop boundary (11) → mutation (12) → dict update (13).
 
 #### Debugging as recurring activity
 
-Follow Phase 2 debug exercise contract: broken starter, Run to observe, Check to validate fix. At least one debug or architecture exercise per lesson.
+Follow Phase 2 debug exercise contract on **code** exercises: broken starter, Run to observe, Check to validate fix. Lesson 9 satisfies reasoning via predict + architecture without runnable debug.
+
+#### Assessment specifics (Lessons 9–13)
+
+| Lesson | Critical test design |
+|--------|---------------------|
+| 10 | `can_enter`: 5+ cases; **must fail** gold-only and key-only shortcuts |
+| 11 | `last_item`: accept `items[-1]`; define behavior for `[]` |
+| 12 | Mention ValueError on bad `remove` in passing |
+| 13 | `make_stats` returns dict with required keys; purchase check uses comparisons |
+
+Every test needs explicit `message` naming failing **behavior**.
 
 #### Meaningful completion feedback
 
-Use `success_message` / `failure_message` on exercises. Lesson-level completion (when implemented in UI) should eventually summarize concepts combined; for now, per-exercise messages must name **what skill was demonstrated**.
+Add `success_message` / `failure_message` on architecture and capstone write_code first; expand incrementally. Lesson-level summaries deferred to §20B.
 
 #### Failure philosophy
 
@@ -848,9 +923,9 @@ Behavioral test `message` fields must explain **what failed** (e.g., "When healt
 
 #### Attention / session design
 
-- 3–4 exercises per lesson
+- 3–5 exercises per lesson (Lesson 10: 5 is acceptable)
 - Content blocks ≤150 words; use `common_mistakes` for 2–3 items
-- Target 15–25 minute sessions
+- Target 15–25 minutes; up to 30 for Lesson 10
 
 #### Anti-patterns to avoid in authoring
 
@@ -867,20 +942,22 @@ High-value features after the first Phase 2 batch (Lessons 9–13) is validated.
 
 | Feature | Layer | Unblocks |
 |---------|-------|----------|
-| **P0 UI: choices rendering** | app | Architecture exercises in Lessons 9–10+ |
-| **P0 UI: output panel size** | app | Tracebacks, multi-line output |
-| **P0 UI: Run/Check separation** | app | Debug pedagogy |
 | **P1 UI: predict panel auto-height** | app | Longer predict snippets (while, scope) |
 | **Formal concept metadata in JSON** | course | Retrieval tracking, feedback summaries |
 | **Lesson completion capability summary** | app | Competence-based "what you combined" |
-| **Boss challenge exercise type** | course + engine | Boss 1 after Lesson 10 |
+| **Boss challenge exercise type** | course + engine | Distinct boss UX (Boss 1 may ship as write_code first) |
 | **Quick Challenge insertion** | engine + app | Spaced retrieval |
 | **Mastery band storage** | engine | Adaptive review |
-| **modify_existing / complete_partial types** | course + engine | Exercise variety beyond fill_blank *(fill_blank covers partial completion today)* |
+| **modify_existing / complete_partial types** | course + engine | Exercise variety beyond fill_blank |
 | **Hint level labels in UI** | app | Clearer progressive help |
 | **Project artifact tracking in progress** | engine | Persistent project continuity |
+| **Commit-before-run prediction UI** | app + engine | Reliable prediction mastery signal |
+| **Multi-line predict answer widget** | app | Multi-line output traces |
+| **Single-surface choices UI** | app | Remove duplicate left-panel choice lists |
+| **Extended `source_uses`** | engine | elif, while, boolean_op, dict_literal |
+| **Hidden test flag** | course + engine | Boss edge cases without gotcha feel |
 
-Priority order matches `docs/phase2-curriculum-plan.md`: **UI P0 first**, then Lesson JSON for 9–13.
+**P0 UI (choices, output panel, Run/Check separation) — shipped;** verify via `tests/test_ui_phase2_prerequisites.py` and Appendix D before authoring.
 
 ---
 
@@ -915,9 +992,9 @@ These five principles take precedence when authoring the first Phase 2 batch. Wh
 
 4. **Competence feedback, not gamification** — Use behavioral `message` fields and `success_message` that name what the learner demonstrated. No XP, streaks, or shame framing.
 
-5. **Persistent project continuity** — Extend the RPG thread with stable function/structure names (`wound_label`, `can_enter`, `make_stats`) that later lessons can reference. Learners build, not receive, the growing program.
+5. **Persistent project continuity** — **Introduce** stable function/structure names (`wound_label`, `can_enter`, `make_stats`) in Lesson 9+ for later callback; Phase 1 did not build a cumulative program.
 
-Supporting principles: 4 progressive hints per exercise; 4+ `function` test cases on write exercises; examples teach structure without duplicating solutions; difficulty stays in 2–3 range for this batch.
+Supporting principles: 3–4 progressive hints per exercise; 4+ `function` test cases on write exercises; examples teach structure without duplicating solutions; difficulty stays in 2–3 range for this batch.
 
 ---
 
@@ -1012,14 +1089,14 @@ Train mental execution with increasing complexity:
 
 ### Interim predict UX standard (until commit-lock ships)
 
-Until UI enforces locking, every `predict_output` exercise must:
+**Supported path today:** Check-only grading on `expected_answer`.
 
-1. **Prompt copy** — Include explicit instruction: *"Decide your answer before running anything."* Place predict exercises **before** any related code exercise in the lesson.
-2. **Compare step** — After Check on the prediction, feedback must state whether the answer matched and, on mismatch, show expected vs learner answer without revealing downstream write-code solutions.
-3. **Honor-system fallback** — Do not rely on Run being disabled yet; author prompts as if Run were unavailable for the snippet in `code_to_predict`.
-4. **Future override** — When commit-lock ships: optional "show me output" after 2 failed Checks, logged as hint-equivalent (never penalized).
+1. **Prompt copy** — *"Decide your answer, then click Check."* Do not imply Run validates predictions.
+2. **Optional self-verify** — *"Copy the snippet into the editor and Run if you want to verify before checking."*
+3. **Compare step** — Feedback states match/mismatch; on mismatch show expected vs learner answer without revealing write-code solutions.
+4. **Snippet length** — Keep `code_to_predict` ≤8 lines in Lessons 9–13 (P1 auto-height partial; max ~200px).
 
-Predict exercises on `code_to_predict` only — not on the learner's editor code for the same task.
+**Target (future):** Record prediction before Run; side-by-side comparison UI; optional override after 2 failed Checks (hint-equivalent, not penalized).
 
 ---
 
@@ -1029,44 +1106,46 @@ Predict exercises on `code_to_predict` only — not on the learner's editor code
 - `course/lessons/README.md` — JSON authoring checklist
 - `.cursor/rules/pedagogy.mdc` — Teaching principles
 - `.cursor/rules/exercise-quality.mdc` — Assessment quality rules
-- `.cursor/rules/architecture.mdc` — Layer separation
+- `course/exercise.py` — Exercise types and JSON models
+- `engine/exercise_checker.py` — Grading behavior
 
 ---
 
 ## Appendix D: UI prerequisites for engagement patterns
 
-Several engagement patterns **depend on UI work** documented in `docs/phase2-curriculum-plan.md`. Curriculum authors should not workaround these with brittle prompt hacks.
+Several engagement patterns depend on UI behavior documented in `docs/phase2-curriculum-plan.md`. Verify via `tests/test_ui_phase2_prerequisites.py` before authoring Lessons 9+.
 
-| Pattern | UI requirement | Priority |
-|---------|----------------|----------|
-| Architecture / learner reasoning with choices | Render `exercise.choices` | **P0-1** |
-| Debug: Run → observe traceback → fix | Separate Run output from Check feedback | **P0-3** |
-| Multi-line program output, nested rosters | Enlarge output panel (min ~140px + stretch) | **P0-2** |
-| Longer predict snippets (while, scope, aliasing) | Auto-height predict code panel | **P1-1** |
-| Commit-before-run prediction | Record prediction before Run *(future)* | Future |
+### Status (2026-08-14)
 
-**Lessons 9–10 include architecture exercises** that require P0-1 before authoring. **Debug exercises across 9–13** require P0-3 for authentic Run-first pedagogy.
+| Prerequisite | Status | Authoring impact |
+|--------------|--------|------------------|
+| **P0-1** choices rendering | Shipped (`ide_panel` radios) | Architecture OK; **UX follow-up:** render choices in one surface only (right-panel radios) |
+| **P0-2** output panel | Shipped (min ~140px + stretch) | Debug/traceback authoring OK |
+| **P0-3** Run/Check separation | Shipped | Debug Run-first workflow OK |
+| **P1-1** predict auto-height | Partial (max ~200px) | Keep predict snippets ≤8 lines in 9–13 |
+| **Commit-before-run** | Not shipped | Check-only predict grading; see Appendix C |
+| **Multi-line predict answer** | Not shipped | Prefer single-line or choice-based predicts |
+| **Lesson completion summary** | Not shipped | Per-exercise `success_message` carries narrative |
 
-Until P0 ships, Phase 2 lesson authoring for 9–13 should wait — engagement design must not be undermined by UI limitations.
+### Pattern requirements
 
-### P0 acceptance criteria (learner-visible)
+| Pattern | UI requirement |
+|---------|----------------|
+| Architecture / learner reasoning | Render `exercise.choices` as selectable options (**one authoritative location**) |
+| Debug: Run → observe → fix | Run → Output only; Check/Hints → Feedback only |
+| Multi-line output / tracebacks | Output panel min ~140px + vertical stretch |
 
-Authors and UI developers should verify these behaviors before shipping Lessons 9+:
-
-| ID | Learner-visible behavior | Pass criteria |
-|----|--------------------------|---------------|
-| **P0-1** | Architecture / predict choices | `exercise.choices` render as selectable options (radio or numbered list) in one authoritative location; selection persists until Check |
-| **P0-2** | Output panel | Multi-line stdout and tracebacks readable without manual resize; min ~140px height with vertical stretch |
-| **P0-3** | Run vs Check | **Run** → Output panel only (tracebacks, print output). **Check** → Feedback panel only (pass/fail, hints). Hints never append to Run output |
-| **P0-3** | Debug workflow | Learner can Run broken starter, read error in Output, fix code, Run again, then Check — without losing the traceback |
-
-**P1-1 (predict panel):** Code in `code_to_predict` visible without clipping for snippets up to ~8 lines; scroll beyond that.
+**Lessons 9–10** include architecture exercises. **Debug exercises across 9–13** require authentic Run-first workflow (P0-3).
 
 ---
 
 ## Appendix E: Specialist review synthesis
 
-This document was reviewed by [curriculum-designer](bc-285a2f6f-446b-56ba-aae2-e6c28cb5cf5e), [assessment-designer](bc-e7dd41f1-807f-5ed5-bb9a-ee310a6864f0), and [learning-ux-reviewer](bc-93ee6544-e0f7-5383-a905-e348af502f7b). Key integrated recommendations:
+This document was reviewed by [curriculum-designer](bc-285a2f6f-446b-56ba-aae2-e6c28cb5cf5e), [assessment-designer](bc-e7dd41f1-807f-5ed5-bb9a-ee310a6864f0), [learning-ux-reviewer](bc-93ee6544-e0f7-5383-a905-e348af502f7b), and post-review critiques from [Critique design doc curriculum](bc-85c4874c-7f1e-5ef4-90c9-6b0f611edfaa), [Critique design doc assessment](bc-c966280a-c6f4-5802-879e-e880399f28f8), and [Critique design doc UX](bc-6306799b-37f6-5107-b4f0-d093bc5eea95).
+
+**§20A must not contradict Appendix D on P0 status or discovery avoidance in 9–13.**
+
+Key integrated recommendations:
 
 ### Curriculum
 
@@ -1086,9 +1165,10 @@ This document was reviewed by [curriculum-designer](bc-285a2f6f-446b-56ba-aae2-e
 - Use `source_uses` only when construct use is the learning objective; extend features for Phase 2: `elif_branch`, `while_loop`, `boolean_op`, `dict_literal`.
 - Debug exercises: `runs_successfully` + behavioral tests on fixed code; tag bug class in metadata (`logic|syntax|runtime`).
 - **Hidden tests:** mark `tests[].hidden: true`; show first failing visible test only in feedback.
-- Predict integrity requires **commit-before-run** (UI + metadata); until then, prompt copy must say "Before running, answer…"
-- Mastery: replace opaque floats with qualitative bands driven by weighted events (pass independent > pass with hints > predict correct); hints inform bands, never punish.
-- Failure taxonomy (future): distinguish `conceptual` vs `careless` vs `incomplete` for routing to review vs retry.
+- Predict integrity requires **Check-only grading today**; commit-before-run is future — prompts must not say "run to check"
+- Mastery: replace opaque floats with qualitative bands driven by weighted events; hints inform bands, never punish
+- Failure taxonomy (future): distinguish `conceptual` vs `careless` vs `incomplete`
+- Grading models: `course/exercise.py` (types), `engine/exercise_checker.py` (checks)
 
 ### Learning UX
 
@@ -1097,7 +1177,10 @@ This document was reviewed by [curriculum-designer](bc-285a2f6f-446b-56ba-aae2-e
 - Hints are help, not penalty — UI should never show "hint penalty" or reduced score; never display hint count on success.
 - Completion feedback should grow from per-exercise `success_message` toward lesson-level capability summaries.
 - Avoid discovery/mystery exercises in 9–13 batch — focus on core loop establishment first.
-- Run/Check separation (P0-3) is a **pedagogical prerequisite**, not polish — debug assessment fails without it.
+- Run/Check separation (P0-3) shipped — verify before authoring
+- Predict: **Check grades; Run is optional self-verify** for code learners write
+- Remove duplicate architecture choice rendering (left list + right radios) before Lesson 9 ships
+- Multi-line predict answer widget before complex loop traces.
 - **Reflect step (future):** lightweight optional post-success consolidation ("What rule made this work?") — ungraded, one sentence; defer full implementation.
 - **Retrieval naming:** in-world labels ("Field test," "Scout report") — never "Review homework" or "Spaced repetition."
 - **Boss presentation:** same Run/Check/hints as normal exercises; label "Capstone," not a separate game mode.
@@ -1110,14 +1193,15 @@ This document was reviewed by [curriculum-designer](bc-285a2f6f-446b-56ba-aae2-e
 | Feature | Works now | Requires P0 UI | Requires engine extension |
 |---------|-----------|----------------|---------------------------|
 | predict_output, fill_blank, write_code, debug | ✓ | | |
-| architecture with choices | | P0-1 | |
-| Debug Run → observe | | P0-3 | |
-| Multi-line output / tracebacks | | P0-2 | |
-| Concept role tags | ✓ (authoring) | | schema validation |
+| architecture with choices | ✓ | verify P0-1 | dedupe choice UI |
+| Debug Run → observe | ✓ | verify P0-3 | |
+| Multi-line output / tracebacks | ✓ | verify P0-2 | |
+| Concept role tags | ✓ (authoring notes) | | schema validation |
 | Hidden test differentiation | | | `tests[].hidden` |
 | Commit-before-run | | UI lock | progress fields |
 | Quick/Boss/Parsons types | | | new checkers |
 | Hint-weighted mastery | | | progress schema |
+| Partial pass on multi-test exercises | | | engine `CheckResult` |
 
 ---
 
@@ -1128,3 +1212,4 @@ This document was reviewed by [curriculum-designer](bc-285a2f6f-446b-56ba-aae2-e
 | 2026-08-14 | Initial design document synthesized from engagement proposal, Phase 2 plan, and specialist review |
 | 2026-08-14 | Post-review: exposure budgets, spacing rules, RPG vocabulary scope, assessment specs, anti-patterns, compatibility matrix |
 | 2026-08-14 | UX review: Boss table fix, P0 acceptance criteria, interim predict UX standard, UX synthesis in Appendix E |
+| 2026-08-14 | Critique pass: §20 restructure, P0 shipped status, Check-only predict, Phase 1 project baseline, assessment honesty |
