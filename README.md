@@ -50,6 +50,20 @@ GUI smoke test:
 xvfb-run -a python3 tests/smoke_gui.py
 ```
 
+On Windows, GitHub Actions (`.github/workflows/windows-ci.yml`) runs the same
+checks on `windows-latest` with Python 3.12 and `QT_QPA_PLATFORM=offscreen`.
+That job is **not** a visual review.
+
+| Kind | What it covers |
+| --- | --- |
+| Unit tests | Engine, curriculum, progress, non-GUI learning loop, process timeout |
+| Qt automated tests | Offscreen widgets: Phase 2 UI prerequisites, sidebar, top bar, startup |
+| GUI smoke | Offscreen construct / run / check / timeout; closes itself |
+| Learning-loop harness | `tests/e2e_learning_loop.py` — no manual interaction |
+
+A human still needs to look at a real Windows desktop for layout, DPI/scaling,
+fonts, native window chrome, hover/focus, and theme contrast.
+
 ## Project structure
 
 ```
