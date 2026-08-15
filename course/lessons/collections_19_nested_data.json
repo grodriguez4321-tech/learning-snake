@@ -1,0 +1,191 @@
+{
+  "id": "collections_19_nested_data",
+  "section": "Realistic Data and Debugging",
+  "section_order": 9,
+  "order": 1,
+  "title": "Follow the Path in Nested Data",
+  "topics": ["collections"],
+  "content": "What problem does this solve?\nReal records combine familiar pieces: lists and dictionaries together. A party is a list of member dictionaries; a dispatch can hold a list under a key. You select one step at a time: party[0] picks a record from the list; party[0][\"health\"] reads a value from that dictionary. A loop can visit each smaller record in a larger model. enumerate(party, start=1) provides both a display number and each member record.\n\nPreviously in your program\nYou built dictionaries and lists, looped over each, and returned structured results. Now you read and update values one step into nested structures and assemble results from them.\n\nBasic syntax\n  party = [{\"name\": \"Mira\", \"health\": 8}, {\"name\": \"Rook\", \"health\": 10}]\n  first = party[0]\n  hp = party[0][\"health\"]\n  dispatch = {\"supplies\": [\"rope\", \"torch\"]}\n  dispatch[\"supplies\"].append(\"map\")\n  for index, member in enumerate(party, start=1):\n      print(index, member[\"name\"])",
+  "concepts": [
+    "party[0] selects a dictionary from a list",
+    "party[0][\"health\"] reads a value from that dictionary",
+    "dispatch[\"supplies\"] selects a list stored inside a dictionary",
+    "A loop can visit each smaller record in a larger model",
+    "enumerate(party, start=1) provides both a display number and the member record",
+    "Big models are built from smaller structures"
+  ],
+  "examples": [
+    {
+      "title": "Two steps along the path",
+      "code": "party = [{\"name\": \"Mira\", \"health\": 8}, {\"name\": \"Rook\", \"health\": 10}]\nparty[0][\"health\"] += 2\nprint(party[0][\"health\"])",
+      "explanation": "Select the first member dictionary, then its health, and update it."
+    },
+    {
+      "title": "Enumerate names",
+      "code": "party = [{\"name\": \"Mira\", \"health\": 8}, {\"name\": \"Rook\", \"health\": 10}]\nfor i, member in enumerate(party, start=1):\n    print(f\"{i}. {member['name']}\")",
+      "explanation": "enumerate supplies both a display number and the record."
+    }
+  ],
+  "common_mistakes": [
+    "Asking dispatch[\"name\"] when the name lives inside a nested party record",
+    "Forgetting to index the party list before reading a member key",
+    "Appending to a new list rather than the one stored under a key",
+    "Trying to traverse arbitrary depths instead of one or two clear steps"
+  ],
+  "exercises": [
+    {
+      "id": "collections_19_ex1",
+      "type": "predict_output",
+      "title": "Follow the path",
+      "prompt": "What does this print?",
+      "code_to_predict": "party = [\n    {\"name\": \"Mira\", \"health\": 8},\n    {\"name\": \"Rook\", \"health\": 10},\n]\n\nparty[0][\"health\"] -= 3\nprint(party[0][\"health\"])",
+      "expected_answer": "5",
+      "topics": ["collections"],
+      "hints": [
+        "party[0] selects the first member dictionary.",
+        "Subtract 3 from that member's health.",
+        "Now read the same member's health again."
+      ]
+    },
+    {
+      "id": "collections_19_ex2",
+      "type": "debug",
+      "title": "Look inside the party",
+      "prompt": "Fix the access path so the program prints the first member's name.",
+      "starter_code": "dispatch = {\n    \"destination\": \"Gloamfen\",\n    \"party\": [{\"name\": \"Mira\", \"health\": 8}],\n}\n\nprint(dispatch[\"name\"])",
+      "topics": ["collections", "debugging"],
+      "hints": [
+        "The outer dictionary has keys like destination and party.",
+        "party holds a list with one member dictionary at index 0.",
+        "Read dispatch[\"party\"][0][\"name\"]."
+      ],
+      "tests": [
+        {
+          "kind": "stdout_equals",
+          "expected": "Mira\n",
+          "message": "Read the name from the first party record: dispatch[\"party\"][0][\"name\"], not a top-level \"name\"."
+        }
+      ]
+    },
+    {
+      "id": "collections_19_ex3",
+      "type": "fill_blank",
+      "title": "Append to the inner list",
+      "prompt": "Complete the expression so append affects the list stored in the dictionary.",
+      "starter_code": "dispatch = {\"supplies\": [\"rope\"]}\n\ndispatch[______].append(\"torch\")\nprint(dispatch[\"supplies\"])",
+      "topics": ["collections"],
+      "hints": [
+        "dispatch stores a list under the supplies key.",
+        "Index the dictionary by that key first.",
+        "Write dispatch[\"supplies\"].append(...)."
+      ],
+      "tests": [
+        {
+          "kind": "stdout_equals",
+          "expected": "['rope', 'torch']\n",
+          "message": "Append to the list stored at the supplies key so the printed list shows both items."
+        }
+      ]
+    },
+    {
+      "id": "collections_19_ex4",
+      "type": "write_code",
+      "title": "Total party health",
+      "prompt": "Write total_party_health(party) that loops over a list of member dictionaries, adds each member's \"health\", and returns the total.",
+      "starter_code": "def total_party_health(party):\n    # Sum the \"health\" from each member dictionary and return the total.\n    pass\n",
+      "topics": ["collections", "functions"],
+      "hints": [
+        "Start total at 0.",
+        "Loop over each member dictionary and add member[\"health\"].",
+        "Return the final total."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "in_function": "total_party_health",
+          "message": "Use a for loop inside total_party_health to visit each member."
+        },
+        {
+          "kind": "function",
+          "function": "total_party_health",
+          "args": [[]],
+          "expected": 0,
+          "message": "An empty party should total 0."
+        },
+        {
+          "kind": "function",
+          "function": "total_party_health",
+          "args": [[{"name": "Mira", "health": 8}]],
+          "expected": 8,
+          "message": "A single member's health becomes the total."
+        },
+        {
+          "kind": "function",
+          "function": "total_party_health",
+          "args": [[{"name": "Mira", "health": 8}, {"name": "Rook", "health": 10}]],
+          "expected": 18,
+          "message": "Two members with 8 and 10 should total 18."
+        },
+        {
+          "kind": "function",
+          "function": "total_party_health",
+          "args": [[{"name": "A", "health": 0}, {"name": "B", "health": 7}, {"name": "C", "health": 4}]],
+          "expected": 11,
+          "message": "Sum every member's health, including 0."
+        }
+      ]
+    },
+    {
+      "id": "collections_19_ex5",
+      "type": "mini_project",
+      "title": "Numbered roster",
+      "prompt": "Write numbered_roster(party) using enumerate(party, start=1). Return one list of strings in the form: '1. Mira — 8 HP'.",
+      "starter_code": "def numbered_roster(party):\n    # Build numbered lines like '1. Mira — 8 HP' using enumerate(..., start=1).\n    pass\n",
+      "topics": ["collections", "functions"],
+      "hints": [
+        "enumerate(party, start=1) provides both the number and the member record.",
+        "Use member[\"name\"] and member[\"health\"] inside the loop.",
+        "Append each formatted line to a list and return it."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "calls_name",
+          "name": "enumerate",
+          "in_function": "numbered_roster",
+          "message": "Call enumerate(...) inside numbered_roster to get both the display number and the member record."
+        },
+        {
+          "kind": "function",
+          "function": "numbered_roster",
+          "args": [[]],
+          "expected": [],
+          "message": "An empty party should return an empty list."
+        },
+        {
+          "kind": "function",
+          "function": "numbered_roster",
+          "args": [[{"name": "Mira", "health": 8}]],
+          "expected": ["1. Mira — 8 HP"],
+          "message": "One member should produce one correctly numbered line starting at 1."
+        },
+        {
+          "kind": "function",
+          "function": "numbered_roster",
+          "args": [[{"name": "Mira", "health": 8}, {"name": "Rook", "health": 10}, {"name": "Selene", "health": 6}]],
+          "expected": ["1. Mira — 8 HP", "2. Rook — 10 HP", "3. Selene — 6 HP"],
+          "message": "Three members should produce three ordered lines numbered 1–3."
+        },
+        {
+          "kind": "function",
+          "function": "numbered_roster",
+          "args": [[{"name": "Aria", "health": 5}, {"name": "Tovin", "health": 7}]],
+          "expected": ["1. Aria — 5 HP", "2. Tovin — 7 HP"],
+          "message": "Do not hardcode names or counts — format the provided records."
+        }
+      ]
+    }
+  ]
+}
+
