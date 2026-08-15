@@ -1,0 +1,116 @@
+{
+  "id": "collections_15_while",
+  "section": "Expedition Dispatch — Collections",
+  "section_order": 7,
+  "order": 2,
+  "title": "Repeat Until the Condition Changes",
+  "topics": ["loops_while"],
+  "content": "What problem does this solve?\nSome tasks repeat **until a condition becomes false**: drain a tank, walk a path, check a warning flag. A `for` loop runs a known number of times. A `while` loop repeats **while** its condition is true — your code must make progress toward ending.\n\nBasic syntax\n  fuel = 3\n  while fuel > 0:\n      fuel -= 1\n\nWhat actually happens\n- The condition is checked before each iteration\n- If you never update the variables in the condition, the loop can run forever\n- Basilisk stops runaway code — the timeout is feedback about termination\n\nWhen this is useful\nCount up or down until a boundary; scan for a condition that may change during the loop.",
+  "concepts": [
+    "for: process a known sequence",
+    "while: repeat while a condition remains true",
+    "A missing update can create an infinite loop"
+  ],
+  "examples": [
+    {
+      "title": "Drain fuel",
+      "code": "fuel = 3\nwhile fuel > 0:\n    fuel -= 1\nprint(fuel)",
+      "explanation": "The loop stops when fuel reaches 0."
+    }
+  ],
+  "common_mistakes": [
+    "Forgetting to update the variable inside the while loop",
+    "Comparing the wrong names in the condition",
+    "Using while where a for over a fixed list would be simpler"
+  ],
+  "exercises": [
+    {
+      "id": "collections_15_ex1",
+      "type": "predict_output",
+      "title": "Fuel reaches zero",
+      "prompt": "What does this print?",
+      "code_to_predict": "fuel = 3\n\nwhile fuel > 0:\n    fuel -= 1\n\nprint(fuel)",
+      "expected_answer": "0",
+      "hints": [
+        "Subtract 1 three times, then print.",
+        "The final value is 0.",
+        "Type just 0."
+      ]
+    },
+    {
+      "id": "collections_15_ex2",
+      "type": "fill_blank",
+      "title": "Make progress",
+      "prompt": "Complete the loop so distance shrinks until it reaches 0.",
+      "starter_code": "steps = 0\ndistance = 3\n\nwhile distance > 0:\n    steps += 1\n    ______\n\nprint(steps)\n",
+      "hints": [
+        "The while runs while distance > 0.",
+        "Decrease distance by 1 each time.",
+        "Write: distance -= 1"
+      ],
+      "tests": [
+        { "kind": "source_uses", "feature": "while_loop", "message": "Use a while loop for this repetition." },
+        { "kind": "stdout_equals", "expected": "3\n" }
+      ]
+    },
+    {
+      "id": "collections_15_ex3",
+      "type": "debug",
+      "title": "The signal never changes",
+      "prompt": "Fix the program so it prints the countdown and then clear.",
+      "starter_code": "signal = 3\n\nwhile signal > 0:\n    print(signal)\n\nprint(\"clear\")\n",
+      "hints": [
+        "The while condition must eventually be false.",
+        "Update signal inside the loop so it moves toward 0.",
+        "Use signal -= 1 under the print."
+      ],
+      "tests": [
+        { "kind": "source_uses", "feature": "while_loop", "message": "Use a real while loop (not a dummy elsewhere)." },
+        { "kind": "source_uses", "feature": "rebind_self", "name": "signal", "message": "Change signal inside the loop so it counts down." },
+        { "kind": "stdout_equals", "expected": "3\n2\n1\nclear\n" }
+      ]
+    },
+    {
+      "id": "collections_15_ex4",
+      "type": "architecture",
+      "title": "for or while?",
+      "prompt": "Repeat a route check while the warning remains active; the number of checks is not known in advance.",
+      "choices": [
+        "A while loop, because repetition ends when the condition changes",
+        "A for loop over a fixed list, because all repetition should use for",
+        "Several copied if statements"
+      ],
+      "expected_answer": "1",
+      "success_message": "Right — a while loop ends naturally when the condition becomes false.",
+      "failure_message": "Think about whether the number of repetitions is known ahead of time.",
+      "hints": [
+        "for loops are best for known sequences.",
+        "while loops watch a changing condition.",
+        "Choose the while loop."
+      ]
+    },
+    {
+      "id": "collections_15_ex5",
+      "type": "write_code",
+      "title": "Total the trail",
+      "prompt": "Write trail_total(distances) that totals a list using an index and a while loop.\n\nUse:\n- index = 0\n- total = 0\n- while index < len(distances)\n- distances[index]\n- an index update\n- return total\n\nDo not use sum().",
+      "starter_code": "def trail_total(distances):\n    # Sum the list using a while loop and indexing.\n    pass\n",
+      "hints": [
+        "While the index is in range, add distances[index] to total.",
+        "Increment the index each time so the loop ends.",
+        "Return total at the end."
+      ],
+      "tests": [
+        { "kind": "source_uses", "feature": "while_loop", "in_function": "trail_total", "message": "Use a while loop inside trail_total." },
+        { "kind": "source_uses", "feature": "len_call", "names": ["distances"], "in_function": "trail_total", "message": "Use len(distances) for the loop boundary." },
+        { "kind": "source_uses", "feature": "subscript", "name": "distances", "in_function": "trail_total", "message": "Read items by index: distances[index]." },
+        { "kind": "function", "function": "trail_total", "args": [ [] ], "expected": 0 },
+        { "kind": "function", "function": "trail_total", "args": [ [7] ], "expected": 7 },
+        { "kind": "function", "function": "trail_total", "args": [ [2, 3, 4] ], "expected": 9 },
+        { "kind": "function", "function": "trail_total", "args": [ [0, 5] ], "expected": 5 },
+        { "kind": "function", "function": "trail_total", "args": [ [1, 2, 3, 4, 5] ], "expected": 15 }
+      ],
+      "success_message": "I can write a while loop that makes progress and terminates."
+    }
+  ]
+}

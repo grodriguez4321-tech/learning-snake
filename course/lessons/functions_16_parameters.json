@@ -1,0 +1,113 @@
+{
+  "id": "functions_16_parameters",
+  "section": "Expedition Dispatch — Functions",
+  "section_order": 8,
+  "order": 1,
+  "title": "Give a Function the Full Situation",
+  "topics": ["functions"],
+  "content": "What problem does this solve?\nA function can make a decision only if it knows the whole situation. Multiple **parameters** let the caller describe everything the function needs — not rely on global names.\n\nBasic syntax\n  def label(destination, status):\n      return f\"{destination}: {status}\"\n  print(label(\"Gloamfen\", \"Review\"))\n\nWhat actually happens\n- Arguments bind to parameters **by position** unless you use keywords\n- A function can receive lists or dictionaries as parameters\n\nWhen this is useful\nDescribe the whole decision at the call site; make functions reusable and testable.",
+  "concepts": [
+    "Parameters bind by position unless keywords are used",
+    "Functions can receive lists and dicts as inputs",
+    "Order matters when calling without keywords"
+  ],
+  "examples": [
+    {
+      "title": "Two inputs bind in order",
+      "code": "def route_label(destination, status):\n    return f\"{destination}: {status}\"\n\nprint(route_label(\"Gloamfen\", \"Review\"))",
+      "explanation": "The first argument binds to destination; the second to status."
+    }
+  ],
+  "common_mistakes": [
+    "Swapping the order of arguments at the call site",
+    "Using globals instead of parameters",
+    "Relying on *args instead of naming the parameters"
+  ],
+  "exercises": [
+    {
+      "id": "functions_16_ex1",
+      "type": "predict_output",
+      "title": "Two inputs bind in order",
+      "prompt": "What does this print?",
+      "code_to_predict": "def route_label(destination, status):\n    return f\"{destination}: {status}\"\n\nprint(route_label(\"Gloamfen\", \"Review\"))",
+      "expected_answer": "Gloamfen: Review",
+      "hints": [
+        "The first argument is the destination.",
+        "The second is the status.",
+        "Think f-strings: destination colon space status."
+      ]
+    },
+    {
+      "id": "functions_16_ex2",
+      "type": "fill_blank",
+      "title": "Name both parameters",
+      "prompt": "Complete the function signature with two named parameters.",
+      "starter_code": "def supply_cost(____):\n    return price * quantity\n\nprint(supply_cost(5, 3))\n",
+      "hints": [
+        "Declare two parameters named price and quantity.",
+        "Do not use *args — name both.",
+        "Write: def supply_cost(price, quantity):"
+      ],
+      "tests": [
+        { "kind": "source_uses", "feature": "function_signature", "name": "supply_cost", "parameters": ["price", "quantity"], "message": "Define supply_cost(price, quantity)." },
+        { "kind": "stdout_equals", "expected": "15\n" }
+      ]
+    },
+    {
+      "id": "functions_16_ex3",
+      "type": "debug",
+      "title": "Swapped at the call site",
+      "prompt": "Fix the call so name appears before role.",
+      "starter_code": "def badge(name, role):\n    return f\"{name} — {role}\"\n\nprint(badge(\"Scout\", \"Mira\"))\n",
+      "hints": [
+        "Arguments bind left to right when called by position.",
+        "Swap the two string arguments in the print.",
+        "Leave the function body alone."
+      ],
+      "tests": [
+        { "kind": "stdout_equals", "expected": "Mira — Scout\n" }
+      ]
+    },
+    {
+      "id": "functions_16_ex4",
+      "type": "write_code",
+      "title": "Carry capacity",
+      "prompt": "Write carry_capacity(base_slots, bonus_slots) that returns their sum.",
+      "starter_code": "def carry_capacity(base_slots, bonus_slots):\n    # Return the sum of the two inputs.\n    pass\n",
+      "hints": [
+        "Add the two parameters and return the result.",
+        "The sum can be written base_slots + bonus_slots.",
+        "Handle zero and negative adjustments — behavior decides."
+      ],
+      "tests": [
+        { "kind": "source_uses", "feature": "function_signature", "name": "carry_capacity", "parameters": ["base_slots", "bonus_slots"], "message": "Define carry_capacity(base_slots, bonus_slots)." },
+        { "kind": "function", "function": "carry_capacity", "args": [8, 2], "expected": 10 },
+        { "kind": "function", "function": "carry_capacity", "args": [5, 0], "expected": 5 },
+        { "kind": "function", "function": "carry_capacity", "args": [10, -3], "expected": 7 },
+        { "kind": "function", "function": "carry_capacity", "args": [0, 4], "expected": 4 }
+      ]
+    },
+    {
+      "id": "functions_16_ex5",
+      "type": "mini_project",
+      "title": "Dispatch status",
+      "prompt": "Write dispatch_status(party, supplies, warning_active):\n\n- Return \"Denied\" when warning_active is True or party is empty\n- Otherwise return \"Ready\" when supplies has at least two items per party member\n- Otherwise return \"Review\"\n\nRequire exactly the named three-parameter signature.",
+      "starter_code": "def dispatch_status(party, supplies, warning_active):\n    # Decide Denied, Ready, or Review based on the inputs.\n    pass\n",
+      "hints": [
+        "First, deny if warning_active or party is empty.",
+        "Compare counts with len(supplies) and len(party).",
+        "Return Ready only if supplies >= 2 * len(party)."
+      ],
+      "tests": [
+        { "kind": "source_uses", "feature": "function_signature", "name": "dispatch_status", "parameters": ["party", "supplies", "warning_active"], "message": "Define dispatch_status(party, supplies, warning_active)." },
+        { "kind": "source_uses", "feature": "len_call", "in_function": "dispatch_status", "message": "Use len(...) for counts in dispatch_status." },
+        { "kind": "function", "function": "dispatch_status", "args": [[], [], false], "expected": "Denied" },
+        { "kind": "function", "function": "dispatch_status", "args": [["Mara"], ["rope", "torch"], false], "expected": "Ready" },
+        { "kind": "function", "function": "dispatch_status", "args": [["Mara", "Tovin"], ["rope", "torch", "map"], false], "expected": "Review" },
+        { "kind": "function", "function": "dispatch_status", "args": [["Mara"], ["rope", "torch", "map"], true], "expected": "Denied" },
+        { "kind": "function", "function": "dispatch_status", "args": [["Mara", "Tovin"], ["rope", "torch", "map", "chalk"], false], "expected": "Ready" }
+      ],
+      "success_message": "I can design a function whose parameters describe the whole decision."
+    }
+  ]
+}

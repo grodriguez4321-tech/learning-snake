@@ -1,0 +1,114 @@
+{
+  "id": "functions_17_defaults",
+  "section": "Expedition Dispatch — Functions",
+  "section_order": 8,
+  "order": 2,
+  "title": "Defaults for the Common Case",
+  "topics": ["functions"],
+  "content": "What problem does this solve?\nSome function arguments have a common value most of the time. **Default parameter values** let callers omit that argument while keeping the option to override it.\n\nBasic syntax\n  def mark_route(destination, status=\"Review\"):\n      return f\"{destination}: {status}\"\n  print(mark_route(\"Gloamfen\"))\n  print(mark_route(\"Ash Ford\", \"Ready\"))\n\nWhat actually happens\n- Required parameters come first\n- Omitting an optional argument uses its declared default\n- Passing a value overrides the default\n- Keyword arguments bind by name\n\nWhen this is useful\nMake calling code simple for common cases while keeping flexibility.",
+  "concepts": [
+    "Required parameters come before defaulted parameters",
+    "Omitting an optional argument uses the default",
+    "Keyword arguments bind by name"
+  ],
+  "examples": [
+    {
+      "title": "Declared default",
+      "code": "def mark_route(destination, status=\"Review\"):\n    return f\"{destination}: {status}\"\n\nprint(mark_route(\"Gloamfen\"))",
+      "explanation": "Without a second argument, status takes the declared default."
+    }
+  ],
+  "common_mistakes": [
+    "Putting a required parameter after a defaulted one",
+    "Forgetting quotes around string defaults",
+    "Using a list or dictionary default (can be dangerous — mention only)"
+  ],
+  "exercises": [
+    {
+      "id": "functions_17_ex1",
+      "type": "predict_output",
+      "title": "Use the declared default",
+      "prompt": "What does this print?",
+      "code_to_predict": "def mark_route(destination, status=\"Review\"):\n    return f\"{destination}: {status}\"\n\nprint(mark_route(\"Gloamfen\"))",
+      "expected_answer": "Gloamfen: Review",
+      "hints": [
+        "status has a default of Review.",
+        "Calling with one argument uses the default for status.",
+        "destination: status"
+      ]
+    },
+    {
+      "id": "functions_17_ex2",
+      "type": "architecture",
+      "title": "Which signature is valid?",
+      "prompt": "Which function signature is valid in Python?",
+      "choices": [
+        "def log_entry(message, level=\"NOTICE\"):",
+        "def log_entry(level=\"NOTICE\", message):",
+        "def log_entry(\"NOTICE\", message):"
+      ],
+      "expected_answer": "1",
+      "success_message": "Correct — required parameters come before defaults.",
+      "failure_message": "Defaults come after required parameters, and quotes are not used in parameter names.",
+      "hints": [
+        "Defaults cannot precede required parameters.",
+        "Parameter names are identifiers, not quoted strings.",
+        "Choose the first option."
+      ]
+    },
+    {
+      "id": "functions_17_ex3",
+      "type": "fill_blank",
+      "title": "One item by default",
+      "prompt": "Add a default so quantity is 1 when omitted.",
+      "starter_code": "def format_supply(item, ______):\n    return f\"{quantity} x {item}\"\n\nprint(format_supply(\"rope\"))\n",
+      "hints": [
+        "Declare the default in the function signature.",
+        "Use quantity=1 (not a body fallback).",
+        "Write: def format_supply(item, quantity=1):"
+      ],
+      "tests": [
+        { "kind": "source_uses", "feature": "function_signature", "name": "format_supply", "parameters": ["item", "quantity"], "defaults": { "quantity": 1 }, "message": "Define format_supply(item, quantity=1)." },
+        { "kind": "stdout_equals", "expected": "1 x rope\n" }
+      ]
+    },
+    {
+      "id": "functions_17_ex4",
+      "type": "debug",
+      "title": "Required before optional",
+      "prompt": "Fix the parameter order so the function is valid.",
+      "starter_code": "def mark_dispatch(status=\"Review\", destination):\n    return f\"{destination}: {status}\"\n",
+      "hints": [
+        "Required parameters must come first.",
+        "destination is required; status is optional.",
+        "Write: def mark_dispatch(destination, status=\"Review\"):"
+      ],
+      "tests": [
+        { "kind": "source_uses", "feature": "function_signature", "name": "mark_dispatch", "parameters": ["destination", "status"], "defaults": { "status": "Review" }, "message": "Define mark_dispatch(destination, status='Review')." },
+        { "kind": "function", "function": "mark_dispatch", "args": ["Gloamfen"], "expected": "Gloamfen: Review" },
+        { "kind": "function", "function": "mark_dispatch", "args": ["Ash Ford", "Ready"], "expected": "Ash Ford: Ready" },
+        { "kind": "function", "function": "mark_dispatch", "kwargs": { "destination": "Marsh Road", "status": "Denied" }, "expected": "Marsh Road: Denied" }
+      ]
+    },
+    {
+      "id": "functions_17_ex5",
+      "type": "mini_project",
+      "title": "Dispatch log entry",
+      "prompt": "Write log_entry(message, level=\"NOTICE\", source=\"field\") returning:\n\n    [<level>][<source>] <message>\n\nRequire the exact parameter order and declared defaults.",
+      "starter_code": "def log_entry(message, level=\"NOTICE\", source=\"field\"):\n    # Return a formatted log line.\n    pass\n",
+      "hints": [
+        "Build the string with the brackets around level and source.",
+        "Defaults should match exactly: NOTICE and field.",
+        "Keyword arguments can override either default."
+      ],
+      "tests": [
+        { "kind": "source_uses", "feature": "function_signature", "name": "log_entry", "parameters": ["message", "level", "source"], "defaults": { "level": "NOTICE", "source": "field" }, "message": "Define log_entry(message, level='NOTICE', source='field')." },
+        { "kind": "function", "function": "log_entry", "args": ["gate checked"], "expected": "[NOTICE][field] gate checked" },
+        { "kind": "function", "function": "log_entry", "args": ["venom found", "ALERT"], "expected": "[ALERT][field] venom found" },
+        { "kind": "function", "function": "log_entry", "args": ["tower signal"], "kwargs": { "source": "north tower" }, "expected": "[NOTICE][north tower] tower signal" },
+        { "kind": "function", "function": "log_entry", "args": ["statues moved"], "kwargs": { "source": "ruins", "level": "WARNING" }, "expected": "[WARNING][ruins] statues moved" }
+      ],
+      "success_message": "I can make a function convenient for the common case without hiding its inputs."
+    }
+  ]
+}

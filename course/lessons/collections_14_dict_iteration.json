@@ -1,0 +1,138 @@
+{
+  "id": "collections_14_dict_iteration",
+  "section": "Expedition Dispatch — Collections",
+  "section_order": 7,
+  "order": 1,
+  "title": "Read the Whole Ledger",
+  "topics": ["collections"],
+  "content": "What problem does this solve?\nA single expedition record is a dictionary: each key names a fact. When the field team updates supplies, you need to **visit every entry** without memorizing keys. You also need to read a key that might be missing (for example `\"antidote\"`) without crashing.\n\nBasic syntax\n  stock = {\"rope\": 2, \"torch\": 1}\n  for item in stock:\n      print(item)  # keys\n  for item, count in stock.items():\n      print(f\"{item}: {count}\")\n  count = stock.get(\"antidote\", 0)\n\nWhat actually happens\n- `for key in record` visits the keys (in insertion order)\n- `.items()` supplies key/value pairs that can be **unpacked** in the loop header\n- `.get(key, default)` returns the default when the key is missing (no `KeyError`)\n\nWhen this is useful\nRead a whole ledger, format a summary, and handle optional fields safely.",
+  "concepts": [
+    "A plain dict loop yields keys",
+    ".items() provides (key, value) pairs",
+    ".get(key, default) avoids KeyError on missing keys"
+  ],
+  "examples": [
+    {
+      "title": "Items and counts",
+      "code": "stock = {\"rope\": 2, \"torch\": 1}\nfor item, count in stock.items():\n    print(f\"{item}: {count}\")",
+      "explanation": "Unpack each (key, value) pair from items() and format with an f-string."
+    }
+  ],
+  "common_mistakes": [
+    "Treating the (key, value) pair from items() as a single key",
+    "Forgetting to unpack two loop variables when using items()",
+    "Using record[\"missing\"] instead of get(\"missing\", default)"
+  ],
+  "exercises": [
+    {
+      "id": "collections_14_ex1",
+      "type": "predict_output",
+      "title": "A key, not a value",
+      "prompt": "What does this print? (Answer on one line.)",
+      "code_to_predict": "stock = {\"rope\": 2}\n\nfor item in stock:\n    print(item)",
+      "expected_answer": "rope",
+      "hints": [
+        "A plain for loop over a dictionary visits keys.",
+        "The only key in this dictionary is rope.",
+        "Type just rope — the answer is one line."
+      ]
+    },
+    {
+      "id": "collections_14_ex2",
+      "type": "fill_blank",
+      "title": "Unpack the entry",
+      "prompt": "Complete the loop so it unpacks (item, count) pairs.",
+      "starter_code": "stock = {\"rope\": 2, \"torch\": 1}\n\nfor item, count in ______:\n    print(f\"{item}: {count}\")\n",
+      "hints": [
+        "Use .items() to supply (key, value) pairs.",
+        "Write stock.items() directly in the for-loop header.",
+        "Unpack as for item, count in stock.items():"
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "items",
+          "name": "stock",
+          "inside": "for_iter",
+          "message": "Use stock.items() as the for-loop iterable."
+        },
+        { "kind": "stdout_equals", "expected": "rope: 2\ntorch: 1\n" }
+      ]
+    },
+    {
+      "id": "collections_14_ex3",
+      "type": "debug",
+      "title": "The pair is not a key",
+      "prompt": "Fix the KeyError by unpacking the (item, count) pair and printing both.",
+      "starter_code": "stock = {\"rope\": 2, \"torch\": 1}\n\nfor entry in stock.items():\n    print(f\"{entry}: {stock[entry]}\")\n",
+      "hints": [
+        "entry is a two-item tuple from items().",
+        "Unpack two names: for item, count in stock.items():",
+        "Then print both: f\"{item}: {count}\"."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "items",
+          "name": "stock",
+          "inside": "for_iter",
+          "message": "Drive the loop with stock.items(), not a dummy call elsewhere."
+        },
+        { "kind": "stdout_equals", "expected": "rope: 2\ntorch: 1\n" }
+      ]
+    },
+    {
+      "id": "collections_14_ex4",
+      "type": "write_code",
+      "title": "Safe antidote count",
+      "prompt": "Write antidote_count(stock) that returns stock[\"antidote\"] when present, else 0. Use stock.get(\"antidote\", 0).",
+      "starter_code": "def antidote_count(stock):\n    # Return the antidote count, defaulting to 0 when missing.\n    pass\n",
+      "hints": [
+        "Use .get(key, default) to avoid KeyError.",
+        "Call stock.get(\"antidote\", 0) inside your function.",
+        "Return the value from .get()."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "get",
+          "name": "stock",
+          "min_args": 2,
+          "in_function": "antidote_count",
+          "message": "Inside antidote_count, call stock.get(\"antidote\", 0)."
+        },
+        { "kind": "function", "function": "antidote_count", "args": [ { "antidote": 3 } ], "expected": 3 },
+        { "kind": "function", "function": "antidote_count", "args": [ { "rope": 2 } ], "expected": 0 },
+        { "kind": "function", "function": "antidote_count", "args": [ {} ], "expected": 0 },
+        { "kind": "function", "function": "antidote_count", "args": [ { "antidote": 0, "torch": 1 } ], "expected": 0 }
+      ]
+    },
+    {
+      "id": "collections_14_ex5",
+      "type": "mini_project",
+      "title": "Field ledger",
+      "prompt": "Write field_ledger(stock) that returns a list.\n\n1. Loop over stock.items().\n2. Append one line per entry: \"<item>: <count>\".\n3. Read antidote_count with stock.get(\"antidote\", 0).\n4. Append \"Antidote ready\" when count > 0, else \"Antidote missing\".\n5. Return the lines. Do not print them.",
+      "starter_code": "def field_ledger(stock):\n    # Build and return a list of lines describing stock and antidote availability.\n    pass\n",
+      "success_message": "I can visit every dictionary entry and handle a missing key safely.",
+      "hints": [
+        "Start with lines = []. Loop: for item, count in stock.items():",
+        "Append f\"{item}: {count}\" for each entry.",
+        "Use stock.get(\"antidote\", 0) and an if/else to add the final line."
+      ],
+      "tests": [
+        { "kind": "source_uses", "feature": "for_loop", "in_function": "field_ledger", "message": "Use a for-loop inside field_ledger." },
+        { "kind": "source_uses", "feature": "method_call", "method": "items", "name": "stock", "inside": "for_iter", "in_function": "field_ledger", "message": "Drive the loop with stock.items()." },
+        { "kind": "source_uses", "feature": "method_call", "method": "get", "name": "stock", "min_args": 2, "in_function": "field_ledger", "message": "Call stock.get(\"antidote\", 0)." },
+        { "kind": "source_uses", "feature": "if_statement", "in_function": "field_ledger", "message": "Use an if/else to report antidote readiness." },
+        { "kind": "source_uses", "feature": "fstring", "in_function": "field_ledger", "message": "Use an f-string to format item and count." },
+        { "kind": "function", "function": "field_ledger", "args": [ { "rope": 2, "torch": 1 } ], "expected": ["rope: 2", "torch: 1", "Antidote missing"] },
+        { "kind": "function", "function": "field_ledger", "args": [ { "torch": 1, "antidote": 2 } ], "expected": ["torch: 1", "antidote: 2", "Antidote ready"] },
+        { "kind": "function", "function": "field_ledger", "args": [ { "antidote": 0 } ], "expected": ["antidote: 0", "Antidote missing"] },
+        { "kind": "function", "function": "field_ledger", "args": [ {} ], "expected": ["Antidote missing"] }
+      ]
+    }
+  ]
+}
