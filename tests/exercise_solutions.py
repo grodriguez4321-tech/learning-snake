@@ -343,6 +343,159 @@ SOLUTIONS: dict[str, dict[str, str]] = {
             "    return record\n"
         )
     },
+    # --- collections_14_dict_iteration ---
+    "collections_14_ex1": {"answer": "rope"},
+    "collections_14_ex2": {
+        "code": (
+            'stock = {"rope": 2, "torch": 1}\n'
+            "for item, count in stock.items():\n"
+            '    print(f"{item}: {count}")\n'
+        )
+    },
+    "collections_14_ex3": {
+        "code": (
+            'stock = {"rope": 2, "torch": 1}\n'
+            "for item, count in stock.items():\n"
+            '    print(f"{item}: {count}")\n'
+        )
+    },
+    "collections_14_ex4": {
+        "code": (
+            "def antidote_count(stock):\n"
+            '    return stock.get("antidote", 0)\n'
+        )
+    },
+    "collections_14_ex5": {
+        "code": (
+            "def field_ledger(stock):\n"
+            "    lines = []\n"
+            "    for item, count in stock.items():\n"
+            '        lines.append(f"{item}: {count}")\n'
+            '    if stock.get("antidote", 0) > 0:\n'
+            '        lines.append("Antidote ready")\n'
+            "    else:\n"
+            '        lines.append("Antidote missing")\n'
+            "    return lines\n"
+        )
+    },
+    # --- collections_15_while ---
+    "collections_15_ex1": {"answer": "0"},
+    "collections_15_ex2": {
+        "code": (
+            "steps = 0\n"
+            "distance = 3\n"
+            "while distance > 0:\n"
+            "    steps += 1\n"
+            "    distance -= 1\n"
+            "print(steps)\n"
+        )
+    },
+    "collections_15_ex3": {
+        "code": (
+            "signal = 3\n"
+            "while signal > 0:\n"
+            "    print(signal)\n"
+            "    signal -= 1\n"
+            'print("clear")\n'
+        )
+    },
+    "collections_15_ex4": {"answer": "1"},
+    "collections_15_ex5": {
+        "code": (
+            "def trail_total(distances):\n"
+            "    index = 0\n"
+            "    total = 0\n"
+            "    while index < len(distances):\n"
+            "        total += distances[index]\n"
+            "        index += 1\n"
+            "    return total\n"
+        )
+    },
+    # --- functions_16_parameters ---
+    "functions_16_ex1": {"answer": "Gloamfen: Review"},
+    "functions_16_ex2": {
+        "code": (
+            "def supply_cost(price, quantity):\n"
+            "    return price * quantity\n"
+            "print(supply_cost(5, 3))\n"
+        )
+    },
+    "functions_16_ex3": {
+        "code": 'def badge(name, role):\n    return f"{name} — {role}"\n\nprint(badge("Mira", "Scout"))\n'
+    },
+    "functions_16_ex4": {
+        "code": (
+            "def carry_capacity(base_slots, bonus_slots):\n"
+            "    return base_slots + bonus_slots\n"
+        )
+    },
+    "functions_16_ex5": {
+        "code": (
+            "def dispatch_status(party, supplies, warning_active):\n"
+            "    if warning_active or not party:\n"
+            '        return "Denied"\n'
+            "    if len(supplies) >= 2 * len(party):\n"
+            '        return "Ready"\n'
+            '    return "Review"\n'
+        )
+    },
+    # --- functions_17_defaults ---
+    "functions_17_ex1": {"answer": "Gloamfen: Review"},
+    "functions_17_ex2": {"answer": "1"},
+    "functions_17_ex3": {
+        "code": (
+            "def format_supply(item, quantity=1):\n"
+            "    return f\"{quantity} x {item}\"\n"
+            "print(format_supply(\"rope\"))\n"
+        )
+    },
+    "functions_17_ex4": {
+        "code": (
+            "def mark_dispatch(destination, status=\"Review\"):\n"
+            "    return f\"{destination}: {status}\"\n"
+        )
+    },
+    "functions_17_ex5": {
+        "code": (
+            "def log_entry(message, level=\"NOTICE\", source=\"field\"):\n"
+            "    return f\"[{level}][{source}] {message}\"\n"
+        )
+    },
+    # --- functions_18_returning_data ---
+    "functions_18_ex1": {"answer": "None"},
+    "functions_18_ex2": {"answer": "2"},
+    "functions_18_ex3": {
+        "code": (
+            "def label_supplies(supplies):\n"
+            "    lines = []\n"
+            "    for item in supplies:\n"
+            '        lines.append(f"Packed: {item}")\n'
+            "    return lines\n"
+        )
+    },
+    "functions_18_ex4": {
+        "code": (
+            "def add_item(supplies, item):\n"
+            "    copy = list(supplies)\n"
+            "    copy.append(item)\n"
+            "    return copy\n"
+        )
+    },
+    "functions_18_ex5": {
+        "code": (
+            "def build_dispatch(destination, party, supplies, status=\"Review\"):\n"
+            "    party_copy = list(party)\n"
+            "    supplies_copy = list(supplies)\n"
+            "    return {\n"
+            '        "destination": destination,\n'
+            '        "party": party_copy,\n'
+            '        "supplies": supplies_copy,\n'
+            '        "member_count": len(party),\n'
+            '        "supply_count": len(supplies),\n'
+            '        "status": status,\n'
+            "    }\n"
+        )
+    },
 }
 
 
