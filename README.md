@@ -256,9 +256,12 @@ needed.
 - **Lessons 9–13**: Expedition Intake System — `elif`, Boolean logic, `len`/`range`, list methods, dictionaries
 - **Later batches**: nested data, parsing, classes, composition, and beyond — see
   `docs/phase2-curriculum-plan.md`
+- **Full arc (provisional after Lesson 28)**: Practical Python → notebooks/data → ML literacy → Build the Basilisk — see
+  `docs/basilisk-master-curriculum-roadmap.md`
 
 ## Design docs
 
+- `docs/basilisk-master-curriculum-roadmap.md` — master curriculum architecture through the capstone
 - `docs/phase2-curriculum-plan.md` — later sequencing after Lessons 1–13
 - `docs/engagement-retention-design.md` — teaching philosophy and retention
 - `docs/basilisk-curriculum-implementation-plan.md` — implementation notes for this redesign
