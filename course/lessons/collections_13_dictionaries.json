@@ -253,8 +253,16 @@
         {
           "kind": "source_uses",
           "feature": "len_call",
+          "names": ["party"],
           "in_function": "build_expedition_record",
-          "message": "Inside build_expedition_record, use len() for member_count and supply_count."
+          "message": "Inside build_expedition_record, use len(party) for member_count."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "len_call",
+          "names": ["supplies"],
+          "in_function": "build_expedition_record",
+          "message": "Inside build_expedition_record, use len(supplies) for supply_count."
         },
         {
           "kind": "source_uses",

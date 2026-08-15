@@ -155,7 +155,8 @@ class ExerciseChecker:
                 run=run,
             )
 
-        return CheckResult(True, "All checks passed. Nice work!", details=details, run=run)
+        message = exercise.success_message.strip() or "All checks passed. Nice work!"
+        return CheckResult(True, message, details=details, run=run)
 
 
 def _print_positional_arg_count(code: str) -> int:

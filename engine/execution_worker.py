@@ -573,7 +573,9 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
             for node in nodes:
                 if not isinstance(node, ast.For):
                     continue
-                for stmt in list(node.body) + list(node.orelse):
+                # Only the loop body counts — for ... else runs once after
+                # iteration and must not satisfy a per-item call requirement.
+                for stmt in node.body:
                     for child in ast.walk(stmt):
                         if _is_wanted_call(child):
                             return True, f"Called {want}() inside the loop."
