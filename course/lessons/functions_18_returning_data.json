@@ -8,7 +8,7 @@
     "functions",
     "collections"
   ],
-  "content": "What problem does this solve?\nDispatch work often needs a whole packet: destination, party, supplies, counts, and status. return can send a list or a dictionary — not only a number or string — so other code can keep using the result. A careful function builds a fresh structure instead of quietly changing the caller’s lists.\n\nPreviously in your program\nYou returned strings and numbers, and you built dictionaries in Lesson 13. Now you assemble a fresh dispatch packet and copy lists when the caller must keep the originals unchanged.\n\nBasic syntax\n  def pack_note(label):\n      return [label]\n\n  def route_summary(destination, stops):\n      return {\n          \"destination\": destination,\n          \"stops\": list(stops),\n          \"stop_count\": len(stops),\n      }\n\nWhat actually happens\nIf a function builds a list but never returns it, the caller receives None — the same None print returns. Returning a new list or dictionary hands ownership of that result to the caller. list(existing_list) is one clear way to make a shallow copy before you change anything; slicing or .copy() can also be correct. A dictionary whose values are lists previews nested data; this lesson only needs you to store and copy those lists, not traverse nested structures in general.\n\nWhen this is useful\nReturn a structured value when later code must keep working with the result. Copy inputs when the caller still needs the originals unchanged.",
+  "content": "What problem does this solve?\nDispatch work often needs a whole packet: destination, party, supplies, counts, and status. return can send a list or a dictionary — not only a number or string — so other code can keep using the result. A careful function builds a fresh structure instead of quietly changing the caller’s lists.\n\nPreviously in your program\nYou returned strings and numbers, and you built dictionaries in Lesson 13. Now you assemble a fresh dispatch packet and copy lists when the caller must keep the originals unchanged.\n\nBasic syntax\n  def tagged(value):\n      return [\"tag\", value]\n\n  def brief(place, stops):\n      return {\n          \"place\": place,\n          \"stops\": list(stops),\n          \"n\": len(stops),\n      }\n\nWhat actually happens\nIf a function builds a list but never returns it, the caller receives None — the same None print returns. Returning a new list or dictionary hands ownership of that result to the caller. list(existing_list) is one clear way to make a shallow copy before you change anything; slicing or .copy() can also be correct. A dictionary whose values are lists previews nested data; this lesson only needs you to store and copy those lists, not traverse nested structures in general.\n\nWhen this is useful\nReturn a structured value when later code must keep working with the result. Copy inputs when the caller still needs the originals unchanged.",
   "concepts": [
     "return can send a list or dictionary, not only a number or string",
     "print still returns None; building without returning also yields None",
@@ -17,8 +17,8 @@
   ],
   "examples": [
     {
-      "title": "Built but forgotten",
-      "code": "def pack(item):\n    result = [item]\n\nprint(pack(\"rope\"))",
+      "title": "Forgot to return",
+      "code": "def wrap(value):\n    box = [value]\n\nprint(wrap(\"chalk\"))",
       "explanation": "The list is created, but nothing is returned, so print shows None."
     },
     {
@@ -220,7 +220,8 @@
             [
               "rope"
             ]
-          ]
+          ],
+          "message": "add_item must return a new list with the item and leave the original supplies list unchanged."
         }
       ]
     },
@@ -407,17 +408,20 @@
             "status",
             "supplies",
             "supply_count"
-          ]
+          ],
+          "message": "build_dispatch must return a dictionary with exactly the required keys."
         },
         {
           "kind": "expression",
           "expression": "type(build_dispatch(\"Gloamfen\", [\"Mara\"], [\"rope\"])).__name__",
-          "expected": "dict"
+          "expected": "dict",
+          "message": "build_dispatch must return a dictionary."
         },
         {
           "kind": "expression",
           "expression": "(lambda p, s: (lambda d: d[\"party\"] is not p and d[\"supplies\"] is not s)(build_dispatch(\"X\", p, s)))([\"a\"], [\"b\"])",
-          "expected": true
+          "expected": true,
+          "message": "The returned party and supplies lists must be new lists, not the same lists you were given."
         },
         {
           "kind": "expression",
@@ -429,7 +433,8 @@
             [
               "map"
             ]
-          ]
+          ],
+          "message": "build_dispatch must leave the caller’s party and supplies lists unchanged."
         }
       ]
     }

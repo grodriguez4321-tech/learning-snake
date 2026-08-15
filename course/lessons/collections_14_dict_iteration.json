@@ -7,7 +7,7 @@
   "topics": [
     "collections"
   ],
-  "content": "What problem does this solve?\nAn intake record stores named facts. Dispatch work often needs every entry: each supply and its count. A plain for loop over a dictionary visits keys. .items() yields key/value pairs you can unpack. .get(key, default) reads a value when the key might be missing, without raising KeyError.\n\nPreviously in your program\nYou looked up record[\"destination\"] and built dictionaries with make_record. Now you walk every pair and handle a missing antidote key safely.\n\nBasic syntax\n  stock = {\"rope\": 2, \"torch\": 1}\n  for item in stock:\n      print(item)\n  for item, count in stock.items():\n      print(f\"{item}: {count}\")\n  stock.get(\"antidote\", 0)\n\nWhat actually happens\nfor item in stock binds item to each key in insertion order. stock[item] then reads the matching value. stock.items() produces (key, value) pairs; unpacking into item, count keeps both names clear. stock.get(\"antidote\", 0) returns the stored count when present, or 0 when the key is absent — including when the stored count is 0.\n\nWhen this is useful\nUse dictionary iteration when you must process every labeled entry. Use .get with an explicit default when absence should become a safe fallback value.",
+  "content": "What problem does this solve?\nAn intake record stores named facts. Dispatch work often needs every entry: each supply and its count. A plain for loop over a dictionary visits keys. .items() yields key/value pairs you can unpack. .get(key, default) reads a value when the key might be missing, without raising KeyError.\n\nPreviously in your program\nYou looked up record[\"destination\"] and built dictionaries with make_record. Now you walk every pair and handle a missing key safely.\n\nBasic syntax\n  crate = {\"nail\": 4, \"hinge\": 2}\n  for label in crate:\n      print(label)\n  for label, amount in crate.items():\n      print(label, amount)\n  crate.get(\"latch\", 0)\n\nWhat actually happens\nfor label in crate binds label to each key in insertion order. crate[label] then reads the matching value. crate.items() produces (key, value) pairs; unpacking into two names keeps both clear. crate.get(\"latch\", 0) returns the stored count when present, or 0 when the key is absent — including when the stored count is 0.\n\nWhen this is useful\nUse dictionary iteration when you must process every labeled entry. Use .get with an explicit default when absence should become a safe fallback value.",
   "concepts": [
     "for key in record visits dictionary keys",
     "record[key] reads the value for that key",
@@ -16,14 +16,14 @@
   ],
   "examples": [
     {
-      "title": "Keys, then pairs",
-      "code": "stock = {\"rope\": 2, \"torch\": 1}\n\nfor item in stock:\n    print(item)\n\nfor item, count in stock.items():\n    print(f\"{item}: {count}\")",
-      "explanation": "The first loop prints keys. The second unpacks each pair so both the label and the count are available."
+      "title": "Visit labeled counts",
+      "code": "crate = {\"nail\": 4, \"hinge\": 2}\n\nfor label in crate:\n    print(label)\n\nfor label, amount in crate.items():\n    print(label, amount)",
+      "explanation": "The first loop prints keys only. The second unpacks each pair so both the label and the amount are available."
     },
     {
-      "title": "Safe missing key",
-      "code": "stock = {\"rope\": 2}\nprint(stock.get(\"antidote\", 0))",
-      "explanation": "antidote is absent, so .get returns the explicit default 0 instead of raising KeyError."
+      "title": "Safe fallback read",
+      "code": "crate = {\"nail\": 4}\nprint(crate.get(\"latch\", 0))",
+      "explanation": "latch is absent, so .get returns the explicit default 0 instead of raising KeyError."
     }
   ],
   "common_mistakes": [
@@ -70,11 +70,13 @@
           "method": "items",
           "name": "stock",
           "inside": "for_iter",
-          "message": "Use stock.items() as the sequence in your for loop header."
+          "message": "Use stock.items() as the for-loop sequence, and print each entry from inside that same loop body.",
+          "body_calls_name": "print"
         },
         {
           "kind": "stdout_equals",
-          "expected": "rope: 2\ntorch: 1\n"
+          "expected": "rope: 2\ntorch: 1\n",
+          "message": "Print one \"item: count\" line per stock entry in order."
         }
       ]
     },
@@ -100,11 +102,13 @@
           "method": "items",
           "name": "stock",
           "inside": "for_iter",
-          "message": "Keep a for loop driven by stock.items()."
+          "message": "Keep a for loop driven by stock.items(), and print from inside that loop body.",
+          "body_calls_name": "print"
         },
         {
           "kind": "stdout_equals",
-          "expected": "rope: 2\ntorch: 1\n"
+          "expected": "rope: 2\ntorch: 1\n",
+          "message": "After the fix, print one \"item: count\" line per entry."
         }
       ]
     },
@@ -131,7 +135,11 @@
           "name": "stock",
           "min_args": 2,
           "in_function": "antidote_count",
-          "message": "Inside antidote_count, call stock.get(..., ...) with an explicit default."
+          "message": "Return stock.get(\"antidote\", 0) — the .get call must provide the returned value.",
+          "arg_equals": {
+            "0": "antidote"
+          },
+          "contributes": "return"
         },
         {
           "kind": "function",
@@ -208,7 +216,8 @@
           "name": "stock",
           "inside": "for_iter",
           "in_function": "field_ledger",
-          "message": "Drive the loop with stock.items()."
+          "message": "Drive the loop with stock.items(), and append each ledger line inside that same loop.",
+          "body_method": "append"
         },
         {
           "kind": "source_uses",
@@ -217,7 +226,11 @@
           "name": "stock",
           "min_args": 2,
           "in_function": "field_ledger",
-          "message": "Inside field_ledger, call stock.get(..., ...) with an explicit default."
+          "message": "Use stock.get(\"antidote\", 0) in the ready/missing decision — a discarded .get call is not enough.",
+          "arg_equals": {
+            "0": "antidote"
+          },
+          "contributes": "result"
         },
         {
           "kind": "source_uses",

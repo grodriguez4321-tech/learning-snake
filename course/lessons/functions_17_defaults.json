@@ -7,7 +7,7 @@
   "topics": [
     "functions"
   ],
-  "content": "What problem does this solve?\nMany dispatch calls share a common status or log level. Default parameter values let callers omit the everyday argument while still overriding it when needed. Keyword arguments bind by name so you can skip or reorder optional inputs clearly.\n\nPreviously in your program\nLesson 16 required every argument at the call site. Now some parameters can declare a fallback in the def header.\n\nBasic syntax\n  def mark_route(destination, status=\"Review\"):\n      return f\"{destination}: {status}\"\n\n  mark_route(\"Gloamfen\")\n  mark_route(\"Ash Ford\", \"Ready\")\n  mark_route(destination=\"Marsh Road\", status=\"Denied\")\n\nWhat actually happens\nRequired parameters come before defaulted ones. Omitting an optional argument uses its declared default. Passing a value overrides that default. Keywords bind by name: mark_route(destination=\"Marsh Road\", status=\"Denied\") does not rely on position. Mutable defaults such as lists or dictionaries can be dangerous later; this lesson uses safe immutable defaults like strings and numbers. The None-sentinel pattern comes in a later lesson.\n\nWhen this is useful\nAdd a default when one value is common but still worth making visible in the signature.",
+  "content": "What problem does this solve?\nMany dispatch calls share a common status or log level. Default parameter values let callers omit the everyday argument while still overriding it when needed. Keyword arguments bind by name so you can skip or reorder optional inputs clearly.\n\nPreviously in your program\nLesson 16 required every argument at the call site. Now some parameters can declare a fallback in the def header.\n\nBasic syntax\n  def stamp_route(place, note=\"queued\"):\n      return f\"{place} / {note}\"\n\n  stamp_route(\"East Docks\")\n  stamp_route(\"East Docks\", \"held\")\n  stamp_route(place=\"West Gate\", note=\"clear\")\n\nWhat actually happens\nRequired parameters come before defaulted ones. Omitting an optional argument uses its declared default. Passing a value overrides that default. Keywords bind by name. Mutable defaults such as lists or dictionaries can be dangerous later; this lesson uses safe immutable defaults like strings and numbers. The None-sentinel pattern comes in a later lesson.\n\nWhen this is useful\nAdd a default when one value is common but still worth making visible in the signature.",
   "concepts": [
     "Required parameters come before defaulted parameters",
     "Omitting an optional argument uses its declared default",
@@ -16,14 +16,14 @@
   ],
   "examples": [
     {
-      "title": "Common status",
-      "code": "def mark_route(destination, status=\"Review\"):\n    return f\"{destination}: {status}\"\n\nprint(mark_route(\"Gloamfen\"))\nprint(mark_route(\"Ash Ford\", \"Ready\"))",
-      "explanation": "The first call uses the default Review. The second overrides status."
+      "title": "Common note",
+      "code": "def stamp_route(place, note=\"queued\"):\n    return f\"{place} / {note}\"\n\nprint(stamp_route(\"East Docks\"))\nprint(stamp_route(\"East Docks\", \"held\"))",
+      "explanation": "The first call uses the default queued. The second overrides note."
     },
     {
       "title": "Keyword override",
-      "code": "def log_entry(message, level=\"NOTICE\", source=\"field\"):\n    return f\"[{level}][{source}] {message}\"\n\nprint(log_entry(\"gate checked\"))\nprint(log_entry(\"tower signal\", source=\"north tower\"))",
-      "explanation": "Keywords let you override source while keeping the default level."
+      "code": "def notice_line(text, tone=\"soft\", origin=\"desk\"):\n    return f\"{tone}|{origin}|{text}\"\n\nprint(notice_line(\"bridge clear\"))\nprint(notice_line(\"bridge clear\", origin=\"tower\"))",
+      "explanation": "Keywords let you override origin while keeping the default tone."
     }
   ],
   "common_mistakes": [
@@ -101,7 +101,8 @@
         },
         {
           "kind": "stdout_equals",
-          "expected": "1 x rope\n"
+          "expected": "1 x rope\n",
+          "message": "format_supply(\"rope\") should print 1 x rope."
         },
         {
           "kind": "function",

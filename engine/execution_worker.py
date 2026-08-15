@@ -252,16 +252,17 @@ def apply_test(
 
     if kind == "expression":
         expression = test.get("expression") or ""
+        custom = str(test.get("message") or "")
         try:
             actual = eval(expression, namespace, namespace)  # noqa: S307
         except Exception as exc:  # noqa: BLE001
-            return False, f"Could not evaluate {expression!r}: {exc}"
+            return False, custom or f"Could not evaluate {expression!r}: {exc}"
         if actual != test.get("expected"):
-            return False, (
+            return False, custom or (
                 f"Expression {expression} evaluated to {actual!r}, "
                 f"expected {test.get('expected')!r}."
             )
-        return True, f"Expression {expression} matched."
+        return True, custom or f"Expression {expression} matched."
 
     if kind == "attribute":
         expression = test.get("expression") or ""
@@ -336,6 +337,63 @@ def _has_method_call(nodes: list[ast.AST], method: str, list_name: str = "") -> 
             return True
         if isinstance(func.value, ast.Name) and func.value.id == list_name:
             return True
+    return False
+
+
+def _is_constant_ast(node: ast.AST) -> bool:
+    """True for literal while/if tests such as False, True, 0, or None."""
+    if isinstance(node, ast.Constant):
+        return True
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not):
+        return _is_constant_ast(node.operand)
+    return False
+
+
+def _method_call_contributes(
+    nodes: list[ast.AST],
+    match: Any,
+    *,
+    mode: str = "result",
+) -> bool:
+    """Require a matching method call to feed a return value or decision.
+
+    ``mode``:
+    - ``True`` / ``\"result\"``: call appears in return/if/while test, or is
+      assigned to a name used in those places
+    - ``\"return\"``: call feeds a return value (directly or via assignment)
+    """
+
+    def _direct_in(node: ast.AST | None) -> bool:
+        if node is None:
+            return False
+        return any(match(child) for child in ast.walk(node))
+
+    bound: set[str] = set()
+    for node in nodes:
+        if not isinstance(node, ast.Assign) or len(node.targets) != 1:
+            continue
+        target_node = node.targets[0]
+        if isinstance(target_node, ast.Name) and match(node.value):
+            bound.add(target_node.id)
+
+    def _uses_bound(node: ast.AST | None) -> bool:
+        if node is None or not bound:
+            return False
+        names = {child.id for child in ast.walk(node) if isinstance(child, ast.Name)}
+        return bool(bound & names)
+
+    for node in nodes:
+        if isinstance(node, ast.Return) and (
+            _direct_in(node.value) or _uses_bound(node.value)
+        ):
+            return True
+
+    if mode in {"True", "true", "result", "1"}:
+        for node in nodes:
+            if isinstance(node, (ast.If, ast.While)) and (
+                _direct_in(node.test) or _uses_bound(node.test)
+            ):
+                return True
     return False
 
 
@@ -537,12 +595,36 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
         return False, custom or "Use a for loop to visit each item in the list."
 
     if feature == "while_loop":
+        require_nonconstant = bool(test.get("nonconstant"))
         for node in nodes:
-            if isinstance(node, ast.While):
-                return True, "Used a while loop."
+            if not isinstance(node, ast.While):
+                continue
+            if require_nonconstant and _is_constant_ast(node.test):
+                continue
+            return True, "Used a while loop."
+        if require_nonconstant:
+            return False, custom or (
+                "Use a while loop whose condition can change — not while False "
+                "or another constant test."
+            )
         return False, custom or (
             "Use a while loop that repeats until its condition becomes false."
         )
+
+    if feature == "forbidden_call":
+        banned = target or (required[0] if required else "")
+        if not banned:
+            return False, custom or "Forbidden call check is misconfigured."
+        for node in nodes:
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Name)
+                and node.func.id == banned
+            ):
+                return False, custom or (
+                    f"Do not call {banned}() for this exercise — write the loop logic yourself."
+                )
+        return True, f"Did not call {banned}()."
 
     if feature == "method_call":
         method = str(test.get("method") or "")
@@ -553,6 +635,29 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
             min_args_n = int(min_args) if min_args is not None else None
         except (TypeError, ValueError):
             min_args_n = None
+        arg_equals = {
+            str(key): value for key, value in dict(test.get("arg_equals") or {}).items()
+        }
+        contributes = test.get("contributes")
+        body_calls_name = str(test.get("body_calls_name") or "")
+        body_method = str(test.get("body_method") or "")
+
+        def _args_match(node: ast.Call) -> bool:
+            if min_args_n is not None and len(node.args) < min_args_n:
+                return False
+            for idx_text, expected in arg_equals.items():
+                try:
+                    idx = int(idx_text)
+                except (TypeError, ValueError):
+                    return False
+                if idx >= len(node.args):
+                    return False
+                try:
+                    if ast.literal_eval(node.args[idx]) != expected:
+                        return False
+                except Exception:  # noqa: BLE001
+                    return False
+            return True
 
         def _matching_method_call(node: ast.AST) -> bool:
             if not isinstance(node, ast.Call):
@@ -564,23 +669,83 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
                 isinstance(func.value, ast.Name) and func.value.id == target
             ):
                 return False
-            if min_args_n is not None and len(node.args) < min_args_n:
-                return False
+            return _args_match(node)
+
+        def _for_body_has_required_work(for_node: ast.For) -> bool:
+            if not body_calls_name and not body_method:
+                return True
+            body_nodes: list[ast.AST] = []
+            for stmt in for_node.body:
+                body_nodes.extend(ast.walk(stmt))
+            if body_calls_name:
+                found = any(
+                    isinstance(child, ast.Call)
+                    and isinstance(child.func, ast.Name)
+                    and child.func.id == body_calls_name
+                    for child in body_nodes
+                )
+                if not found:
+                    return False
+            if body_method:
+                found = any(
+                    isinstance(child, ast.Call)
+                    and isinstance(child.func, ast.Attribute)
+                    and child.func.attr == body_method
+                    for child in body_nodes
+                )
+                if not found:
+                    return False
             return True
+
+        discarded: set[int] = set()
+        for node in nodes:
+            if isinstance(node, ast.Expr) and isinstance(node.value, ast.Call):
+                discarded.add(id(node.value))
 
         if inside == "for_iter":
             for node in nodes:
                 if not isinstance(node, ast.For):
                     continue
-                if _matching_method_call(node.iter):
-                    return True, f"Used .{method}() to drive a for loop."
+                if not _matching_method_call(node.iter):
+                    continue
+                if not _for_body_has_required_work(node):
+                    continue
+                return True, f"Used .{method}() to drive a for loop."
             receiver = f"{target}." if target else ""
+            if body_calls_name or body_method:
+                work = body_calls_name or f".{body_method}()"
+                return False, custom or (
+                    f"Use {receiver}{method}() as the for-loop sequence, and "
+                    f"do the real work ({work}) inside that same loop body."
+                )
             return False, custom or (
                 f"Use {receiver}{method}() as the sequence in your for loop header."
             )
 
+        matching_calls = [
+            node
+            for node in nodes
+            if isinstance(node, ast.Call)
+            and _matching_method_call(node)
+            and id(node) not in discarded
+        ]
+        if contributes in {True, "result", "return"}:
+            if not _method_call_contributes(nodes, _matching_method_call, mode=str(contributes)):
+                receiver = f"{target}." if target else ""
+                return False, custom or (
+                    f"Use the value from {receiver}{method}(...) in your return "
+                    "value or decision — a discarded call is not enough."
+                )
+            return True, f"Used .{method}()."
+
+        if matching_calls:
+            return True, f"Used .{method}()."
+        # Fall back: allow matching even if only discarded when contributes unset,
+        # but prefer reporting the usual missing-call message.
         for node in nodes:
             if _matching_method_call(node):
+                # Exists only as a discarded expression when contributes is unset —
+                # still count as present for backward compatibility.
                 return True, f"Used .{method}()."
         receiver = f"{target}." if target else ""
         extra = ""

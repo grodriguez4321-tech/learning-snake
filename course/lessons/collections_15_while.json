@@ -8,7 +8,7 @@
     "collections",
     "loops"
   ],
-  "content": "What problem does this solve?\nA for loop is ideal when you already know the collection or range to visit. Dispatch sometimes repeats while a condition stays true — fuel remains, a warning is active, or an index has not reached the end. A while loop keeps going until that condition becomes false.\n\nPreviously in your program\nYou used for item in supplies and for i in range(len(party)). Those patterns still matter. while is for repetition that ends when something you update finally makes the condition false.\n\nBasic syntax\n  fuel = 3\n  while fuel > 0:\n      fuel -= 1\n  print(fuel)\n\nWhat actually happens\nPython checks the condition before each pass. If it is true, the body runs. The body must make progress — update a counter, shrink a value, or advance an index — so the condition can become false. Without an update, the loop can run forever. Basilisk stops runaway code with a timeout; that message is feedback about missing termination, not a mystery crash.\n\nWhen this is useful\nPrefer for when visiting a known collection. Prefer while when you repeat until a changing condition says stop.",
+  "content": "What problem does this solve?\nA for loop is ideal when you already know the collection or range to visit. Dispatch sometimes repeats while a condition stays true — fuel remains, a warning is active, or an index has not reached the end. A while loop keeps going until that condition becomes false.\n\nPreviously in your program\nYou used for item in supplies and for i in range(len(party)). Those patterns still matter. while is for repetition that ends when something you update finally makes the condition false.\n\nBasic syntax\n  charge = 4\n  while charge > 1:\n      charge -= 1\n  print(charge)\n\nWhat actually happens\nPython checks the condition before each pass. If it is true, the body runs. The body must make progress — update a counter, shrink a value, or advance an index — so the condition can become false. Without an update, the loop can run forever. Basilisk stops runaway code with a timeout; that message is feedback about missing termination, not a mystery crash.\n\nWhen this is useful\nPrefer for when visiting a known collection. Prefer while when you repeat until a changing condition says stop.",
   "concepts": [
     "for processes a known collection or range",
     "while repeats while a condition remains true",
@@ -17,14 +17,14 @@
   ],
   "examples": [
     {
-      "title": "Count down fuel",
-      "code": "fuel = 3\nwhile fuel > 0:\n    fuel -= 1\nprint(fuel)",
-      "explanation": "Each pass reduces fuel. When fuel is 0, the condition fails and the loop ends."
+      "title": "Count down a charge",
+      "code": "charge = 4\nwhile charge > 1:\n    charge -= 1\nprint(charge)",
+      "explanation": "Each pass reduces charge. When charge is no longer greater than 1, the loop ends and print shows what remains."
     },
     {
-      "title": "Index through a list",
-      "code": "distances = [2, 3, 4]\nindex = 0\ntotal = 0\nwhile index < len(distances):\n    total += distances[index]\n    index += 1\nprint(total)",
-      "explanation": "index advances each pass so the loop eventually stops. Prefer for when you only need each value, but this pattern shows while with len and indexing."
+      "title": "Advance an index",
+      "code": "readings = [5, 1, 2]\nindex = 0\nseen = 0\nwhile index < len(readings):\n    seen += 1\n    index += 1\nprint(seen)",
+      "explanation": "index advances each pass so the loop eventually stops. Prefer for when you only need each value; this shows while with len and indexing."
     }
   ],
   "common_mistakes": [
@@ -68,7 +68,8 @@
         {
           "kind": "source_uses",
           "feature": "while_loop",
-          "message": "Keep a real while loop that repeats while distance > 0."
+          "message": "Keep a real while loop whose condition can change — not while False.",
+          "nonconstant": true
         },
         {
           "kind": "source_uses",
@@ -78,8 +79,17 @@
           "message": "Update distance inside the while loop so the condition can become false."
         },
         {
+          "kind": "source_uses",
+          "feature": "print_names",
+          "names": [
+            "steps"
+          ],
+          "message": "Print the steps variable — do not hardcode the number of steps."
+        },
+        {
           "kind": "stdout_equals",
-          "expected": "3\n"
+          "expected": "3\n",
+          "message": "Print the number of steps taken (the final value of steps)."
         }
       ]
     },
@@ -102,7 +112,8 @@
         {
           "kind": "source_uses",
           "feature": "while_loop",
-          "message": "Keep a real while loop."
+          "message": "Keep a real while loop whose condition can change — not while False.",
+          "nonconstant": true
         },
         {
           "kind": "source_uses",
@@ -120,7 +131,8 @@
         },
         {
           "kind": "stdout_equals",
-          "expected": "3\n2\n1\nclear\n"
+          "expected": "3\n2\n1\nclear\n",
+          "message": "Print 3, then 2, then 1 from the loop, then clear."
         }
       ]
     },
@@ -166,7 +178,31 @@
           "kind": "source_uses",
           "feature": "while_loop",
           "in_function": "trail_total",
-          "message": "Inside trail_total, use a while loop."
+          "message": "Inside trail_total, use a while loop with a condition that can change.",
+          "nonconstant": true
+        },
+        {
+          "kind": "source_uses",
+          "feature": "forbidden_call",
+          "name": "sum",
+          "in_function": "trail_total",
+          "message": "Do not call sum() — accumulate the total with your while loop."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "rebind_self",
+          "name": "total",
+          "inside": "while_loop",
+          "in_function": "trail_total",
+          "message": "Update total inside the while loop body as you visit each distance."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "rebind_self",
+          "name": "index",
+          "inside": "while_loop",
+          "in_function": "trail_total",
+          "message": "Update index inside the while loop so the loop can finish."
         },
         {
           "kind": "source_uses",

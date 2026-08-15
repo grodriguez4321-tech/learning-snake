@@ -37,6 +37,8 @@ def test_case_to_dict(test: TestCase) -> dict[str, Any]:
             continue
         if key == "message" and value == "":
             continue
+        if key in {"contributes", "nonconstant"} and value in {None, False}:
+            continue
         cleaned[key] = value
     return cleaned
 

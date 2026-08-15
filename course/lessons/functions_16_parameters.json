@@ -7,7 +7,7 @@
   "topics": [
     "functions"
   ],
-  "content": "What problem does this solve?\nOne parameter is enough for a single clue. Dispatch decisions often need several facts at once: a destination and a status, a price and a quantity, or a party, supplies, and a warning flag. Multiple parameters let the call site hand over the whole situation without leaning on global variables.\n\nPreviously in your program\nYou wrote functions like inspect_clue(clue) and antidote_count(stock) with one input. Now the parameter list can describe every value the decision needs.\n\nBasic syntax\n  def route_label(destination, status):\n      return f\"{destination}: {status}\"\n\n  print(route_label(\"Gloamfen\", \"Review\"))\n\nWhat actually happens\nParameters bind by position unless you later use keyword arguments. In route_label(\"Gloamfen\", \"Review\"), destination receives \"Gloamfen\" and status receives \"Review\". Swap the arguments and the meaning swaps too. A function can also receive lists as parameters and work from those values instead of hidden globals.\n\nWhen this is useful\nAdd another parameter when the function needs another independent fact to decide or build its result.",
+  "content": "What problem does this solve?\nOne parameter is enough for a single clue. Dispatch decisions often need several facts at once: a destination and a status, a price and a quantity, or a party, supplies, and a warning flag. Multiple parameters let the call site hand over the whole situation without leaning on global variables.\n\nPreviously in your program\nYou wrote functions like inspect_clue(clue) and antidote_count(stock) with one input. Now the parameter list can describe every value the decision needs.\n\nBasic syntax\n  def trail_mark(place, note):\n      return f\"{place} :: {note}\"\n\n  print(trail_mark(\"North Pier\", \"open\"))\n\nWhat actually happens\nParameters bind by position unless you later use keyword arguments. In trail_mark(\"North Pier\", \"open\"), place receives \"North Pier\" and note receives \"open\". Swap the arguments and the meaning swaps too. A function can also receive lists as parameters and work from those values instead of hidden globals.\n\nWhen this is useful\nAdd another parameter when the function needs another independent fact to decide or build its result.",
   "concepts": [
     "A function can declare multiple parameters",
     "Positional arguments bind in order to those parameters",
@@ -17,13 +17,13 @@
   "examples": [
     {
       "title": "Two inputs, one label",
-      "code": "def route_label(destination, status):\n    return f\"{destination}: {status}\"\n\nprint(route_label(\"Gloamfen\", \"Review\"))",
-      "explanation": "The first argument fills destination; the second fills status."
+      "code": "def trail_mark(place, note):\n    return f\"{place} :: {note}\"\n\nprint(trail_mark(\"North Pier\", \"open\"))",
+      "explanation": "The first argument fills place; the second fills note."
     },
     {
       "title": "Lists as parameters",
-      "code": "def party_size(party):\n    return len(party)\n\nprint(party_size([\"Mara\", \"Tovin\"]))",
-      "explanation": "The list arrives through the parameter. The function does not need a global party variable."
+      "code": "def roster_size(members):\n    return len(members)\n\nprint(roster_size([\"Nyx\", \"Bram\"]))",
+      "explanation": "The list arrives through the parameter. The function does not need a global members variable."
     }
   ],
   "common_mistakes": [
@@ -76,7 +76,8 @@
         },
         {
           "kind": "stdout_equals",
-          "expected": "15\n"
+          "expected": "15\n",
+          "message": "supply_cost(5, 3) should print 15."
         },
         {
           "kind": "function",
@@ -108,7 +109,8 @@
       "tests": [
         {
           "kind": "stdout_equals",
-          "expected": "Mira — Scout\n"
+          "expected": "Mira — Scout\n",
+          "message": "After fixing the call, print Mira — Scout."
         },
         {
           "kind": "function",
@@ -216,12 +218,6 @@
             "warning_active"
           ],
           "message": "Define dispatch_status(party, supplies, warning_active)."
-        },
-        {
-          "kind": "source_uses",
-          "feature": "len_call",
-          "in_function": "dispatch_status",
-          "message": "Use len(...) inside dispatch_status when measuring party or supplies."
         },
         {
           "kind": "function",
