@@ -73,7 +73,8 @@ class CourseApp(QMainWindow):
         self._editor_visible = self.prefs_store.prefs.editor_visible
         self._jobs = AsyncJobHost(self)
 
-        self.setWindowTitle(WINDOW_TITLE)
+        title = WINDOW_TITLE + (" — Developer Preview" if self.controller.developer_mode else "")
+        self.setWindowTitle(title)
         self.resize(1400, 900)
         self.setMinimumSize(1100, 700)
 
@@ -147,7 +148,7 @@ class CourseApp(QMainWindow):
         self.playground_page.resetEnvRequested.connect(self._reset_playground_env)
 
         self.progress_page = ProgressPage(self.controller, self.controller.catalog)
-        self.settings_page = SettingsPage()
+        self.settings_page = SettingsPage(self.controller)
         self.settings_page.resetProgressClicked.connect(self._reset_progress)
         self.settings_page.saveClicked.connect(self._save_progress)
 

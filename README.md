@@ -69,6 +69,17 @@ Run engine tests (no display required):
 python3 -m unittest discover -s tests -v
 ```
 
+### Developer Preview
+
+For curriculum QA without completing prior lessons, launch in Developer Preview Mode (isolated progress; does not affect normal learner progress):
+
+```powershell
+py main.py --developer
+py main.py --developer --lesson collections_19_nested_data
+```
+
+Use `--lesson <id>` to jump directly to a specific lesson by stable ID.
+
 GUI smoke test:
 
 ```bash
