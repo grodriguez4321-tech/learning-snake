@@ -1,11 +1,14 @@
 {
   "id": "decisions_10_boolean_logic",
-  "section": "Making Decisions",
+  "section": "Expedition Intake \u2014 Decisions",
   "section_order": 5,
   "order": 3,
   "title": "Decisions With More Than One Condition",
-  "topics": ["conditionals", "debugging"],
-  "content": "What problem does this solve?\nClearance for the abandoned route once used by Captain Ilyra Venn depends on supplies, a guide, and active warnings. Real decisions often ask whether several conditions are true together—or whether any one danger is enough to stop the plan.\n\nPreviously in your program\nYour intake desk already classifies supplies with if / elif / else: Cleared for 10+, Review for 5–9, Denied below 5. If supplies is 7, the Review branch runs because 7 fails >= 10 and then matches >= 5.\n\nBasic syntax\n  if has_guide and supplies >= 10 and not storm_warning:\n      print(\"Departure approved\")\n  else:\n      print(\"Hold at camp\")\n\nWhat actually happens\nBoolean expressions evaluate to True or False. and requires both sides true. or requires at least one side true. not reverses a Boolean value. Parentheses make grouping clear when and and or appear together.\n\nWhen this is useful\nTranslate the English rule first, then choose and, or, and not to match it.",
+  "topics": [
+    "conditionals",
+    "debugging"
+  ],
+  "content": "What problem does this solve?\nClearance for the abandoned route once used by Captain Ilyra Venn depends on supplies, a guide, and active warnings. Real decisions often ask whether several conditions are true together\u2014or whether any one danger is enough to stop the plan.\n\nPreviously in your program\nYour intake desk already classifies supplies with if / elif / else: Cleared for 10+, Review for 5\u20139, Denied below 5. If supplies is 7, the Review branch runs because 7 fails >= 10 and then matches >= 5.\n\nBasic syntax\n  if has_guide and supplies >= 10 and not storm_warning:\n      print(\"Departure approved\")\n  else:\n      print(\"Hold at camp\")\n\nWhat actually happens\nBoolean expressions evaluate to True or False. and requires both sides true. or requires at least one side true. not reverses a Boolean value. Parentheses make grouping clear when and and or appear together.\n\nWhen this is useful\nTranslate the English rule first, then choose and, or, and not to match it.",
   "concepts": [
     "and is true only when every part is true",
     "or is true when at least one part is true",
@@ -33,10 +36,12 @@
       "prompt": "What does this print? Evaluate each part of the condition, including not.",
       "code_to_predict": "has_guide = True\nsupplies = 12\nwarning_active = True\n\nif has_guide and supplies >= 10 and not warning_active:\n    print(\"Depart\")\nelse:\n    print(\"Wait\")",
       "expected_answer": "Wait",
-      "topics": ["conditionals"],
+      "topics": [
+        "conditionals"
+      ],
       "failure_message": "Evaluate each part separately, including what not does to warning_active.",
       "hints": [
-        "has_guide is True and supplies >= 10 is True — what about the warning?",
+        "has_guide is True and supplies >= 10 is True \u2014 what about the warning?",
         "not warning_active flips True to False.",
         "and needs every part true, so the else path runs and prints Wait."
       ]
@@ -46,9 +51,15 @@
       "type": "architecture",
       "title": "and or or?",
       "prompt": "Any one of these should trigger a route warning: flooding is reported, the bridge is broken, or visibility is poor. Which operator belongs between the conditions?",
-      "choices": ["and", "or", "not"],
+      "choices": [
+        "and",
+        "or",
+        "not"
+      ],
       "expected_answer": "or",
-      "topics": ["conditionals"],
+      "topics": [
+        "conditionals"
+      ],
       "success_message": "Right. A single danger is enough, so at least one condition must be true.",
       "failure_message": "Think about whether every danger must be present, or whether one danger alone should warn the party.",
       "hints": [
@@ -63,17 +74,52 @@
       "title": "The false clearance",
       "prompt": "Both a guide and at least 10 supplies are required. The current code clears an expedition with no guide. Change only the Boolean operator so can_depart returns the correct result for every case.",
       "starter_code": "def can_depart(has_guide, supplies):\n    return has_guide or supplies >= 10\n",
-      "topics": ["conditionals", "debugging"],
+      "topics": [
+        "conditionals",
+        "debugging"
+      ],
       "hints": [
-        "Both requirements must pass together — one alone is not enough.",
+        "Both requirements must pass together \u2014 one alone is not enough.",
         "or is true when either side is true; that clears a guide-less party with enough supplies.",
         "Replace or with and so both the guide and the supply check must succeed."
       ],
       "tests": [
-        {"kind": "function", "function": "can_depart", "args": [false, 12], "expected": false},
-        {"kind": "function", "function": "can_depart", "args": [true, 12], "expected": true},
-        {"kind": "function", "function": "can_depart", "args": [true, 9], "expected": false},
-        {"kind": "function", "function": "can_depart", "args": [false, 9], "expected": false}
+        {
+          "kind": "function",
+          "function": "can_depart",
+          "args": [
+            false,
+            12
+          ],
+          "expected": false
+        },
+        {
+          "kind": "function",
+          "function": "can_depart",
+          "args": [
+            true,
+            12
+          ],
+          "expected": true
+        },
+        {
+          "kind": "function",
+          "function": "can_depart",
+          "args": [
+            true,
+            9
+          ],
+          "expected": false
+        },
+        {
+          "kind": "function",
+          "function": "can_depart",
+          "args": [
+            false,
+            9
+          ],
+          "expected": false
+        }
       ]
     },
     {
@@ -82,19 +128,96 @@
       "title": "Departure clearance",
       "prompt": "Write can_depart(has_guide, supplies, warning_active). Return True only when there is a guide, supplies are at least 10, and no warning is active. Otherwise return False.",
       "starter_code": "def can_depart(has_guide, supplies, warning_active):\n    # Return True only when all safety requirements pass.\n    pass\n",
-      "topics": ["conditionals", "functions"],
+      "topics": [
+        "conditionals",
+        "functions"
+      ],
       "hints": [
         "All three safety requirements must pass together.",
         "Use and between the requirements. The warning requirement needs to be reversed.",
         "Combine has_guide, supplies >= 10, and not warning_active."
       ],
       "tests": [
-        {"kind": "function", "function": "can_depart", "args": [true, 10, false], "expected": true},
-        {"kind": "function", "function": "can_depart", "args": [true, 15, false], "expected": true},
-        {"kind": "function", "function": "can_depart", "args": [false, 15, false], "expected": false},
-        {"kind": "function", "function": "can_depart", "args": [true, 9, false], "expected": false},
-        {"kind": "function", "function": "can_depart", "args": [true, 15, true], "expected": false},
-        {"kind": "function", "function": "can_depart", "args": [false, 0, true], "expected": false}
+        {
+          "kind": "function",
+          "function": "can_depart",
+          "args": [
+            true,
+            10,
+            false
+          ],
+          "expected": true
+        },
+        {
+          "kind": "function",
+          "function": "can_depart",
+          "args": [
+            true,
+            15,
+            false
+          ],
+          "expected": true
+        },
+        {
+          "kind": "function",
+          "function": "can_depart",
+          "args": [
+            false,
+            15,
+            false
+          ],
+          "expected": false
+        },
+        {
+          "kind": "function",
+          "function": "can_depart",
+          "args": [
+            true,
+            9,
+            false
+          ],
+          "expected": false
+        },
+        {
+          "kind": "function",
+          "function": "can_depart",
+          "args": [
+            true,
+            15,
+            true
+          ],
+          "expected": false
+        },
+        {
+          "kind": "function",
+          "function": "can_depart",
+          "args": [
+            false,
+            0,
+            true
+          ],
+          "expected": false
+        },
+        {
+          "kind": "function",
+          "function": "can_depart",
+          "args": [
+            true,
+            0,
+            false
+          ],
+          "expected": false
+        },
+        {
+          "kind": "function",
+          "function": "can_depart",
+          "args": [
+            true,
+            8,
+            false
+          ],
+          "expected": false
+        }
       ]
     },
     {
@@ -103,17 +226,52 @@
       "title": "Either route is usable",
       "prompt": "Write has_escape_route(north_open, south_open) that returns True if either route is open.",
       "starter_code": "def has_escape_route(north_open, south_open):\n    # Return True if at least one route is open.\n    pass\n",
-      "topics": ["conditionals", "functions"],
+      "topics": [
+        "conditionals",
+        "functions"
+      ],
       "hints": [
         "Either route being open is enough.",
         "The operator for \"at least one\" is or.",
         "Return north_open or south_open."
       ],
       "tests": [
-        {"kind": "function", "function": "has_escape_route", "args": [true, false], "expected": true},
-        {"kind": "function", "function": "has_escape_route", "args": [false, true], "expected": true},
-        {"kind": "function", "function": "has_escape_route", "args": [true, true], "expected": true},
-        {"kind": "function", "function": "has_escape_route", "args": [false, false], "expected": false}
+        {
+          "kind": "function",
+          "function": "has_escape_route",
+          "args": [
+            true,
+            false
+          ],
+          "expected": true
+        },
+        {
+          "kind": "function",
+          "function": "has_escape_route",
+          "args": [
+            false,
+            true
+          ],
+          "expected": true
+        },
+        {
+          "kind": "function",
+          "function": "has_escape_route",
+          "args": [
+            true,
+            true
+          ],
+          "expected": true
+        },
+        {
+          "kind": "function",
+          "function": "has_escape_route",
+          "args": [
+            false,
+            false
+          ],
+          "expected": false
+        }
       ]
     }
   ]

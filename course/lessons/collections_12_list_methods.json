@@ -1,6 +1,6 @@
 {
   "id": "collections_12_list_methods",
-  "section": "Collections",
+  "section": "Expedition Intake \u2014 Collections",
   "section_order": 6,
   "order": 5,
   "title": "Lists That Change",
@@ -208,7 +208,14 @@
               "rope",
               "torch"
             ]
-          ]
+          ],
+          "arg_after": {
+            "0": [
+              "rope",
+              "torch"
+            ]
+          },
+          "return_shares_arg": 0
         },
         {
           "kind": "function",
@@ -221,7 +228,11 @@
           "expected": [
             "chalk",
             []
-          ]
+          ],
+          "arg_after": {
+            "0": []
+          },
+          "return_shares_arg": 0
         },
         {
           "kind": "function",
@@ -241,7 +252,15 @@
               "lantern",
               "antidote"
             ]
-          ]
+          ],
+          "arg_after": {
+            "0": [
+              "map",
+              "lantern",
+              "antidote"
+            ]
+          },
+          "return_shares_arg": 0
         }
       ]
     },
@@ -249,8 +268,8 @@
       "id": "collections_12_ex6",
       "type": "mini_project",
       "title": "Quartermaster's update",
-      "prompt": "Given the party and supplies below, update the loadout and print a short intake summary:\n\n1. Remove \"cracked vial\" from supplies.\n2. Append \"antidote\".\n3. Print the member count (use len).\n4. Print the updated supply count (use len).\n5. Using if / elif / else on the supply count, print \"Cleared\" if there are 10 or more supplies, \"Review\" if there are 5 through 9, or \"Denied\" otherwise.\n\nPrint the two counts and the status each on their own line, in that order.",
-      "starter_code": "party = [\"Mara\", \"Tovin\", \"Sable\"]\nsupplies = [\"rope\", \"torch\", \"cracked vial\"]\n\n# Remove the cracked vial, append antidote, then print counts and status.\n",
+      "prompt": "Quartermaster's Update\n\nStarting from the supplied party and supplies lists:\n1. remove \"cracked vial\";\n2. append \"antidote\";\n3. print the member count;\n4. print the updated supply count;\n5. with an if/elif/else chain, print Cleared (10+ supplies), Review (5\u20139), or Denied (below 5).\n\nAfter your updates the supply count should be 5, so a correct chain prints Review.",
+      "starter_code": "party = [\"Mara\", \"Tovin\", \"Sable\"]\nsupplies = [\"rope\", \"torch\", \"chalk\", \"map\", \"cracked vial\"]\n# Remove cracked vial, append antidote, print counts, then Cleared/Review/Denied\n",
       "topics": [
         "collections",
         "conditionals",
@@ -267,12 +286,12 @@
           "kind": "source_uses",
           "feature": "append_or_extend",
           "name": "supplies",
-          "message": "Append antidote to the existing supplies list."
+          "message": "Append antidote to the supplies list."
         },
         {
           "kind": "source_uses",
-          "feature": "if_statement",
-          "message": "Use if / elif / else to choose Cleared, Review, or Denied."
+          "feature": "elif_branch",
+          "message": "Use if / elif / else so Cleared, Review, and Denied are all possible."
         },
         {
           "kind": "globals",
@@ -281,12 +300,14 @@
           "expected": [
             "rope",
             "torch",
+            "chalk",
+            "map",
             "antidote"
           ]
         },
         {
           "kind": "stdout_equals",
-          "expected": "3\n3\nDenied\n"
+          "expected": "3\n5\nReview\n"
         }
       ]
     }

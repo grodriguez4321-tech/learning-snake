@@ -4,8 +4,10 @@
   "section_order": 1,
   "order": 2,
   "title": "Store the Record",
-  "topics": ["variables"],
-  "content": "What problem does this solve?\nA static log is not enough. If the program must rewrite every sentence as the overdue count changes, it is not modeling the expedition. Variables let you name information, change it, and reuse it later.\n\nBasic syntax\n  name = expression\n\nWhat actually happens\nThe right-hand side is evaluated first. Then Python attaches that resulting value to the name on the left. A variable is a label pointing at a value, not a fixed box that permanently owns one type.\n\nA string is text in quotes, such as \"OVERDUE\". An integer is a whole number without quotes, such as 17. An expression is anything Python can evaluate, including a name, a number, or days_overdue + 1. Reassignment makes the same name point at a new value.\n\nWhen this is useful\nUse named values whenever a fact may change — days overdue, party size, or status — so print() can reuse the current values without rewriting the whole program. You already know print() from the last lesson; now print named values instead of only literals.",
+  "topics": [
+    "variables"
+  ],
+  "content": "What problem does this solve?\nA static log is not enough. If the program must rewrite every sentence as the overdue count changes, it is not modeling the expedition. Variables let you name information, change it, and reuse it later.\n\nBasic syntax\n  name = expression\n\nWhat actually happens\nThe right-hand side is evaluated first. Then Python attaches that resulting value to the name on the left. A variable is a label pointing at a value, not a fixed box that permanently owns one type.\n\nA string is text in quotes, such as \"OVERDUE\". An integer is a whole number without quotes, such as 17. An expression is anything Python can evaluate, including a name, a number, or days_overdue + 1. Reassignment makes the same name point at a new value.\n\nWhen this is useful\nUse named values whenever a fact may change \u2014 days overdue, party size, or status \u2014 so print() can reuse the current values without rewriting the whole program. You already know print() from the last lesson; now print named values instead of only literals.",
   "concepts": [
     "Assignment evaluates the right side, then binds the name on the left",
     "Strings are quoted text; integers are whole numbers without quotes",
@@ -22,7 +24,7 @@
   ],
   "common_mistakes": [
     "Writing status == \"OVERDUE\" when you meant to assign ( == compares; = assigns )",
-    "Using a variable before assigning it — that raises NameError",
+    "Using a variable before assigning it \u2014 that raises NameError",
     "Forgetting quotes around literal text: OVERDUE without quotes looks like a variable name",
     "Hardcoding a calculated result instead of building it from the named values"
   ],
@@ -34,21 +36,25 @@
       "prompt": "What does this program print? Type each line of output.",
       "code_to_predict": "days_overdue = 2\nprint(days_overdue)\ndays_overdue = days_overdue + 1\nprint(days_overdue)",
       "expected_answer": "2\n3",
-      "topics": ["variables"],
+      "topics": [
+        "variables"
+      ],
       "hints": [
         "Trace the value of days_overdue from top to bottom.",
         "The second assignment uses the current value of days_overdue on the right-hand side.",
         "First print shows 2; after adding 1, the second print shows 3."
       ],
-      "failure_message": "Re-read the reassignment line carefully — the name on the right still holds the old value when that expression is evaluated."
+      "failure_message": "Re-read the reassignment line carefully \u2014 the name on the right still holds the old value when that expression is evaluated."
     },
     {
       "id": "fundamentals_02_ex2",
       "type": "fill_blank",
       "title": "Complete the calculation",
-      "prompt": "Replace None so evidence_count is the sum of tracks_found and damaged_items. Build the value from both variable names — do not hardcode the result.",
-      "starter_code": "tracks_found = 2\ndamaged_items = 3\nevidence_count = None  # TODO: expression using both variables\nprint(evidence_count)\n",
-      "topics": ["variables"],
+      "prompt": "Replace the placeholder so evidence_count is the sum of tracks_found and damaged_items. Build the value from both variable names \u2014 do not hardcode the result.",
+      "starter_code": "tracks_found = 2\ndamaged_items = 3\nevidence_count = 0  # TODO: replace 0 with an expression using both variables\nprint(evidence_count)\n",
+      "topics": [
+        "variables"
+      ],
       "hints": [
         "evidence_count should be calculated from the two named values above it.",
         "Use + to combine the integers those names refer to.",
@@ -59,7 +65,10 @@
           "kind": "source_uses",
           "feature": "binop_names",
           "name": "evidence_count",
-          "names": ["tracks_found", "damaged_items"],
+          "names": [
+            "tracks_found",
+            "damaged_items"
+          ],
           "message": "Build evidence_count from tracks_found and damaged_items, not a hardcoded number."
         },
         {
@@ -80,7 +89,9 @@
       "title": "Repair the status",
       "prompt": "This program should store the word OVERDUE as literal text in status, then print it. Fix the assignment.",
       "starter_code": "status = OVERDUE\nprint(status)\n",
-      "topics": ["variables"],
+      "topics": [
+        "variables"
+      ],
       "hints": [
         "Without quotes, Python treats OVERDUE as a variable name.",
         "Literal text must be a string.",
@@ -103,13 +114,15 @@
       "id": "fundamentals_02_ex4",
       "type": "write_code",
       "title": "Build an expedition record",
-      "prompt": "Create these variables:\n  expedition -> the integer 17\n  registered -> the integer 4\n  days_overdue -> the integer 3\n  status -> the string \"OVERDUE\"\n\nThen print each value on its own line in that order, using the variable names — do not copy-paste the values into print().",
+      "prompt": "Create these variables:\n  expedition -> the integer 17\n  registered -> the integer 4\n  days_overdue -> the integer 3\n  status -> the string \"OVERDUE\"\n\nThen print each value on its own line in that order, using the variable names \u2014 do not copy-paste the values into print().",
       "starter_code": "# Create the expedition record, then print each value\n",
-      "topics": ["variables"],
+      "topics": [
+        "variables"
+      ],
       "hints": [
         "Strings need quotes; integers do not.",
         "Assign all four names first, then call print four times with those names.",
-        "Print expedition, registered, days_overdue, and status — the variables themselves, not quoted copies of the numbers."
+        "Print expedition, registered, days_overdue, and status \u2014 the variables themselves, not quoted copies of the numbers."
       ],
       "tests": [
         {
@@ -135,6 +148,17 @@
           "name": "status",
           "type_name": "str",
           "expected": "OVERDUE"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "print_names",
+          "names": [
+            "expedition",
+            "registered",
+            "days_overdue",
+            "status"
+          ],
+          "message": "Print the variable names themselves, not hardcoded literal values."
         },
         {
           "kind": "stdout_equals",

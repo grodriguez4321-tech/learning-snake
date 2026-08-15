@@ -287,6 +287,63 @@ class GradingHoleTests(unittest.TestCase):
         )
         self.assertFalse(always_clear.passed)
 
+    def test_expedition_report_requires_calling_inspect_clue(self) -> None:
+        exercise = self._exercise("functions_01_basics", "functions_01_ex4")
+        rebuilt = self.checker.check(
+            exercise,
+            code=(
+                "evidence = ['broken lantern', 'gray dust', 'torn cloak']\n"
+                "def inspect_clue(clue):\n"
+                "    if clue == 'gray dust':\n"
+                "        return f'FLAG: {clue}'\n"
+                "    return f'logged: {clue}'\n"
+                "for clue in evidence:\n"
+                "    if clue == 'gray dust':\n"
+                "        print(f'FLAG: {clue}')\n"
+                "    else:\n"
+                "        print(f'logged: {clue}')\n"
+            ),
+        )
+        self.assertFalse(rebuilt.passed)
+
+    def test_use_last_supply_rejects_list_copy(self) -> None:
+        exercise = self._exercise(
+            "collections_12_list_methods", "collections_12_ex5"
+        )
+        copied = self.checker.check(
+            exercise,
+            code=(
+                "def use_last_supply(supplies):\n"
+                "    used = supplies[-1]\n"
+                "    return [used, supplies[:-1]]\n"
+            ),
+        )
+        self.assertFalse(copied.passed)
+
+    def test_can_depart_rejects_low_supply_shortcut(self) -> None:
+        exercise = self._exercise(
+            "decisions_10_boolean_logic", "decisions_10_ex4"
+        )
+        shortcut = self.checker.check(
+            exercise,
+            code=(
+                "def can_depart(has_guide, supplies, warning_active):\n"
+                "    return has_guide == True and supplies != 9 and warning_active == False\n"
+            ),
+        )
+        self.assertFalse(shortcut.passed)
+
+    def test_dispatch_rejects_single_print(self) -> None:
+        exercise = self._exercise("fundamentals_01_print", "fundamentals_01_ex3")
+        single = self.checker.check(
+            exercise,
+            code=(
+                "# note\n"
+                'print("SEARCH DISPATCH\\nExpedition: 17\\nStatus: OVERDUE")\n'
+            ),
+        )
+        self.assertFalse(single.passed)
+
 
 class FullCatalogLoopTests(unittest.TestCase):
     def test_every_exercise_has_a_recorded_solution(self) -> None:

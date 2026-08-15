@@ -1,6 +1,6 @@
 {
   "id": "collections_11_len_range",
-  "section": "Collections",
+  "section": "Expedition Intake \u2014 Collections",
   "section_order": 6,
   "order": 4,
   "title": "Count What You Have",
@@ -113,6 +113,11 @@
         "Collect f\"{number}: {party[index]}\" strings in a list and return that list."
       ],
       "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "range_call",
+          "message": "Use range() to generate the roster numbers or indexes."
+        },
         {
           "kind": "source_uses",
           "feature": "for_loop",

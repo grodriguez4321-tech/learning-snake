@@ -1,10 +1,12 @@
 {
   "id": "decisions_09_elif",
-  "section": "Making Decisions",
+  "section": "Expedition Intake \u2014 Decisions",
   "section_order": 5,
   "order": 2,
   "title": "More Than Two Paths",
-  "topics": ["conditionals"],
+  "topics": [
+    "conditionals"
+  ],
   "content": "What problem does this solve?\nA single if can answer one yes-or-no question. The intake desk for the Gloamfen route has three possible outcomes, but the expedition must receive exactly one of them.\n\nBasic syntax\n  if supplies >= 10:\n      status = \"Cleared\"\n  elif supplies >= 5:\n      status = \"Review\"\n  else:\n      status = \"Denied\"\n\nWhat actually happens\nelif means \"otherwise, test this next.\" Python checks conditions top to bottom. The first true branch runs, then the rest of the chain is skipped. With supplies equal to 8, both \"not enough for clearance\" and \"at least 5\" feel relevant, but Python stops at the first matching branch.\n\nOrder matters\nIf you put a broad threshold before a stricter one, the stricter branch may never run. Separate if statements can all fire; an if/elif/else chain picks exactly one outcome.\n\nWhen this is useful\nUse elif when several tiers are possible and the program must assign exactly one result.",
   "concepts": [
     "elif adds another test after if fails",
@@ -33,7 +35,9 @@
       "prompt": "What does this print? Trace from the top of the chain.",
       "code_to_predict": "torch_count = 12\n\nif torch_count >= 12:\n    print(\"Long route\")\nelif torch_count >= 6:\n    print(\"Short route\")\nelse:\n    print(\"Remain at camp\")",
       "expected_answer": "Long route",
-      "topics": ["conditionals"],
+      "topics": [
+        "conditionals"
+      ],
       "failure_message": "Trace from the top. Once one condition is true, Python skips the rest of this chain.",
       "hints": [
         "Start at the first if. Is torch_count >= 12 true when torch_count is 12?",
@@ -45,9 +49,11 @@
       "id": "decisions_09_ex2",
       "type": "debug",
       "title": "Put the thresholds in order",
-      "prompt": "The expedition has 14 rations and should be Cleared, but the program prints Review. Repair the decision without changing rations or the status text.",
-      "starter_code": "rations = 14\n\nif rations >= 5:\n    status = \"Review\"\nelif rations >= 12:\n    status = \"Cleared\"\nelse:\n    status = \"Denied\"\n\nprint(status)\n",
-      "topics": ["conditionals"],
+      "prompt": "classify_rations(rations) should return Cleared for 12 or more rations, Review for 5 through 11, and Denied below 5. The thresholds are out of order, so 14 incorrectly becomes Review. Repair the decision without changing the status text strings.",
+      "starter_code": "def classify_rations(rations):\n    if rations >= 5:\n        status = \"Review\"\n    elif rations >= 12:\n        status = \"Cleared\"\n    else:\n        status = \"Denied\"\n    return status\n",
+      "topics": [
+        "conditionals"
+      ],
       "hints": [
         "The comparisons are valid. The problem is which one Python reaches first.",
         "A value of 14 also satisfies rations >= 5.",
@@ -60,16 +66,52 @@
           "message": "Use elif so the chain can test another condition after if fails."
         },
         {
-          "kind": "source_uses",
-          "feature": "if_statement",
-          "message": "Keep an if / elif / else decision chain."
+          "kind": "function",
+          "function": "classify_rations",
+          "args": [
+            14
+          ],
+          "expected": "Cleared"
         },
-        {"kind": "stdout_equals", "expected": "Cleared\n"},
         {
-          "kind": "expression",
-          "expression": "status",
-          "expected": "Cleared",
-          "message": "status should end as Cleared for 14 rations."
+          "kind": "function",
+          "function": "classify_rations",
+          "args": [
+            12
+          ],
+          "expected": "Cleared"
+        },
+        {
+          "kind": "function",
+          "function": "classify_rations",
+          "args": [
+            11
+          ],
+          "expected": "Review"
+        },
+        {
+          "kind": "function",
+          "function": "classify_rations",
+          "args": [
+            5
+          ],
+          "expected": "Review"
+        },
+        {
+          "kind": "function",
+          "function": "classify_rations",
+          "args": [
+            4
+          ],
+          "expected": "Denied"
+        },
+        {
+          "kind": "function",
+          "function": "classify_rations",
+          "args": [
+            0
+          ],
+          "expected": "Denied"
         }
       ]
     },
@@ -79,7 +121,10 @@
       "title": "Expedition status",
       "prompt": "Create a function readiness_status(supplies) that returns:\n- \"Cleared\" for 10 or more supplies\n- \"Review\" for 5 through 9 supplies\n- \"Denied\" for fewer than 5 supplies\n\nUse one if / elif / else chain. Return the string; do not print it.",
       "starter_code": "def readiness_status(supplies):\n    # Write one if / elif / else chain.\n    pass\n",
-      "topics": ["conditionals", "functions"],
+      "topics": [
+        "conditionals",
+        "functions"
+      ],
       "success_message": "The desk can now make one clear decision from several possibilities.",
       "hints": [
         "Begin with the highest threshold.",
@@ -97,12 +142,54 @@
           "feature": "if_statement",
           "message": "Use an if / elif / else chain to choose the status."
         },
-        {"kind": "function", "function": "readiness_status", "args": [14], "expected": "Cleared"},
-        {"kind": "function", "function": "readiness_status", "args": [10], "expected": "Cleared"},
-        {"kind": "function", "function": "readiness_status", "args": [9], "expected": "Review"},
-        {"kind": "function", "function": "readiness_status", "args": [5], "expected": "Review"},
-        {"kind": "function", "function": "readiness_status", "args": [4], "expected": "Denied"},
-        {"kind": "function", "function": "readiness_status", "args": [0], "expected": "Denied"}
+        {
+          "kind": "function",
+          "function": "readiness_status",
+          "args": [
+            14
+          ],
+          "expected": "Cleared"
+        },
+        {
+          "kind": "function",
+          "function": "readiness_status",
+          "args": [
+            10
+          ],
+          "expected": "Cleared"
+        },
+        {
+          "kind": "function",
+          "function": "readiness_status",
+          "args": [
+            9
+          ],
+          "expected": "Review"
+        },
+        {
+          "kind": "function",
+          "function": "readiness_status",
+          "args": [
+            5
+          ],
+          "expected": "Review"
+        },
+        {
+          "kind": "function",
+          "function": "readiness_status",
+          "args": [
+            4
+          ],
+          "expected": "Denied"
+        },
+        {
+          "kind": "function",
+          "function": "readiness_status",
+          "args": [
+            0
+          ],
+          "expected": "Denied"
+        }
       ]
     },
     {
@@ -111,7 +198,10 @@
       "title": "Threat labels",
       "prompt": "Write threat_label(level) returning \"Severe\" for 8 or more, \"Elevated\" for 4 through 7, and \"Low\" otherwise.\n\nReturn the label; do not print it. Use if / elif / else.",
       "starter_code": "def threat_label(level):\n    # Return Severe, Elevated, or Low\n    pass\n",
-      "topics": ["conditionals", "functions"],
+      "topics": [
+        "conditionals",
+        "functions"
+      ],
       "hints": [
         "Start with the highest severity threshold.",
         "The middle band is level >= 4 after the severe check fails.",
@@ -128,12 +218,54 @@
           "feature": "if_statement",
           "message": "Use an if / elif / else chain."
         },
-        {"kind": "function", "function": "threat_label", "args": [3], "expected": "Low"},
-        {"kind": "function", "function": "threat_label", "args": [4], "expected": "Elevated"},
-        {"kind": "function", "function": "threat_label", "args": [7], "expected": "Elevated"},
-        {"kind": "function", "function": "threat_label", "args": [8], "expected": "Severe"},
-        {"kind": "function", "function": "threat_label", "args": [12], "expected": "Severe"},
-        {"kind": "function", "function": "threat_label", "args": [0], "expected": "Low"}
+        {
+          "kind": "function",
+          "function": "threat_label",
+          "args": [
+            3
+          ],
+          "expected": "Low"
+        },
+        {
+          "kind": "function",
+          "function": "threat_label",
+          "args": [
+            4
+          ],
+          "expected": "Elevated"
+        },
+        {
+          "kind": "function",
+          "function": "threat_label",
+          "args": [
+            7
+          ],
+          "expected": "Elevated"
+        },
+        {
+          "kind": "function",
+          "function": "threat_label",
+          "args": [
+            8
+          ],
+          "expected": "Severe"
+        },
+        {
+          "kind": "function",
+          "function": "threat_label",
+          "args": [
+            12
+          ],
+          "expected": "Severe"
+        },
+        {
+          "kind": "function",
+          "function": "threat_label",
+          "args": [
+            0
+          ],
+          "expected": "Low"
+        }
       ]
     }
   ]

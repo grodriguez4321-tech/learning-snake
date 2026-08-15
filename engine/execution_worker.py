@@ -210,8 +210,10 @@ def apply_test(
         func = namespace.get(func_name)
         if not callable(func):
             return False, f"Expected a function named {func_name}()."
-        args = list(test.get("args", []))
-        kwargs = dict(test.get("kwargs", {}))
+        import copy
+
+        args = copy.deepcopy(list(test.get("args", [])))
+        kwargs = copy.deepcopy(dict(test.get("kwargs", {})))
         call = format_call(func_name, args, kwargs)
         try:
             actual = func(*args, **kwargs)
@@ -222,6 +224,29 @@ def apply_test(
             return False, test.get("message") or (
                 f"{call} returned {actual!r} instead of {expected!r}."
             )
+        arg_after = test.get("arg_after")
+        if isinstance(arg_after, dict):
+            for key, expected_arg in arg_after.items():
+                index = int(key)
+                if index >= len(args) or args[index] != expected_arg:
+                    return False, test.get("message") or (
+                        f"After {call}, argument {index} should be {expected_arg!r}, "
+                        f"but it was {args[index] if index < len(args) else 'missing'!r}. "
+                        "Mutate the list in place rather than replacing it with a copy."
+                    )
+        same_list = test.get("return_shares_arg")
+        if same_list is not None:
+            index = int(same_list)
+            if not (
+                isinstance(actual, (list, tuple))
+                and len(actual) >= 2
+                and index < len(args)
+                and actual[1] is args[index]
+            ):
+                return False, test.get("message") or (
+                    "Return the used item and the same list object you mutated "
+                    "(not a copied list)."
+                )
         return True, f"{call} returned {expected!r}."
 
     if kind == "expression":
@@ -402,6 +427,84 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
                     return True, "Used elif in a decision chain."
         return False, custom or (
             "Use elif so the chain can test another condition after if fails."
+        )
+
+    if feature == "calls_name":
+        want = target or (required[0] if required else "")
+        if not want:
+            return False, custom or "Call the required function."
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                if node.func.id == want:
+                    return True, f"Called {want}()."
+        return False, custom or f"Call {want}() so you reuse the function you defined."
+
+    if feature == "print_names":
+        want = set(required)
+        printed: set[str] = set()
+        for node in ast.walk(tree):
+            if not (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Name)
+                and node.func.id == "print"
+            ):
+                continue
+            for arg in node.args:
+                if isinstance(arg, ast.Name):
+                    printed.add(arg.id)
+        if want and want <= printed:
+            return True, "Printed the required variable names."
+        return False, custom or (
+            "Print the variable names themselves (for example print(expedition)), "
+            "not hardcoded literal values."
+        )
+
+    if feature == "print_min_calls":
+        minimum = int(test.get("expected") or test.get("count") or 3)
+        count = 0
+        multi_arg = 0
+        for node in ast.walk(tree):
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Name)
+                and node.func.id == "print"
+            ):
+                count += 1
+                if len(node.args) >= 2:
+                    multi_arg += 1
+        if count < minimum:
+            return False, custom or (
+                f"Use at least {minimum} separate print() calls — one per line of output."
+            )
+        if required and "multi_arg" in required and multi_arg < 1:
+            return False, custom or (
+                "At least one print() call must take two arguments "
+                "(the label and the number)."
+            )
+        return True, "Used enough print() calls."
+
+    if feature == "range_call":
+        for node in ast.walk(tree):
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Name)
+                and node.func.id == "range"
+            ):
+                return True, "Used range()."
+        return False, custom or "Use range() to generate the positions or numbers."
+
+    if feature == "compares_names":
+        want = set(required)
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Compare):
+                continue
+            used = {child.id for child in ast.walk(node) if isinstance(child, ast.Name)}
+            if want and want <= used:
+                return True, "Compared the required names."
+            if not want:
+                return True, "Used a comparison."
+        return False, custom or (
+            "Write a real comparison that uses the required variable names."
         )
 
     return False, f"Unknown source_uses feature: {feature}"

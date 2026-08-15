@@ -79,13 +79,11 @@ SOLUTIONS: dict[str, dict[str, str]] = {
     },
     "decisions_01_ex4": {
         "code": (
-            "expedition = 17\n"
-            "registered = 4\n"
-            "bedrolls = 3\n"
-            "if bedrolls < registered:\n"
-            '    print(f"Expedition {expedition}: INVESTIGATE")\n'
-            "else:\n"
-            '    print(f"Expedition {expedition}: CLEAR")\n'
+            "def camp_report(expedition, registered, bedrolls):\n"
+            "    if bedrolls < registered:\n"
+            '        return f"Expedition {expedition}: INVESTIGATE"\n'
+            "    else:\n"
+            '        return f"Expedition {expedition}: CLEAR"\n'
         )
     },
     # --- collections_01_lists ---
@@ -176,16 +174,14 @@ SOLUTIONS: dict[str, dict[str, str]] = {
     "decisions_09_ex1": {"answer": "Long route"},
     "decisions_09_ex2": {
         "code": (
-            "rations = 14\n"
-            "\n"
-            "if rations >= 12:\n"
-            '    status = "Cleared"\n'
-            "elif rations >= 5:\n"
-            '    status = "Review"\n'
-            "else:\n"
-            '    status = "Denied"\n'
-            "\n"
-            "print(status)\n"
+            "def classify_rations(rations):\n"
+            "    if rations >= 12:\n"
+            '        status = "Cleared"\n'
+            "    elif rations >= 5:\n"
+            '        status = "Review"\n'
+            "    else:\n"
+            '        status = "Denied"\n'
+            "    return status\n"
         )
     },
     "decisions_09_ex3": {
@@ -285,8 +281,7 @@ SOLUTIONS: dict[str, dict[str, str]] = {
     "collections_12_ex6": {
         "code": (
             'party = ["Mara", "Tovin", "Sable"]\n'
-            'supplies = ["rope", "torch", "cracked vial"]\n'
-            "\n"
+            'supplies = ["rope", "torch", "chalk", "map", "cracked vial"]\n'
             'supplies.remove("cracked vial")\n'
             'supplies.append("antidote")\n'
             "print(len(party))\n"

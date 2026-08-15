@@ -4,11 +4,13 @@
   "section_order": 1,
   "order": 1,
   "title": "Leave a Trace",
-  "topics": ["print"],
-  "content": "What problem does this solve?\nA program that never shows anything is difficult to understand. print() gives it a way to leave evidence of what it did.\n\nBasic syntax\n  print(value)\n  print(value1, value2)\n  # this is a comment\n\nWhat actually happens\nWhen Python reaches a print() call, it converts each argument to text, joins them with spaces by default, writes that text to the console, then continues with the next line. Multiple print() calls run from top to bottom in order. An argument is a value you pass into print() inside the parentheses.\n\nText in quotes is a string — literal text Python should take as written. Comments start with #. Python ignores them entirely; they are notes for humans, not instructions for the computer.\n\nWhen this is useful\nUse print() whenever you need to observe a value, a status line, or a short log. Use comments to record why a line exists.",
+  "topics": [
+    "print"
+  ],
+  "content": "What problem does this solve?\nA program that never shows anything is difficult to understand. print() gives it a way to leave evidence of what it did.\n\nBasic syntax\n  print(value)\n  print(value1, value2)\n  # this is a comment\n\nWhat actually happens\nWhen Python reaches a print() call, it converts each argument to text, joins them with spaces by default, writes that text to the console, then continues with the next line. Multiple print() calls run from top to bottom in order. An argument is a value you pass into print() inside the parentheses.\n\nText in quotes is a string \u2014 literal text Python should take as written. Comments start with #. Python ignores them entirely; they are notes for humans, not instructions for the computer.\n\nWhen this is useful\nUse print() whenever you need to observe a value, a status line, or a short log. Use comments to record why a line exists.",
   "concepts": [
     "print() writes values to the console",
-    "Text in quotes is a string — a piece of text Python should take literally",
+    "Text in quotes is a string \u2014 a piece of text Python should take literally",
     "Multiple print() calls execute from top to bottom",
     "Multiple arguments to print are separated by spaces",
     "Lines starting with # are comments and do not run"
@@ -17,7 +19,7 @@
     {
       "title": "Recovered record",
       "code": "print(\"EXPEDITION LOG 17\")\nprint(\"Party registered:\", 4)\nprint(\"Status: OVERDUE\")",
-      "explanation": "Three print calls run in order. The middle call passes two arguments — a string and a number — and inserts a space between them."
+      "explanation": "Three print calls run in order. The middle call passes two arguments \u2014 a string and a number \u2014 and inserts a space between them."
     },
     {
       "title": "Notes for humans",
@@ -27,8 +29,8 @@
   ],
   "common_mistakes": [
     "Forgetting quotes around text: print(Hello) looks for a variable named Hello",
-    "Expecting comments to change program behavior — they never do",
-    "Assuming print adds commas or other punctuation between arguments — it only adds spaces"
+    "Expecting comments to change program behavior \u2014 they never do",
+    "Assuming print adds commas or other punctuation between arguments \u2014 it only adds spaces"
   ],
   "exercises": [
     {
@@ -38,9 +40,11 @@
       "prompt": "What does the following program print? Type the exact output (no quotes around the whole answer).",
       "code_to_predict": "print(\"WAYSTATION 7\")\nprint(\"Expedition:\", 17)",
       "expected_answer": "WAYSTATION 7\nExpedition: 17",
-      "topics": ["print"],
+      "topics": [
+        "print"
+      ],
       "hints": [
-        "Read the program from top to bottom — each print becomes its own line.",
+        "Read the program from top to bottom \u2014 each print becomes its own line.",
         "print joins multiple arguments with a single space.",
         "The first line is WAYSTATION 7; the second line is Expedition: then a space then 17."
       ],
@@ -52,7 +56,9 @@
       "title": "Fix the record",
       "prompt": "This line is supposed to print exactly:\nEXPEDITION 17\n\nIt is broken. Repair it so literal text is treated as a string.",
       "starter_code": "print(EXPEDITION 17)\n",
-      "topics": ["print"],
+      "topics": [
+        "print"
+      ],
       "hints": [
         "Python needs to know whether EXPEDITION 17 is a name or literal text.",
         "Literal text belongs inside quotes.",
@@ -71,7 +77,9 @@
       "title": "Create the dispatch",
       "prompt": "Write a short dispatch that prints exactly these three lines:\nSEARCH DISPATCH\nExpedition: 17\nStatus: OVERDUE\n\nRequirements:\n- use three print() calls\n- include at least one real comment (a # note for humans)\n- the Expedition line must use two arguments to print (the label and the number)",
       "starter_code": "# Write the three-line dispatch\n",
-      "topics": ["print"],
+      "topics": [
+        "print"
+      ],
       "hints": [
         "Think about one print per line of output, plus a # comment somewhere.",
         "For the Expedition line, pass a string and the number 17 as two separate arguments.",
@@ -82,6 +90,15 @@
           "kind": "source_uses",
           "feature": "comment",
           "message": "Add a comment that starts with # and explains something about the dispatch."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "print_min_calls",
+          "expected": 3,
+          "names": [
+            "multi_arg"
+          ],
+          "message": "Use three print() calls, and make the Expedition line pass two arguments."
         },
         {
           "kind": "stdout_equals",

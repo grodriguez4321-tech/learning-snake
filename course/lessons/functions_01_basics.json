@@ -4,8 +4,10 @@
   "section_order": 4,
   "order": 1,
   "title": "Build an Investigation Tool",
-  "topics": ["functions"],
-  "content": "What problem does this solve?\nWhen the same labeling or decision appears in many places, copy-pasting code becomes fragile. A function packages a reusable action under a name so the rest of the program can call it.\n\nBasic syntax\n  def mark_evidence(clue):\n      return f\"Evidence: {clue}\"\n\nWhat actually happens\ndef creates a function and binds it to a name. Calling mark_evidence(\"broken lantern\") assigns that string to the parameter clue, runs the body, and return sends a value back to the caller. You have already been calling print and append; now you define a name other code can call.\n\nCritical distinction\n  print(result)  — shows something to a human\n  return result  — gives a value to other code\n\nIf you only print inside a function, callers cannot use the computed value in further calculations or later print calls of their own.\n\nWhen this is useful\nUse a function when a calculation or decision will be needed more than once, or when another piece of code must receive the result. This lesson stays small: one parameter, return, and calls — deeper function ideas come later.",
+  "topics": [
+    "functions"
+  ],
+  "content": "What problem does this solve?\nWhen the same labeling or decision appears in many places, copy-pasting code becomes fragile. A function packages a reusable action under a name so the rest of the program can call it.\n\nBasic syntax\n  def mark_evidence(clue):\n      return f\"Evidence: {clue}\"\n\nWhat actually happens\ndef creates a function and binds it to a name. Calling mark_evidence(\"broken lantern\") assigns that string to the parameter clue, runs the body, and return sends a value back to the caller. You have already been calling print and append; now you define a name other code can call.\n\nCritical distinction\n  print(result)  \u2014 shows something to a human\n  return result  \u2014 gives a value to other code\n\nIf you only print inside a function, callers cannot use the computed value in further calculations or later print calls of their own.\n\nWhen this is useful\nUse a function when a calculation or decision will be needed more than once, or when another piece of code must receive the result. This lesson stays small: one parameter, return, and calls \u2014 deeper function ideas come later.",
   "concepts": [
     "def creates a reusable function",
     "A parameter receives the argument value for one call",
@@ -37,7 +39,9 @@
       "prompt": "What does this print?",
       "code_to_predict": "def mark_evidence(clue):\n    return f\"Evidence: {clue}\"\n\nprint(mark_evidence(\"broken lantern\"))",
       "expected_answer": "Evidence: broken lantern",
-      "topics": ["functions"],
+      "topics": [
+        "functions"
+      ],
       "hints": [
         "Trace the call: the argument becomes the parameter clue.",
         "return builds a string; print displays what came back.",
@@ -48,14 +52,16 @@
       "id": "functions_01_ex2",
       "type": "architecture",
       "title": "print or return?",
-      "prompt": "Another part of the investigation program must use the generated status line — store it, compare it, or print it later. Should the function print that status, or return it?",
+      "prompt": "Another part of the investigation program must use the generated status line \u2014 store it, compare it, or print it later. Should the function print that status, or return it?",
       "choices": [
         "Only print the status inside the function",
         "Return the status so callers can use it"
       ],
       "expected_answer": "2",
-      "topics": ["functions"],
-      "success_message": "Right — other code can only keep working with the status if the function returns it.",
+      "topics": [
+        "functions"
+      ],
+      "success_message": "Right \u2014 other code can only keep working with the status if the function returns it.",
       "failure_message": "Printed text is for humans. If later code must use the generated status, the function needs to return that string.",
       "hints": [
         "Ask whether another part of the program needs the text as a value.",
@@ -67,12 +73,16 @@
       "id": "functions_01_ex3",
       "type": "write_code",
       "title": "Write inspect_clue()",
-      "prompt": "Write inspect_clue(clue) that returns:\n  FLAG: gray dust  when clue is \"gray dust\"\n  logged: <clue>   for every other clue\n\nUse one parameter, if/else, an f-string, and return. Do not print inside the function — return the text so callers can use it.",
+      "prompt": "Write inspect_clue(clue) that returns:\n  FLAG: gray dust  when clue is \"gray dust\"\n  logged: <clue>   for every other clue\n\nUse one parameter, if/else, an f-string, and return. Do not print inside the function \u2014 return the text so callers can use it.",
       "starter_code": "def inspect_clue(clue):\n    # Return FLAG or logged for this clue\n    pass\n",
-      "topics": ["functions", "conditionals", "strings"],
+      "topics": [
+        "functions",
+        "conditionals",
+        "strings"
+      ],
       "hints": [
         "Compare clue with the string \"gray dust\", then return one of two labeled lines.",
-        "Use return with an f-string in each branch — not print.",
+        "Use return with an f-string in each branch \u2014 not print.",
         "if clue == \"gray dust\": return f\"FLAG: {clue}\" else return f\"logged: {clue}\"."
       ],
       "tests": [
@@ -89,43 +99,62 @@
         {
           "kind": "function",
           "function": "inspect_clue",
-          "args": ["gray dust"],
+          "args": [
+            "gray dust"
+          ],
           "expected": "FLAG: gray dust"
         },
         {
           "kind": "function",
           "function": "inspect_clue",
-          "args": ["broken lantern"],
+          "args": [
+            "broken lantern"
+          ],
           "expected": "logged: broken lantern"
         },
         {
           "kind": "function",
           "function": "inspect_clue",
-          "args": ["torn cloak"],
+          "args": [
+            "torn cloak"
+          ],
           "expected": "logged: torn cloak"
         },
         {
           "kind": "function",
           "function": "inspect_clue",
-          "args": ["drag marks"],
+          "args": [
+            "drag marks"
+          ],
           "expected": "logged: drag marks"
         }
       ],
-      "success_message": "inspect_clue works across several clues — including the flagged gray dust."
+      "success_message": "inspect_clue works across several clues \u2014 including the flagged gray dust."
     },
     {
       "id": "functions_01_ex4",
       "type": "mini_project",
       "title": "The Expedition 17 Report",
-      "prompt": "Build the Expedition 17 evidence report.\n\n1. Define inspect_clue(clue).\n2. If clue is \"gray dust\", return FLAG: <clue>.\n3. Otherwise return logged: <clue>.\n4. Loop through every item in the supplied evidence list.\n5. Call inspect_clue() for each item.\n6. Print what the function returns.\n\nExpected output:\nlogged: broken lantern\nFLAG: gray dust\nlogged: torn cloak\n\nNo new syntax — combine a list, for loop, function, if/else, f-string, return, and print.",
+      "prompt": "Build the Expedition 17 evidence report.\n\n1. Define inspect_clue(clue).\n2. If clue is \"gray dust\", return FLAG: <clue>.\n3. Otherwise return logged: <clue>.\n4. Loop through every item in the supplied evidence list.\n5. Call inspect_clue() for each item.\n6. Print what the function returns.\n\nExpected output:\nlogged: broken lantern\nFLAG: gray dust\nlogged: torn cloak\n\nNo new syntax \u2014 combine a list, for loop, function, if/else, f-string, return, and print.",
       "starter_code": "evidence = [\n    \"broken lantern\",\n    \"gray dust\",\n    \"torn cloak\",\n]\n\n# Define inspect_clue, then loop and print each result\n",
-      "topics": ["functions", "loops", "conditionals", "strings"],
+      "topics": [
+        "functions",
+        "loops",
+        "conditionals",
+        "strings"
+      ],
       "hints": [
         "Define inspect_clue first so the loop can call it for each clue.",
-        "Inside the loop, print the value returned by inspect_clue(clue) — do not rebuild the labels only in the loop.",
+        "Inside the loop, print the value returned by inspect_clue(clue) \u2014 do not rebuild the labels only in the loop.",
         "A solid shape: define inspect_clue with if/else and return, then for clue in evidence: print(inspect_clue(clue))."
       ],
       "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "calls_name",
+          "name": "inspect_clue",
+          "message": "Inside the loop, call inspect_clue(clue) and print what it returns."
+        },
         {
           "kind": "source_uses",
           "feature": "for_loop",
@@ -144,32 +173,44 @@
         {
           "kind": "function",
           "function": "inspect_clue",
-          "args": ["gray dust"],
+          "args": [
+            "gray dust"
+          ],
           "expected": "FLAG: gray dust"
         },
         {
           "kind": "function",
           "function": "inspect_clue",
-          "args": ["broken lantern"],
+          "args": [
+            "broken lantern"
+          ],
           "expected": "logged: broken lantern"
         },
         {
           "kind": "function",
           "function": "inspect_clue",
-          "args": ["torn cloak"],
+          "args": [
+            "torn cloak"
+          ],
           "expected": "logged: torn cloak"
         },
         {
           "kind": "function",
           "function": "inspect_clue",
-          "args": ["drag marks"],
+          "args": [
+            "drag marks"
+          ],
           "expected": "logged: drag marks"
         },
         {
           "kind": "globals",
           "name": "evidence",
           "type_name": "list",
-          "expected": ["broken lantern", "gray dust", "torn cloak"]
+          "expected": [
+            "broken lantern",
+            "gray dust",
+            "torn cloak"
+          ]
         },
         {
           "kind": "stdout_equals",

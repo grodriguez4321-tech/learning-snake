@@ -41,6 +41,9 @@ class TestCase:
     # source_uses: fstring | binop_names | rebind_self | append_or_extend | subscript | comment
     feature: Optional[str] = None
     names: list[str] = field(default_factory=list)
+    # function: optional post-call argument expectations (mutation checks)
+    arg_after: Optional[dict[str, Any]] = None
+    return_shares_arg: Optional[int] = None
 
 
 @dataclass
@@ -109,6 +112,16 @@ def test_case_from_dict(data: dict[str, Any]) -> TestCase:
         message=data.get("message", ""),
         feature=data.get("feature"),
         names=list(data.get("names", [])),
+        arg_after=(
+            dict(data["arg_after"])
+            if isinstance(data.get("arg_after"), dict)
+            else None
+        ),
+        return_shares_arg=(
+            int(data["return_shares_arg"])
+            if data.get("return_shares_arg") is not None
+            else None
+        ),
     )
 
 
