@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Entry point for the Interactive Python Course desktop app."""
+"""Entry point for Basilisk — an interactive Python learning program."""
 
 from __future__ import annotations
 

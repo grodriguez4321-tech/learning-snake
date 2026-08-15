@@ -1,11 +1,25 @@
-# Interactive Python Course
+# Basilisk
 
-A self-paced desktop app that teaches Python through lessons, runnable examples,
-behavior-checked exercises, progressive hints, and saved progress.
+An interactive Python learning program built around reasoning, debugging, and
+progressively constructing real programs.
 
-Phase 1 focuses on a working architecture: GUI shell, lesson loading, isolated
-code execution with timeouts, exercise checking, unlocking, and progress
-persistence — plus a beginner path from print through functions.
+Basilisk teaches through lessons, runnable examples, behavior-checked exercises,
+progressive hints, and saved progress. Learners predict output, repair broken
+programs, and build small tools that grow across lessons.
+
+## Curriculum overview
+
+**Phase 1 (Lessons 1–8)** — Expedition 17 records. Twenty-eight exercises from
+`print()` through functions, using the Basilisk teaching rhythm: observe or
+recall → predict → repair → build → transfer or integrate. Stable lesson IDs
+from earlier releases are preserved.
+
+**Lessons 9–13** — Expedition Intake System. Extends the path with `elif`,
+Boolean logic, `len`/`range`, list methods, and dictionaries, ending in a
+capstone that builds a structured expedition record.
+
+Later curriculum batches (nested data, parsing, classes, and beyond) remain
+deferred as described in `docs/phase2-curriculum-plan.md`.
 
 ## How to run
 
@@ -70,6 +84,7 @@ fonts, native window chrome, hover/focus, and theme contrast.
 ├── main.py                 # Entry point
 ├── requirements.txt        # PySide6
 ├── app/                    # PySide6 UI (IDE-style shell)
+│   ├── branding.py         # Visible product name constants
 │   ├── course_app.py       # Main window, navigation, async run/check
 │   ├── theme.py            # Dark/light tokens + QSS stylesheet
 │   ├── ui_prefs.py         # Persist theme + panel visibility
@@ -106,7 +121,7 @@ Each file in `course/lessons/` is a lesson document, for example:
   "section": "Python Fundamentals",
   "section_order": 1,
   "order": 1,
-  "title": "Print and Comments",
+  "title": "Leave a Trace",
   "topics": ["print"],
   "content": "Explanation text...",
   "concepts": ["..."],
@@ -135,7 +150,7 @@ Supported checks include:
 - `class_defined` — require a class name
 - `raises` — expect an exception type from an expression
 - `runs_successfully` — require clean execution
-- `source_uses` — require a construct (f-string, append, index, `if`, `for`, …) when that construct is the learning objective
+- `source_uses` — require a construct (f-string, append, index, `if`, `elif`, `for`, …) when that construct is the learning objective
 - Predict-output / architecture answers — compare the learner's response
 
 Example function tests for `double(number)` call several inputs so a hardcoded
@@ -157,8 +172,8 @@ Timed-out programs show:
 
 > Your program ran for too long and was stopped. Check for an infinite loop.
 
-The Tkinter UI runs Run/Check/Playground work on a background thread and marshals
-results back with `after(...)`, so the interface stays responsive while waiting.
+The UI runs Run/Check/Playground work on a background thread so the interface
+stays responsive while waiting.
 
 Tracebacks are filtered to learner code (`<student>` / `<playground>`), not the
 application internals.
@@ -166,7 +181,7 @@ application internals.
 ## Imports and modules
 
 Learner code uses a guarded `__import__`. By default **no modules are importable**
-(Phase 1 lessons do not need them). When the curriculum reaches modules, a lesson
+(early lessons do not need them). When the curriculum reaches modules, a lesson
 or exercise may set:
 
 ```json
@@ -177,50 +192,14 @@ Only names in the curated curriculum catalog can be enabled (`math`, `json`,
 `random`, …). Requests for modules like `os` or `subprocess` are rejected even if
 listed by mistake.
 
-## Progress saving
+## Progress
 
-Progress is stored in `data/progress.json`:
+Progress lives in `data/progress.json` (git-ignored). It stores completed
+lessons, per-exercise attempts/hints/drafts, mastery scores, and the current
+lesson. Corrupt files are quarantined and replaced with a fresh store.
 
-- completed lessons / exercises
-- attempt counts and hints used
-- draft code for unfinished exercises
-- current lesson id
-- mastery scores and mistake topic counts
+## Design docs
 
-It loads automatically on launch and saves after checks, hints, navigation, and
-on quit. **File → Reset Progress…** clears everything after confirmation.
-
-If the progress file is corrupt or malformed, the app quarantines it (renamed to
-`progress.json.corrupt-<timestamp>`), starts fresh, and shows a warning instead of
-crashing.
-
-## How to add another lesson
-
-1. Create `course/lessons/<id>.json` using an existing lesson as a template.
-2. Set `section`, `section_order`, and `order` so it sorts where you want.
-3. Add exercises with `tests` (or `expected_answer` / `choices`).
-4. Optionally set `allowed_modules` on the lesson or exercise when imports are needed.
-5. Restart the app (catalog loads at startup).
-6. Optionally extend mastery topic names in `engine/progress.py` if you introduce
-   a new major topic label.
-
-No GUI code changes are required for ordinary new lessons.
-
-## Unlocking
-
-Lesson 1 is unlocked. Each following lesson unlocks when every exercise in the
-previous lesson is marked complete.
-
-## Playground
-
-The Playground tab runs code in a persistent namespace. JSON/pickle-serializable
-values remain until you click **Reset Environment**. Some objects (notably many
-class definitions) may not persist across playground runs; recreate them if
-needed.
-
-## Phase roadmap
-
-- **Phase 1 (this)**: architecture + beginner path from print through functions
-- **Phase 2**: polished beginner curriculum (variables → basic classes)
-- **Phase 3**: composition, inheritance, debugging, intermediate Python
-- **Phase 4**: review/mastery adaptation + final RPG project milestones
+- `docs/phase2-curriculum-plan.md` — later sequencing after Lessons 1–13
+- `docs/engagement-retention-design.md` — teaching philosophy and retention
+- `docs/basilisk-curriculum-implementation-plan.md` — implementation notes for this redesign

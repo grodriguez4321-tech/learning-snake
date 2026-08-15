@@ -394,6 +394,16 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
                 return True, "Used a for loop."
         return False, custom or "Use a for loop to visit each item in the list."
 
+    if feature == "elif_branch":
+        for node in ast.walk(tree):
+            if isinstance(node, ast.If) and node.orelse:
+                # elif is compiled as a nested If inside orelse.
+                if len(node.orelse) == 1 and isinstance(node.orelse[0], ast.If):
+                    return True, "Used elif in a decision chain."
+        return False, custom or (
+            "Use elif so the chain can test another condition after if fails."
+        )
+
     return False, f"Unknown source_uses feature: {feature}"
 
 

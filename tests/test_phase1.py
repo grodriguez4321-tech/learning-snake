@@ -24,7 +24,7 @@ class CatalogTests(unittest.TestCase):
     def test_loads_ordered_lessons(self) -> None:
         catalog = CourseCatalog(ROOT / "course" / "lessons")
         catalog.load()
-        self.assertGreaterEqual(len(catalog.lessons), 8)
+        self.assertGreaterEqual(len(catalog.lessons), 13)
         ids = [lesson.id for lesson in catalog.lessons]
         self.assertEqual(
             ids,
@@ -37,6 +37,11 @@ class CatalogTests(unittest.TestCase):
                 "collections_02_append",
                 "collections_03_loops",
                 "functions_01_basics",
+                "decisions_09_elif",
+                "decisions_10_boolean_logic",
+                "collections_11_len_range",
+                "collections_12_list_methods",
+                "collections_13_dictionaries",
             ],
         )
         # Ordering is stable by section_order then order.
@@ -45,6 +50,37 @@ class CatalogTests(unittest.TestCase):
                 (left.section_order, left.order),
                 (right.section_order, right.order),
             )
+
+    def test_phase1_has_twenty_eight_exercises(self) -> None:
+        catalog = CourseCatalog(ROOT / "course" / "lessons")
+        catalog.load()
+        phase1_ids = {
+            "fundamentals_01_print",
+            "fundamentals_02_variables",
+            "fundamentals_03_fstrings",
+            "decisions_01_conditionals",
+            "collections_01_lists",
+            "collections_02_append",
+            "collections_03_loops",
+            "functions_01_basics",
+        }
+        count = sum(
+            len(lesson.exercises)
+            for lesson in catalog.lessons
+            if lesson.id in phase1_ids
+        )
+        self.assertEqual(count, 28)
+
+    def test_lesson_ids_are_unique(self) -> None:
+        catalog = CourseCatalog(ROOT / "course" / "lessons")
+        catalog.load()
+        ids = [lesson.id for lesson in catalog.lessons]
+        self.assertEqual(len(ids), len(set(ids)))
+        exercise_ids = [
+            exercise.id for lesson in catalog.lessons for exercise in lesson.exercises
+        ]
+        self.assertEqual(len(exercise_ids), len(set(exercise_ids)))
+        self.assertGreaterEqual(len(exercise_ids), 54)
 
 
 class RunnerTests(unittest.TestCase):
@@ -125,24 +161,30 @@ class CheckerTests(unittest.TestCase):
     def test_function_checks_multiple_cases_and_feedback(self) -> None:
         lesson = self.catalog.get("functions_01_basics")
         assert lesson is not None
-        exercise = next(ex for ex in lesson.exercises if ex.id == "functions_01_ex1")
+        exercise = next(ex for ex in lesson.exercises if ex.id == "functions_01_ex3")
 
         wrong = self.checker.check(
             exercise,
             code=(
-                "def double(number):\n"
-                "    if number < 0:\n"
-                "        return number\n"
-                "    return number * 2\n"
+                "def inspect_clue(clue):\n"
+                '    if clue == "gray dust":\n'
+                '        return f"FLAG: {clue}"\n'
+                '    return f"logged: broken lantern"\n'
             ),
         )
         self.assertFalse(wrong.passed)
-        self.assertIn("double(-3)", wrong.message)
+        self.assertIn("inspect_clue(", wrong.message)
         self.assertIn("worked for", wrong.message)
 
-        # Alternative valid solution (addition instead of multiply).
         right = self.checker.check(
-            exercise, code="def double(number):\n    return number + number\n"
+            exercise,
+            code=(
+                "def inspect_clue(clue):\n"
+                '    if clue == "gray dust":\n'
+                '        return f"FLAG: {clue}"\n'
+                "    else:\n"
+                '        return f"logged: {clue}"\n'
+            ),
         )
         self.assertTrue(right.passed)
 
@@ -195,11 +237,15 @@ class CheckerTests(unittest.TestCase):
     def test_predict_output_does_not_reveal_answer(self) -> None:
         lesson = self.catalog.get("fundamentals_01_print")
         assert lesson is not None
-        exercise = next(ex for ex in lesson.exercises if ex.id == "fundamentals_01_ex2")
-        wrong = self.checker.check(exercise, answer="HP:100")
+        exercise = next(ex for ex in lesson.exercises if ex.id == "fundamentals_01_ex1")
+        wrong = self.checker.check(exercise, answer="WAYSTATION 7 Expedition: 17")
         self.assertFalse(wrong.passed)
-        self.assertNotIn("HP: 100", wrong.message)
-        self.assertTrue(self.checker.check(exercise, answer="HP: 100").passed)
+        self.assertNotIn("WAYSTATION 7\nExpedition: 17", wrong.message)
+        self.assertTrue(
+            self.checker.check(
+                exercise, answer="WAYSTATION 7\nExpedition: 17"
+            ).passed
+        )
 
     def test_timeout_during_check(self) -> None:
         exercise = Exercise(

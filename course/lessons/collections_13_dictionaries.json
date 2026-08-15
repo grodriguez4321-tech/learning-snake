@@ -4,8 +4,10 @@
   "section_order": 6,
   "order": 6,
   "title": "One Record, Many Facts",
-  "topics": ["collections"],
-  "content": "Previously in your program\nGiven supplies = [\"rope\", \"torch\"], which method adds \"antidote\" without replacing the list? Call supplies.append(\"antidote\") — do not assign the return value back to supplies.\n\nWhat problem does this solve?\nLists are good when position is meaningful. An expedition record contains named facts: destination, guide status, party, supplies, and clearance. A dictionary lets the program retrieve each fact by its label instead of memorizing a position. The intake desk still routes parties toward Gloamfen.\n\nBasic syntax\n  expedition = {\n      \"destination\": \"Gloamfen\",\n      \"has_guide\": True,\n      \"party\": [\"Mara\", \"Tovin\", \"Sable\"],\n      \"supplies\": [\"rope\", \"torch\", \"antidote\"]\n  }\n  expedition[\"status\"] = \"Cleared\"\n  print(expedition[\"destination\"])\n\nWhat actually happens\nA dictionary stores key-value pairs. Keys are labels; values are the associated data. Retrieve with square brackets: record[\"destination\"]. Change an existing value with assignment, or add a new key with the same syntax. A dictionary can contain lists as values. Contrast list indexing (party[0]) with dictionary lookup (record[\"party\"]).\n\nWhen this is useful\nUse a dictionary when each piece of data has a meaningful name rather than only a position.",
+  "topics": [
+    "collections"
+  ],
+  "content": "What problem does this solve?\nLists are good when position is meaningful. An expedition record contains named facts: destination, guide status, party, supplies, and clearance. A dictionary lets the program retrieve each fact by its label instead of memorizing a position. The intake desk still routes parties toward Gloamfen.\n\nPreviously in your program\nGiven supplies = [\"rope\", \"torch\"], which method adds \"antidote\" without replacing the list? Call supplies.append(\"antidote\") \u2014 do not assign the return value back to supplies.\n\nBasic syntax\n  expedition = {\n      \"destination\": \"Gloamfen\",\n      \"has_guide\": True,\n      \"party\": [\"Mara\", \"Tovin\", \"Sable\"],\n      \"supplies\": [\"rope\", \"torch\", \"antidote\"]\n  }\n  expedition[\"status\"] = \"Cleared\"\n  print(expedition[\"destination\"])\n\nWhat actually happens\nA dictionary stores key-value pairs. Keys are labels; values are the associated data. Retrieve with square brackets: record[\"destination\"]. Change an existing value with assignment, or add a new key with the same syntax. A dictionary can contain lists as values. Contrast list indexing (party[0]) with dictionary lookup (record[\"party\"]).\n\nWhen this is useful\nUse a dictionary when each piece of data has a meaningful name rather than only a position.",
   "concepts": [
     "Dictionaries store key-value pairs",
     "Look up and update values with record[\"key\"]",
@@ -33,7 +35,9 @@
       "prompt": "What does this print? Type each line of output.",
       "code_to_predict": "record = {\n    \"destination\": \"Gloamfen\",\n    \"members\": 3,\n    \"cleared\": False\n}\n\nprint(record[\"destination\"])\nprint(record[\"members\"])",
       "expected_answer": "Gloamfen\n3",
-      "topics": ["collections"],
+      "topics": [
+        "collections"
+      ],
       "hints": [
         "Square brackets with a string key retrieve that value.",
         "destination maps to the string Gloamfen; members maps to the integer 3.",
@@ -44,9 +48,12 @@
       "id": "collections_13_ex2",
       "type": "debug",
       "title": "Quote the key",
-      "prompt": "Python treats destination as a variable name and raises NameError. Retrieve the value using the dictionary’s string key.",
+      "prompt": "Python treats destination as a variable name and raises NameError. Retrieve the value using the dictionary\u2019s string key.",
       "starter_code": "record = {\"destination\": \"Gloamfen\"}\nprint(record[destination])\n",
-      "topics": ["collections", "debugging"],
+      "topics": [
+        "collections",
+        "debugging"
+      ],
       "hints": [
         "Dictionary keys that are text need quotes.",
         "destination without quotes looks for a variable named destination.",
@@ -59,7 +66,10 @@
           "name": "record",
           "message": "Look up the value with record[\"destination\"]."
         },
-        {"kind": "stdout_equals", "expected": "Gloamfen\n"}
+        {
+          "kind": "stdout_equals",
+          "expected": "Gloamfen\n"
+        }
       ]
     },
     {
@@ -73,7 +83,9 @@
         "A string, because the whole record can be one sentence"
       ],
       "expected_answer": "2",
-      "topics": ["collections"],
+      "topics": [
+        "collections"
+      ],
       "success_message": "Exactly. The labels are part of the model, so dictionary keys make the record readable.",
       "failure_message": "Think about whether position or a named label best matches destination and clearance status.",
       "hints": [
@@ -88,7 +100,10 @@
       "title": "Create a field record",
       "prompt": "Write make_record(destination, party, supplies) that returns a dictionary with exactly these keys:\n- \"destination\"\n- \"party\"\n- \"supplies\"\n- \"member_count\"\n\nThe value of \"member_count\" must be calculated with len(party), not hardcoded.",
       "starter_code": "def make_record(destination, party, supplies):\n    # Return a dictionary with destination, party, supplies, and member_count.\n    pass\n",
-      "topics": ["collections", "functions"],
+      "topics": [
+        "collections",
+        "functions"
+      ],
       "hints": [
         "Build a dictionary literal that stores the three inputs under matching keys.",
         "member_count should call len on the party list.",
@@ -108,17 +123,27 @@
         {
           "kind": "expression",
           "expression": "make_record(\"Ash Ford\", [\"Sable\"], [\"torch\", \"chalk\"])[\"party\"]",
-          "expected": ["Sable"]
+          "expected": [
+            "Sable"
+          ]
         },
         {
           "kind": "expression",
           "expression": "make_record(\"Ash Ford\", [\"Sable\"], [\"torch\", \"chalk\"])[\"supplies\"]",
-          "expected": ["torch", "chalk"]
+          "expected": [
+            "torch",
+            "chalk"
+          ]
         },
         {
           "kind": "expression",
           "expression": "sorted(make_record(\"Gloamfen\", [\"Mara\", \"Tovin\"], [\"rope\"]).keys())",
-          "expected": ["destination", "member_count", "party", "supplies"]
+          "expected": [
+            "destination",
+            "member_count",
+            "party",
+            "supplies"
+          ]
         },
         {
           "kind": "expression",
@@ -128,11 +153,27 @@
         {
           "kind": "function",
           "function": "make_record",
-          "args": ["Marsh Road", ["Aria", "Rook", "Mira"], ["map"]],
+          "args": [
+            "Marsh Road",
+            [
+              "Aria",
+              "Rook",
+              "Mira"
+            ],
+            [
+              "map"
+            ]
+          ],
           "expected": {
             "destination": "Marsh Road",
-            "party": ["Aria", "Rook", "Mira"],
-            "supplies": ["map"],
+            "party": [
+              "Aria",
+              "Rook",
+              "Mira"
+            ],
+            "supplies": [
+              "map"
+            ],
             "member_count": 3
           }
         }
@@ -142,9 +183,12 @@
       "id": "collections_13_ex5",
       "type": "write_code",
       "title": "Update clearance",
-      "prompt": "Write set_clearance(record, status) that changes the record’s \"status\" value and returns the record. The key might be new or might already exist.",
+      "prompt": "Write set_clearance(record, status) that changes the record\u2019s \"status\" value and returns the record. The key might be new or might already exist.",
       "starter_code": "def set_clearance(record, status):\n    # Set record[\"status\"] and return the record.\n    pass\n",
-      "topics": ["collections", "functions"],
+      "topics": [
+        "collections",
+        "functions"
+      ],
       "hints": [
         "Assignment with square brackets both updates and creates keys.",
         "Write to record[\"status\"], then return the same dictionary.",
@@ -185,7 +229,11 @@
       "title": "Expedition Intake System v1",
       "prompt": "Create build_expedition_record(destination, party, supplies, has_guide, warning_active).\n\nIt must:\n1. Create a dictionary containing the original five inputs under keys \"destination\", \"party\", \"supplies\", \"has_guide\", and \"warning_active\".\n2. Add \"member_count\" using len(party).\n3. Add \"supply_count\" using len(supplies).\n4. Add a \"status\" value:\n   - \"Denied\" if there is no guide or a warning is active\n   - otherwise \"Cleared\" for 5 or more supply items\n   - otherwise \"Review\"\n5. Return the completed dictionary.\n\nDo not hardcode destinations, names, or counts.",
       "starter_code": "def build_expedition_record(destination, party, supplies, has_guide, warning_active):\n    # 1. Store the five inputs in a dictionary.\n    # 2. Add member_count and supply_count with len.\n    # 3. Set status: Denied if no guide or warning; else Cleared if supplies >= 5; else Review.\n    # 4. Return the record.\n    pass\n",
-      "topics": ["collections", "conditionals", "functions"],
+      "topics": [
+        "collections",
+        "conditionals",
+        "functions"
+      ],
       "success_message": "Intake record complete. You combined decisions, Boolean logic, counting, collections, and functions into one program. In a damaged margin beside the old route, someone wrote: \"Do not trust the statues.\"",
       "hints": [
         "Build the dictionary from the inputs first. Then add calculated keys one at a time.",
@@ -201,11 +249,37 @@
         {
           "kind": "function",
           "function": "build_expedition_record",
-          "args": ["Gloamfen", ["Mara", "Tovin", "Sable"], ["rope", "torch", "chalk", "map", "antidote"], true, false],
+          "args": [
+            "Gloamfen",
+            [
+              "Mara",
+              "Tovin",
+              "Sable"
+            ],
+            [
+              "rope",
+              "torch",
+              "chalk",
+              "map",
+              "antidote"
+            ],
+            true,
+            false
+          ],
           "expected": {
             "destination": "Gloamfen",
-            "party": ["Mara", "Tovin", "Sable"],
-            "supplies": ["rope", "torch", "chalk", "map", "antidote"],
+            "party": [
+              "Mara",
+              "Tovin",
+              "Sable"
+            ],
+            "supplies": [
+              "rope",
+              "torch",
+              "chalk",
+              "map",
+              "antidote"
+            ],
             "has_guide": true,
             "warning_active": false,
             "member_count": 3,
@@ -216,11 +290,37 @@
         {
           "kind": "function",
           "function": "build_expedition_record",
-          "args": ["Ash Ford", ["Aria"], ["a", "b", "c", "d", "e", "f", "g"], true, false],
+          "args": [
+            "Ash Ford",
+            [
+              "Aria"
+            ],
+            [
+              "a",
+              "b",
+              "c",
+              "d",
+              "e",
+              "f",
+              "g"
+            ],
+            true,
+            false
+          ],
           "expected": {
             "destination": "Ash Ford",
-            "party": ["Aria"],
-            "supplies": ["a", "b", "c", "d", "e", "f", "g"],
+            "party": [
+              "Aria"
+            ],
+            "supplies": [
+              "a",
+              "b",
+              "c",
+              "d",
+              "e",
+              "f",
+              "g"
+            ],
             "has_guide": true,
             "warning_active": false,
             "member_count": 1,
@@ -231,11 +331,33 @@
         {
           "kind": "function",
           "function": "build_expedition_record",
-          "args": ["Marsh Road", ["Rook", "Mira"], ["rope", "torch", "chalk", "map"], true, false],
+          "args": [
+            "Marsh Road",
+            [
+              "Rook",
+              "Mira"
+            ],
+            [
+              "rope",
+              "torch",
+              "chalk",
+              "map"
+            ],
+            true,
+            false
+          ],
           "expected": {
             "destination": "Marsh Road",
-            "party": ["Rook", "Mira"],
-            "supplies": ["rope", "torch", "chalk", "map"],
+            "party": [
+              "Rook",
+              "Mira"
+            ],
+            "supplies": [
+              "rope",
+              "torch",
+              "chalk",
+              "map"
+            ],
             "has_guide": true,
             "warning_active": false,
             "member_count": 2,
@@ -246,11 +368,37 @@
         {
           "kind": "function",
           "function": "build_expedition_record",
-          "args": ["Gloamfen", ["Sable"], ["a", "b", "c", "d", "e", "f", "g"], false, false],
+          "args": [
+            "Gloamfen",
+            [
+              "Sable"
+            ],
+            [
+              "a",
+              "b",
+              "c",
+              "d",
+              "e",
+              "f",
+              "g"
+            ],
+            false,
+            false
+          ],
           "expected": {
             "destination": "Gloamfen",
-            "party": ["Sable"],
-            "supplies": ["a", "b", "c", "d", "e", "f", "g"],
+            "party": [
+              "Sable"
+            ],
+            "supplies": [
+              "a",
+              "b",
+              "c",
+              "d",
+              "e",
+              "f",
+              "g"
+            ],
             "has_guide": false,
             "warning_active": false,
             "member_count": 1,
@@ -261,11 +409,39 @@
         {
           "kind": "function",
           "function": "build_expedition_record",
-          "args": ["Gloamfen", ["Mara", "Tovin"], ["a", "b", "c", "d", "e", "f", "g"], true, true],
+          "args": [
+            "Gloamfen",
+            [
+              "Mara",
+              "Tovin"
+            ],
+            [
+              "a",
+              "b",
+              "c",
+              "d",
+              "e",
+              "f",
+              "g"
+            ],
+            true,
+            true
+          ],
           "expected": {
             "destination": "Gloamfen",
-            "party": ["Mara", "Tovin"],
-            "supplies": ["a", "b", "c", "d", "e", "f", "g"],
+            "party": [
+              "Mara",
+              "Tovin"
+            ],
+            "supplies": [
+              "a",
+              "b",
+              "c",
+              "d",
+              "e",
+              "f",
+              "g"
+            ],
             "has_guide": true,
             "warning_active": true,
             "member_count": 2,
@@ -276,11 +452,27 @@
         {
           "kind": "function",
           "function": "build_expedition_record",
-          "args": ["Old Causeway", ["Bren"], ["x", "y"], false, true],
+          "args": [
+            "Old Causeway",
+            [
+              "Bren"
+            ],
+            [
+              "x",
+              "y"
+            ],
+            false,
+            true
+          ],
           "expected": {
             "destination": "Old Causeway",
-            "party": ["Bren"],
-            "supplies": ["x", "y"],
+            "party": [
+              "Bren"
+            ],
+            "supplies": [
+              "x",
+              "y"
+            ],
             "has_guide": false,
             "warning_active": true,
             "member_count": 1,
