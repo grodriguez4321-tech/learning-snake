@@ -18,8 +18,12 @@ from earlier releases are preserved.
 Boolean logic, `len`/`range`, list methods, and dictionaries, ending in a
 capstone that builds a structured expedition record.
 
-Later curriculum batches (nested data, parsing, classes, and beyond) remain
-deferred as described in `docs/phase2-curriculum-plan.md`.
+**Lessons 14–18** — Expedition Dispatch. Read whole dictionaries safely, write
+`while` loops that terminate, pass multiple parameters (with defaults), and
+return fresh lists/dictionaries (without mutating caller-owned data).
+
+Later curriculum batches (nested data, scope, strings/errors, objects, and
+beyond) remain deferred as described in `docs/phase2-curriculum-plan.md`.
 
 ## How to run
 
@@ -254,7 +258,8 @@ needed.
 
 - **Phase 1 (Lessons 1–8)**: Basilisk foundation — `print` through functions (28 exercises)
 - **Lessons 9–13**: Expedition Intake System — `elif`, Boolean logic, `len`/`range`, list methods, dictionaries
-- **Later batches**: nested data, parsing, classes, composition, and beyond — see
+- **Lessons 14–18**: Expedition Dispatch — dict iteration, `while`, multi-parameter functions, defaults, return structured data
+- **Later batches**: nested data, scope, strings/errors, classes, composition, and beyond — see
   `docs/phase2-curriculum-plan.md`
 - **Full arc (provisional after Lesson 28)**: Practical Python → notebooks/data → ML literacy → Build the Basilisk — see
   `docs/basilisk-master-curriculum-roadmap.md`

@@ -1,12 +1,12 @@
 # Phase 2 Curriculum Plan (Revised)
 
-**Status:** Curriculum-design approval stage — **revised per targeted feedback (Aug 2026)**. Not yet implemented.
+**Status:** Curriculum-design approval stage — **revised per targeted feedback (Aug 2026)**. Lessons **14–18 implemented**; remaining Phase 2 lessons are planned below.
 
 **Master map:** For the full course arc beyond Phase 2 (Practical Python → data/ML literacy → Build the Basilisk), see `docs/basilisk-master-curriculum-roadmap.md`.
 
 **Scope:** Continue immediately after Phase 1 (`functions_01_basics`) through **basic classes and introductory has-a composition**, stopping before Phase 3 (inheritance, `try`/`except`, advanced debugging, comprehensions).
 
-**Size:** **8 Phase 1 lessons (28 exercises) + Lessons 9–13 Intake batch implemented**; remaining Phase 2 lessons (14+) still planned — see map below.
+**Size:** **8 Phase 1 lessons (28 exercises) + Lessons 9–13 Intake batch implemented + Lessons 14–18 Expedition Dispatch implemented**; remaining Phase 2 lessons (19+) still planned — see map below.
 
 **Difficulty arc:** Phase 1 averages ~2; Phase 2 ramps **2 → 4–5** (capstone).
 
