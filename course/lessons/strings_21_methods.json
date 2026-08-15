@@ -1,0 +1,192 @@
+{
+  "id": "strings_21_methods",
+  "section": "Realistic Data and Debugging",
+  "section_order": 9,
+  "order": 3,
+  "title": "Clean and Split Text",
+  "topics": ["strings"],
+  "content": "What problem does this solve?\nRealistic programs accept text with extra spaces and mixed case. String methods help normalize and separate fields. strip() returns a new string without surrounding whitespace; lower() returns lowercase for robust comparisons; split(separator) returns a list of pieces. Strings do not change in place — save or return the method result.\n\nPreviously in your program\nYou built and read strings with f-strings, and returned structured values from functions. Now you return cleaned text and parse one well-formed record.\n\nBasic syntax\n  command = \"  NORTH  \"\n  cleaned = command.strip().lower()\n  parts = \"Mira|Scout\".split(\"|\")\n\nWhat actually happens\nMethods like strip, lower, and split return new strings or lists. Reassign a variable or return the method result to use the change.\n\nWhen this is useful\nNormalize commands and names before comparing. Split simple records so later code can work with labeled pieces.",
+  "concepts": [
+    "strip() removes surrounding whitespace and returns a new string",
+    "lower() returns lowercase for robust comparisons",
+    "split(separator) returns a list of pieces",
+    "Strings are immutable — methods return new values"
+  ],
+  "examples": [
+    {
+      "title": "Normalize one direction",
+      "code": "command = \"  NORTH  \"\ncleaned = command.strip().lower()\nprint(cleaned)",
+      "explanation": "The printed value is north; command itself is unchanged."
+    }
+  ],
+  "common_mistakes": [
+    "Calling a method without saving the returned string",
+    "Forgetting to strip spaces before comparing text",
+    "Using split without a separator when a specific character separates fields"
+  ],
+  "exercises": [
+    {
+      "id": "strings_21_ex1",
+      "type": "predict_output",
+      "title": "Normalize the command",
+      "prompt": "What does this print?",
+      "code_to_predict": "command = \"  NORTH  \"\ncleaned = command.strip().lower()\nprint(cleaned)",
+      "expected_answer": "north",
+      "topics": ["strings"],
+      "hints": [
+        "strip removes surrounding spaces.",
+        "lower makes letters lowercase.",
+        "Save or print the returned string."
+      ]
+    },
+    {
+      "id": "strings_21_ex2",
+      "type": "fill_blank",
+      "title": "Split the entry",
+      "prompt": "Complete the method call to split the entry on the vertical bar.",
+      "starter_code": "entry = \"Mira|Scout\"\nparts = entry.______(\"|\")\nprint(parts[1])\n",
+      "topics": ["strings"],
+      "hints": [
+        "Call the string method that separates text into pieces.",
+        "Provide the separator character.",
+        "Use split(\"|\")."
+      ],
+      "tests": [
+        {
+          "kind": "stdout_equals",
+          "expected": "Scout\n",
+          "message": "Split on '|' so parts[1] is the role."
+        }
+      ]
+    },
+    {
+      "id": "strings_21_ex3",
+      "type": "debug",
+      "title": "Save the returned string",
+      "prompt": "Repair the program so the final print shows a cleaned command.",
+      "starter_code": "command = \"  OPEN GATE  \"\ncommand.strip()\ncommand.lower()\nprint(command)\n",
+      "topics": ["strings", "debugging"],
+      "hints": [
+        "String methods return new strings; they do not change the old one.",
+        "Either reassign command to command.strip().lower() …",
+        "… or chain the calls and save once, then print the saved value."
+      ],
+      "tests": [
+        {
+          "kind": "stdout_equals",
+          "expected": "open gate\n",
+          "message": "After the fix, the printed line should be open gate."
+        }
+      ]
+    },
+    {
+      "id": "strings_21_ex4",
+      "type": "write_code",
+      "title": "Transfer task: normalize a username",
+      "prompt": "Write normalize_username(text) that returns the text with surrounding whitespace removed and all letters lowercase.",
+      "starter_code": "def normalize_username(text):\n    # Return the trimmed, lowercase username.\n    pass\n",
+      "topics": ["strings", "functions"],
+      "hints": [
+        "Call strip() and lower() on the parameter.",
+        "Either order is fine for behavior here.",
+        "Return the final string."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "strip",
+          "in_function": "normalize_username",
+          "message": "Use text.strip() (or equivalent) inside normalize_username."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "lower",
+          "in_function": "normalize_username",
+          "message": "Use text.lower() (or equivalent) inside normalize_username."
+        },
+        {
+          "kind": "function",
+          "function": "normalize_username",
+          "args": ["  RIVER_WATCH  "],
+          "expected": "river_watch",
+          "message": "Trim and lowercase the username."
+        },
+        {
+          "kind": "function",
+          "function": "normalize_username",
+          "args": ["Mira"],
+          "expected": "mira",
+          "message": "A simple name should be lowercased."
+        },
+        {
+          "kind": "function",
+          "function": "normalize_username",
+          "args": ["   "],
+          "expected": "",
+          "message": "Only spaces should become an empty string."
+        },
+        {
+          "kind": "function",
+          "function": "normalize_username",
+          "args": [" \t RoOk \t"],
+          "expected": "rook",
+          "message": "Handle mixed case and tabs/spaces."
+        }
+      ]
+    },
+    {
+      "id": "strings_21_ex5",
+      "type": "mini_project",
+      "title": "Parse one log line",
+      "prompt": "Write parse_log_line(line) for a well-formed \"name|status\" line. Return {\"name\": <trimmed name>, \"status\": <trimmed lowercase status>}.",
+      "starter_code": "def parse_log_line(line):\n    # Return a dictionary with name and normalized status from a well-formed line.\n    pass\n",
+      "topics": ["strings", "functions"],
+      "hints": [
+        "Split the line on '|'.",
+        "Strip both pieces; lowercase the status.",
+        "Return a dictionary with keys name and status."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "split",
+          "in_function": "parse_log_line",
+          "message": "Split the input line inside parse_log_line so both fields are available.",
+          "arg_equals": {"0": "|"}
+        },
+        {
+          "kind": "function",
+          "function": "parse_log_line",
+          "args": ["  Mira | READY  "],
+          "expected": {"name": "Mira", "status": "ready"},
+          "message": "Trim the name and lowercase the status."
+        },
+        {
+          "kind": "function",
+          "function": "parse_log_line",
+          "args": ["Rook| review"],
+          "expected": {"name": "Rook", "status": "review"},
+          "message": "Lowercase the status and preserve the name."
+        },
+        {
+          "kind": "function",
+          "function": "parse_log_line",
+          "args": [" Selene |DENIED "],
+          "expected": {"name": "Selene", "status": "denied"},
+          "message": "Spaces around either field should be removed."
+        },
+        {
+          "kind": "function",
+          "function": "parse_log_line",
+          "args": ["Aria| Clear"],
+          "expected": {"name": "Aria", "status": "clear"},
+          "message": "Do not hardcode names or statuses — parse the given text."
+        }
+      ]
+    }
+  ]
+}
+
