@@ -57,13 +57,13 @@
       "hints": [
         "The outer dictionary has keys like destination and party.",
         "party holds a list with one member dictionary at index 0.",
-        "Index the party list, then read the name key from that member."
+        "Read dispatch[\"party\"][0][\"name\"]."
       ],
       "tests": [
         {
           "kind": "stdout_equals",
           "expected": "Mira\n",
-          "message": "Read the name from the first party record, not the outer dispatch dictionary."
+          "message": "The name belongs to the first record in the party list, not to the outer dispatch dictionary."
         }
       ]
     },
@@ -105,7 +105,7 @@
           "feature": "function_signature",
           "name": "total_party_health",
           "parameters": ["party"],
-          "message": "Define total_party_health(party) with exactly one parameter."
+          "message": "Define total_party_health(party) with one parameter."
         },
         {
           "kind": "source_uses",
@@ -161,7 +161,7 @@
           "feature": "function_signature",
           "name": "numbered_roster",
           "parameters": ["party"],
-          "message": "Define numbered_roster(party) with exactly one parameter."
+          "message": "Define numbered_roster(party) with one parameter."
         },
         {
           "kind": "source_uses",

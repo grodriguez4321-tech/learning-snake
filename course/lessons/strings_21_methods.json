@@ -5,7 +5,7 @@
   "order": 3,
   "title": "Clean and Split Text",
   "topics": ["strings"],
-  "content": "What problem does this solve?\nRealistic programs accept text with extra spaces and mixed case. String methods help normalize and separate fields. strip() returns a new string without surrounding whitespace; lower() returns lowercase for robust comparisons; split(separator) returns a list of pieces. Strings do not change in place — save or return the method result.\n\nPreviously in your program\nYou built and read strings with f-strings, and returned structured values from functions. Now you return cleaned text and parse one well-formed record.\n\nBasic syntax\n  command = \"  NORTH  \"\n  cleaned = command.strip().lower()\n  parts = \"Mira|Scout\".split(\"|\")\n\nWhat actually happens\nMethods like strip, lower, and split return new strings or lists. Reassign a variable or return the method result to use the change.\n\nWhen this is useful\nNormalize commands and names before comparing. Split simple records so later code can work with labeled pieces.",
+  "content": "What problem does this solve?\nRealistic programs accept text with extra spaces and mixed case. String methods help normalize and separate fields. strip() returns a new string without surrounding whitespace; lower() returns lowercase for robust comparisons; split(separator) returns a list of pieces. Strings do not change in place — save or return the method result.\n\nPreviously in your program\nYou built and read strings with f-strings, and returned structured values from functions. Now you return cleaned text and parse one well-formed record.\n\nBasic syntax\n  raw_label = \"  East Gate  \"\n  clean_label = raw_label.strip().lower()\n  parts = \"Rook|Guard\".split(\"|\")\n\nWhat actually happens\nMethods like strip, lower, and split return new strings or lists. Reassign a variable or return the method result to use the change.\n\nWhen this is useful\nNormalize commands and names before comparing. Split simple records so later code can work with labeled pieces.",
   "concepts": [
     "strip() removes surrounding whitespace and returns a new string",
     "lower() returns lowercase for robust comparisons",
@@ -14,9 +14,9 @@
   ],
   "examples": [
     {
-      "title": "Normalize one command",
-      "code": "command = \"   WEST   \"\ncleaned = command.strip().lower()\nprint(cleaned)",
-      "explanation": "Method calls return a new, cleaned string; the original name still refers to the unmodified text."
+      "title": "Normalize one status label",
+      "code": "status = \"  CLEAR  \"\ncleaned = status.strip().lower()\nprint(cleaned)",
+      "explanation": "strip() removes the outside spaces and lower() returns clear."
     }
   ],
   "common_mistakes": [
@@ -97,7 +97,7 @@
           "feature": "function_signature",
           "name": "normalize_username",
           "parameters": ["text"],
-          "message": "Define normalize_username(text) with exactly one parameter."
+          "message": "Define normalize_username(text) with one parameter."
         },
         {
           "kind": "source_uses",

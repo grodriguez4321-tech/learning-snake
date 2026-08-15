@@ -5,6 +5,7 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
+import ast
 
 from course.catalog import CourseCatalog
 from engine.code_runner import CodeRunner
@@ -267,6 +268,72 @@ class Lessons1923GradingTests(unittest.TestCase):
             blob = "\n\n".join(example.code for example in lesson.examples)
             for snippet in forbidden_snippets:
                 self.assertNotIn(snippet, blob, msg=f"{lesson_id} discloses {snippet!r}")
+
+    def test_examples_do_not_duplicate_predictions(self) -> None:
+        def normalize(source: str) -> str:
+            return "\n".join(line.rstrip() for line in source.strip().splitlines())
+
+        for lesson_id in BATCH_IDS:
+            lesson = self.catalog.get(lesson_id)
+            assert lesson is not None
+            predictions = {
+                normalize(exercise.code_to_predict)
+                for exercise in lesson.exercises
+                if exercise.code_to_predict
+            }
+            for example in lesson.examples:
+                self.assertNotIn(normalize(example.code), predictions, lesson_id)
+
+        logic = self.catalog.get("errors_23_logic_debugging")
+        assert logic is not None
+        example_blob = "\n".join(example.code for example in logic.examples)
+        for snippet in ('score >= 80', 'score >= 50', 'return "Elite"', 'return "Ready"'):
+            self.assertNotIn(snippet, example_blob)
+
+    def test_new_batch_recorded_code_uses_no_deferred_syntax(self) -> None:
+        deferred = (ast.ListComp, ast.SetComp, ast.DictComp, ast.GeneratorExp, ast.Import, ast.ImportFrom, ast.Try)
+        sources: list[tuple[str, str]] = []
+        for lesson_id in BATCH_IDS:
+            lesson = self.catalog.get(lesson_id)
+            assert lesson is not None
+            for example in lesson.examples:
+                sources.append((f"{lesson_id}:example", example.code))
+            for exercise in lesson.exercises:
+                if exercise.starter_code:
+                    sources.append((f"{exercise.id}:starter", exercise.starter_code))
+                if exercise.code_to_predict:
+                    sources.append((f"{exercise.id}:prediction", exercise.code_to_predict))
+                solution = SOLUTIONS.get(exercise.id, {}).get("code", "")
+                if solution:
+                    sources.append((f"{exercise.id}:solution", solution))
+        for label, source in sources:
+            try:
+                tree = ast.parse(source)
+            except SyntaxError:
+                continue
+            found = [type(node).__name__ for node in ast.walk(tree) if isinstance(node, deferred)]
+            self.assertEqual(found, [], f"{label} uses deferred syntax: {found}")
+
+    def test_additional_variants_acceptance(self) -> None:
+        # supply_label using str(count)
+        supply = self._exercise("errors_22_tracebacks", "errors_22_ex4")
+        variant_supply = self.checker.check(
+            supply, code=("def supply_label(item, count):\n" "    return item + \": \" + str(count)\n")
+        )
+        self.assertTrue(variant_supply.passed, variant_supply.message)
+        # total_party_health using explicit addition form
+        total = self._exercise("collections_19_nested_data", "collections_19_ex4")
+        variant_total = self.checker.check(
+            total,
+            code=(
+                "def total_party_health(party):\n"
+                "    total = 0\n"
+                "    for member in party:\n"
+                '        total = total + member[\"health\"]\n'
+                "    return total\n"
+            ),
+        )
+        self.assertTrue(variant_total.passed, variant_total.message)
 
     def test_lesson_unlocks_linear_after_18(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

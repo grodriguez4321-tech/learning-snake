@@ -15,8 +15,8 @@
   "examples": [
     {
       "title": "Check the tighter boundary first",
-      "code": "def rating(points):\n    if points >= 90:\n        return \"Gold\"\n    elif points >= 60:\n        return \"Silver\"\n    return \"Bronze\"",
-      "explanation": "Order matters — a more specific boundary must be tested before a more general one."
+      "code": "def access_level(keys):\n    if keys >= 3:\n        return \"Full\"\n    elif keys >= 1:\n        return \"Limited\"\n    return \"None\"",
+      "explanation": "Test the more specific three-key boundary before the broader one-key boundary."
     }
   ],
   "common_mistakes": [
@@ -179,7 +179,7 @@
           "feature": "function_signature",
           "name": "expedition_report",
           "parameters": ["party"],
-          "message": "Define expedition_report(party) with exactly one parameter."
+          "message": "Define expedition_report(party) with one parameter."
         },
         {
           "kind": "function",

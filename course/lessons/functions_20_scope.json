@@ -5,7 +5,7 @@
   "order": 2,
   "title": "Where Names Live",
   "topics": ["functions"],
-  "content": "What problem does this solve?\nAs programs grow, the same name can appear in different places. A name created inside a function is local to that call; parameters are local names supplied by the caller. A function can read a global name, but depending on hidden global state makes behavior harder to understand and test. Assigning to a name inside a function normally makes that name local; reading it first can raise UnboundLocalError.\n\nPreviously in your program\nYou passed values into functions and returned results. You updated values in nested structures. Now you’ll make inputs and outputs explicit instead of changing module-level names from inside a function.\n\nBasic syntax\n  status = \"waiting\"\n  def prepare():\n      status = \"ready\"  # local to prepare\n      return status\n\n  # status outside remains \"waiting\"\n\nWhat actually happens\nWhen Python sees an assignment to a name inside a function, that name is treated as local in the whole function body unless declared global. Reading a local before it is assigned raises UnboundLocalError.\n\nWhen this is useful\nPassing values in and returning results out makes a function’s behavior clear and easier to test. Use a global only when the whole program truly owns that single piece of state.",
+  "content": "What problem does this solve?\nAs programs grow, the same name can appear in different places. A name created inside a function is local to that call; parameters are local names supplied by the caller. A function can read a global name, but depending on hidden global state makes behavior harder to understand and test. Assigning to a name inside a function normally makes that name local; reading it first can raise UnboundLocalError.\n\nPreviously in your program\nYou passed values into functions and returned results. You updated values in nested structures. Now you’ll make inputs and outputs explicit instead of changing module-level names from inside a function.\n\nBasic syntax\n  route = \"north\"\n\n  def choose_route():\n      route = \"south\"\n      return route\n\n  print(choose_route())\n  print(route)\n\nWhat actually happens\nWhen Python sees an assignment to a name inside a function, that name is treated as local in the whole function body unless declared global. Reading a local before it is assigned raises UnboundLocalError.\n\nWhen this is useful\nPassing values in and returning results out makes a function’s behavior clear and easier to test. Use a global only when the whole program truly owns that single piece of state.",
   "concepts": [
     "Names assigned inside a function are local to that call",
     "Parameters are local names given by the caller",
@@ -16,8 +16,8 @@
   "examples": [
     {
       "title": "Return value versus outer name",
-      "code": "state = \"queued\"\n\ndef mark_ready(current):\n    current = \"ready\"\n    return current\n\nprint(mark_ready(state))\nprint(state)",
-      "explanation": "The function returns a new value while the outer name keeps its original text."
+      "code": "signal = \"dim\"\n\ndef calibrate():\n    signal = \"bright\"\n    return signal\n\nprint(calibrate())\nprint(signal)",
+      "explanation": "calibrate() returns the local value bright, while the outer signal remains dim."
     }
   ],
   "common_mistakes": [

@@ -150,7 +150,7 @@
           "feature": "function_signature",
           "name": "supply_label",
           "parameters": ["item", "count"],
-          "message": "Define supply_label(item, count) with exactly two parameters."
+          "message": "Define supply_label(item, count) with those two parameters in that order."
         }
       ]
     },
