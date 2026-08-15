@@ -353,10 +353,12 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
     feature = str(test.get("feature") or "")
     required = list(test.get("names") or [])
     target = str(test.get("name") or "")
+    method = str(test.get("method") or "")
     custom = str(test.get("message") or "")
     in_function = str(test.get("in_function") or "")
     inside = str(test.get("inside") or "")
     ops_wanted = list(test.get("ops") or [])
+    min_args = test.get("min_args")
 
     if feature == "comment":
         for line in source.splitlines():
@@ -519,6 +521,12 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
                 return True, "Used a for loop."
         return False, custom or "Use a for loop to visit each item in the list."
 
+    if feature == "while_loop":
+        for node in nodes:
+            if isinstance(node, ast.While):
+                return True, "Used a while loop."
+        return False, custom or "Use a while loop that makes progress toward ending."
+
     if feature == "elif_branch":
         # Prefer a real elif token so an indented else: if does not count.
         if in_function:
@@ -588,6 +596,47 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
             if _is_wanted_call(node):
                 return True, f"Called {want}()."
         return False, custom or f"Call {want}() so you reuse the function you defined."
+
+    if feature == "method_call":
+        # Generic method call detection with optional receiver name, argument count,
+        # scoping to a function, and special handling for a for-loop iterable.
+        want_method = method or (required[0] if required else "")
+        recv_name = target
+        want_min_args = int(min_args) if min_args is not None else None
+        if not want_method:
+            return False, custom or "Require a specific method name to be called."
+
+        def _call_matches(node: ast.AST) -> bool:
+            if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)):
+                return False
+            if node.func.attr != want_method:
+                return False
+            if recv_name:
+                if not (isinstance(node.func.value, ast.Name) and node.func.value.id == recv_name):
+                    return False
+            if want_min_args is not None and len(node.args) < want_min_args:
+                return False
+            return True
+
+        if inside == "for_iter":
+            for node in nodes:
+                if not isinstance(node, ast.For):
+                    continue
+                iter_node = node.iter
+                if _call_matches(iter_node):
+                    return True, f"Used {recv_name + '.' if recv_name else ''}{want_method}() to drive the loop."
+            return False, custom or (
+                f"Use {(recv_name + '.' if recv_name else '')}{want_method}(...) directly in the for-loop header."
+            )
+
+        for node in nodes:
+            if _call_matches(node):
+                return True, f"Called {(recv_name + '.' if recv_name else '')}{want_method}()."
+        return False, custom or (
+            f"Call {(recv_name + '.' if recv_name else '')}{want_method}()"
+            + (f" with at least {want_min_args} argument(s)" if want_min_args is not None else "")
+            + "."
+        )
 
     if feature == "print_names":
         want = set(required)
@@ -666,6 +715,60 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
         return False, custom or (
             "Write a real comparison that uses the required variable names."
         )
+
+    if feature == "function_signature":
+        # Validate a function's declared parameter names and optional default values.
+        func_name = target or (required[0] if required else "")
+        params: list[str] = list(test.get("parameters") or [])
+        defaults_map = dict(test.get("defaults") or {})
+        if not func_name or not params:
+            return False, custom or "Define the function with the required parameters."
+        # Build a human-readable signature string for feedback like:
+        # name(a, b='x', c=1)
+        parts: list[str] = []
+        for p in params:
+            if p in defaults_map:
+                parts.append(f"{p}={defaults_map[p]!r}")
+            else:
+                parts.append(p)
+        wanted_signature = f"{func_name}({', '.join(parts)})"
+        # Find the function definition
+        func_def: ast.FunctionDef | None = None
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == func_name:
+                func_def = node  # type: ignore[assignment]
+                break
+        if func_def is None:
+            return False, custom or f"Define {wanted_signature}."
+        args = func_def.args
+        # Reject varargs replacing named params
+        if args.vararg is not None or args.kwarg is not None:
+            return False, custom or f"Define {wanted_signature} without *args/**kwargs."
+        actual_param_names = [arg.arg for arg in args.args]
+        if actual_param_names != params:
+            return False, custom or f"Define {wanted_signature}."
+        # Validate defaults
+        if defaults_map:
+            # ast puts defaults aligned to the last N args
+            total = len(args.args)
+            defaults_nodes = list(args.defaults)
+            # Build mapping from param name -> default value node if present
+            actual_defaults: dict[str, ast.expr] = {}
+            for idx, node_default in enumerate(defaults_nodes):
+                name = args.args[total - len(defaults_nodes) + idx].arg
+                actual_defaults[name] = node_default
+            import ast as _ast  # local alias
+            for name, value in defaults_map.items():
+                if name not in actual_defaults:
+                    return False, custom or f"Define {wanted_signature}."
+                node_default = actual_defaults[name]
+                try:
+                    literal = _ast.literal_eval(node_default)
+                except Exception:  # noqa: BLE001
+                    return False, custom or f"Define {wanted_signature}."
+                if literal != value:
+                    return False, custom or f"Define {wanted_signature}."
+        return True, f"Defined {wanted_signature}."
 
     return False, f"Unknown source_uses feature: {feature}"
 

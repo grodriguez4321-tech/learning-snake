@@ -30,6 +30,9 @@ class TestCase:
 
     kind: str  # stdout_equals | stdout_contains | function | globals | expression | source_uses
     expected: Any = None
+    # Optional method/feature parameters for source_uses
+    method: str | None = None
+    min_args: int | None = None
     function: Optional[str] = None
     args: list[Any] = field(default_factory=list)
     kwargs: dict[str, Any] = field(default_factory=dict)
@@ -41,6 +44,9 @@ class TestCase:
     # source_uses: construct feature name (see execution_worker.apply_source_uses)
     feature: Optional[str] = None
     names: list[str] = field(default_factory=list)
+    # function_signature: ordered parameter names and optional defaults
+    parameters: list[str] = field(default_factory=list)
+    defaults: dict[str, Any] = field(default_factory=dict)
     # source_uses: optional Compare op names (Lt, Gt, Eq, NotEq, …)
     ops: list[str] = field(default_factory=list)
     # source_uses: limit the AST walk to a named function body
@@ -108,6 +114,8 @@ def test_case_from_dict(data: dict[str, Any]) -> TestCase:
     return TestCase(
         kind=str(kind),
         expected=data.get("expected"),
+        method=data.get("method"),
+        min_args=(int(data["min_args"]) if data.get("min_args") is not None else None),
         function=data.get("function"),
         args=list(data.get("args", [])),
         kwargs=dict(data.get("kwargs", {})),
@@ -118,6 +126,8 @@ def test_case_from_dict(data: dict[str, Any]) -> TestCase:
         message=data.get("message", ""),
         feature=data.get("feature"),
         names=list(data.get("names", [])),
+        parameters=list(data.get("parameters", [])),
+        defaults=dict(data.get("defaults", {})),
         ops=list(data.get("ops", [])),
         in_function=data.get("in_function"),
         inside=data.get("inside"),

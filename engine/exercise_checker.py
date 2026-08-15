@@ -32,7 +32,8 @@ def test_case_to_dict(test: TestCase) -> dict[str, Any]:
             continue
         if value is None:
             continue
-        if value in ([], {}):
+        # Preserve empty expected values (e.g. expecting an empty list/dict).
+        if value in ([], {}) and key not in {"expected"}:
             continue
         if key == "message" and value == "":
             continue
