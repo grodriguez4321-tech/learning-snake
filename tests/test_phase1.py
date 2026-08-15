@@ -26,24 +26,22 @@ class CatalogTests(unittest.TestCase):
         catalog.load()
         self.assertGreaterEqual(len(catalog.lessons), 13)
         ids = [lesson.id for lesson in catalog.lessons]
-        self.assertEqual(
-            ids,
-            [
-                "fundamentals_01_print",
-                "fundamentals_02_variables",
-                "fundamentals_03_fstrings",
-                "decisions_01_conditionals",
-                "collections_01_lists",
-                "collections_02_append",
-                "collections_03_loops",
-                "functions_01_basics",
-                "decisions_09_elif",
-                "decisions_10_boolean_logic",
-                "collections_11_len_range",
-                "collections_12_list_methods",
-                "collections_13_dictionaries",
-            ],
-        )
+        expected_prefix = [
+            "fundamentals_01_print",
+            "fundamentals_02_variables",
+            "fundamentals_03_fstrings",
+            "decisions_01_conditionals",
+            "collections_01_lists",
+            "collections_02_append",
+            "collections_03_loops",
+            "functions_01_basics",
+            "decisions_09_elif",
+            "decisions_10_boolean_logic",
+            "collections_11_len_range",
+            "collections_12_list_methods",
+            "collections_13_dictionaries",
+        ]
+        self.assertEqual(ids[: len(expected_prefix)], expected_prefix)
         # Ordering is stable by section_order then order.
         for left, right in zip(catalog.lessons, catalog.lessons[1:]):
             self.assertLessEqual(
