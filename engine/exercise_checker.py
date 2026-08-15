@@ -32,7 +32,8 @@ def test_case_to_dict(test: TestCase) -> dict[str, Any]:
             continue
         if value is None:
             continue
-        if value in ([], {}):
+        # expected=[] / {} is a real assertion; do not treat it as "unset".
+        if value in ([], {}) and key != "expected":
             continue
         if key == "message" and value == "":
             continue

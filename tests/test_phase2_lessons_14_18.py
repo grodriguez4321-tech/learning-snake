@@ -277,7 +277,15 @@ class Lessons1418GradingTests(unittest.TestCase):
         assert lesson is not None
         return next(ex for ex in lesson.exercises if ex.id == exercise_id)
 
-    def test_all_reference_solutions_pass(self) -> None:
+    def test_empty_list_expected_is_preserved(self) -> None:
+        from engine.exercise_checker import test_case_to_dict
+        from course.exercise import TestCase
+
+        payload = test_case_to_dict(
+            TestCase(kind="function", function="label_supplies", args=[[]], expected=[])
+        )
+        self.assertEqual(payload["expected"], [])
+
         for lesson_id in BATCH_IDS:
             lesson = self.catalog.get(lesson_id)
             assert lesson is not None

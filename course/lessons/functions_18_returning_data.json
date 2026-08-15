@@ -8,7 +8,7 @@
     "functions",
     "collections"
   ],
-  "content": "What problem does this solve?\nDispatch work often needs a whole packet: destination, party, supplies, counts, and status. return can send a list or a dictionary — not only a number or string — so other code can keep using the result. A careful function builds a fresh structure instead of quietly changing the caller’s lists.\n\nPreviously in your program\nYou returned strings and numbers, and you built dictionaries in Lesson 13. Now you assemble a fresh dispatch packet and copy lists when the caller must keep the originals unchanged.\n\nBasic syntax\n  def pack_note(label):\n      return [label]\n\n  def route_summary(destination, stops):\n      return {\n          \"destination\": destination,\n          \"stops\": list(stops),\n          \"stop_count\": len(stops),\n      }\n\nWhat actually happens\nIf a function builds a list but never returns it, the caller receives None — the same None print returns. Returning a new list or dictionary hands ownership of that result to the caller. list(existing_list) is one clear way to make a shallow copy before you change anything; slicing or .copy() can also be correct. A dictionary whose values are lists previews nested data; this lesson only needs you to store and copy those lists, not traverse nested structures in general.\n\nWhen this is useful\nReturn a structured value when later code must keep working with the result. Copy inputs when the caller still needs the originals unchanged."
+  "content": "What problem does this solve?\nDispatch work often needs a whole packet: destination, party, supplies, counts, and status. return can send a list or a dictionary — not only a number or string — so other code can keep using the result. A careful function builds a fresh structure instead of quietly changing the caller’s lists.\n\nPreviously in your program\nYou returned strings and numbers, and you built dictionaries in Lesson 13. Now you assemble a fresh dispatch packet and copy lists when the caller must keep the originals unchanged.\n\nBasic syntax\n  def pack_note(label):\n      return [label]\n\n  def route_summary(destination, stops):\n      return {\n          \"destination\": destination,\n          \"stops\": list(stops),\n          \"stop_count\": len(stops),\n      }\n\nWhat actually happens\nIf a function builds a list but never returns it, the caller receives None — the same None print returns. Returning a new list or dictionary hands ownership of that result to the caller. list(existing_list) is one clear way to make a shallow copy before you change anything; slicing or .copy() can also be correct. A dictionary whose values are lists previews nested data; this lesson only needs you to store and copy those lists, not traverse nested structures in general.\n\nWhen this is useful\nReturn a structured value when later code must keep working with the result. Copy inputs when the caller still needs the originals unchanged.",
   "concepts": [
     "return can send a list or dictionary, not only a number or string",
     "print still returns None; building without returning also yields None",
@@ -421,7 +421,7 @@
         },
         {
           "kind": "expression",
-          "expression": "(lambda p, s: (build_dispatch(\"Y\", p, s), p, s))([\"Aria\"], [\"map\"])[1:]",
+          "expression": "list((lambda p, s: (build_dispatch(\"Y\", p, s), p, s))([\"Aria\"], [\"map\"])[1:])",
           "expected": [
             [
               "Aria"
