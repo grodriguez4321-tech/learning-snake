@@ -1,0 +1,437 @@
+{
+  "id": "functions_18_returning_data",
+  "section": "Expedition Dispatch — Functions",
+  "section_order": 8,
+  "order": 3,
+  "title": "Return a Whole Dispatch",
+  "topics": [
+    "functions",
+    "collections"
+  ],
+  "content": "What problem does this solve?\nDispatch work often needs a whole packet: destination, party, supplies, counts, and status. return can send a list or a dictionary — not only a number or string — so other code can keep using the result. A careful function builds a fresh structure instead of quietly changing the caller’s lists.\n\nPreviously in your program\nYou returned strings and numbers, and you built dictionaries in Lesson 13. Now you assemble a fresh dispatch packet and copy lists when the caller must keep the originals unchanged.\n\nBasic syntax\n  def pack_note(label):\n      return [label]\n\n  def route_summary(destination, stops):\n      return {\n          \"destination\": destination,\n          \"stops\": list(stops),\n          \"stop_count\": len(stops),\n      }\n\nWhat actually happens\nIf a function builds a list but never returns it, the caller receives None — the same None print returns. Returning a new list or dictionary hands ownership of that result to the caller. list(existing_list) is one clear way to make a shallow copy before you change anything; slicing or .copy() can also be correct. A dictionary whose values are lists previews nested data; this lesson only needs you to store and copy those lists, not traverse nested structures in general.\n\nWhen this is useful\nReturn a structured value when later code must keep working with the result. Copy inputs when the caller still needs the originals unchanged."
+  "concepts": [
+    "return can send a list or dictionary, not only a number or string",
+    "print still returns None; building without returning also yields None",
+    "A function can assemble a fresh result instead of changing caller-owned input",
+    "list(existing_list) (or another clear copy) keeps the original list intact"
+  ],
+  "examples": [
+    {
+      "title": "Built but forgotten",
+      "code": "def pack(item):\n    result = [item]\n\nprint(pack(\"rope\"))",
+      "explanation": "The list is created, but nothing is returned, so print shows None."
+    },
+    {
+      "title": "Fresh list for the caller",
+      "code": "def with_flag(tags, flag):\n    updated = list(tags)\n    updated.append(flag)\n    return updated\n\noriginal = [\"clear\"]\nprint(with_flag(original, \"reviewed\"))\nprint(original)",
+      "explanation": "The returned list includes the new flag. original stays [\"clear\"]."
+    }
+  ],
+  "common_mistakes": [
+    "Building a list or dictionary and forgetting to return it",
+    "Returning inside a loop after the first item only",
+    "Appending to the caller’s list when a fresh copy was required",
+    "Printing the packet instead of returning it"
+  ],
+  "exercises": [
+    {
+      "id": "functions_18_ex1",
+      "type": "predict_output",
+      "title": "Built but not returned",
+      "prompt": "What does this print?",
+      "code_to_predict": "def pack(item):\n    result = [item]\n\nprint(pack(\"rope\"))",
+      "expected_answer": "None",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "Watch for a return statement.",
+        "Without return, a function yields None.",
+        "print shows None."
+      ]
+    },
+    {
+      "id": "functions_18_ex2",
+      "type": "architecture",
+      "title": "Preserve the original",
+      "prompt": "Another part of the program still needs the original supplies list unchanged. How should a helper add one more item?",
+      "choices": [
+        "append directly to the original and return it",
+        "create a new list, append to the new list, and return it",
+        "print the new item without returning a list"
+      ],
+      "expected_answer": "2",
+      "topics": [
+        "functions"
+      ],
+      "success_message": "Yes — a new list keeps the caller’s original supplies intact.",
+      "failure_message": "If the original must stay unchanged, do not append to it. Build and return a fresh list.",
+      "hints": [
+        "Mutating the original changes what other code still holds.",
+        "Printing alone does not give other code a list value.",
+        "Choose the option that creates a new list."
+      ]
+    },
+    {
+      "id": "functions_18_ex3",
+      "type": "debug",
+      "title": "Return after the loop",
+      "prompt": "label_supplies returns after the first item because return sits inside the loop. Move the return so every packed line is included.",
+      "starter_code": "def label_supplies(supplies):\n    lines = []\n\n    for item in supplies:\n        lines.append(f\"Packed: {item}\")\n        return lines\n",
+      "topics": [
+        "functions",
+        "debugging"
+      ],
+      "hints": [
+        "return ends the function immediately.",
+        "Collect every line first.",
+        "Dedent return lines so it runs after the for loop."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "in_function": "label_supplies",
+          "message": "Keep a for loop inside label_supplies."
+        },
+        {
+          "kind": "function",
+          "function": "label_supplies",
+          "args": [
+            []
+          ],
+          "expected": [],
+          "message": "label_supplies([]) should return an empty list."
+        },
+        {
+          "kind": "function",
+          "function": "label_supplies",
+          "args": [
+            [
+              "rope"
+            ]
+          ],
+          "expected": [
+            "Packed: rope"
+          ],
+          "message": "A single item should produce one Packed line."
+        },
+        {
+          "kind": "function",
+          "function": "label_supplies",
+          "args": [
+            [
+              "rope",
+              "torch",
+              "chalk"
+            ]
+          ],
+          "expected": [
+            "Packed: rope",
+            "Packed: torch",
+            "Packed: chalk"
+          ],
+          "message": "Return after labeling every supply item."
+        }
+      ]
+    },
+    {
+      "id": "functions_18_ex4",
+      "type": "write_code",
+      "title": "Add without changing the caller",
+      "prompt": "Write add_item(supplies, item) that:\n1. Creates a new list containing the existing supplies\n2. Appends item to the new list\n3. Returns the new list\n4. Leaves the argument list unchanged\n\nAny clear copy strategy is fine (list(...), slicing, .copy(), or equivalent).",
+      "starter_code": "def add_item(supplies, item):\n    # Return a new list; do not change the original supplies.\n    pass\n",
+      "topics": [
+        "functions",
+        "collections"
+      ],
+      "hints": [
+        "Copy the incoming list before you append.",
+        "Append to the copy, not to supplies itself.",
+        "Return that new list."
+      ],
+      "tests": [
+        {
+          "kind": "function",
+          "function": "add_item",
+          "args": [
+            [
+              "rope"
+            ],
+            "torch"
+          ],
+          "expected": [
+            "rope",
+            "torch"
+          ],
+          "arg_after": {
+            "0": [
+              "rope"
+            ]
+          },
+          "message": "add_item should return a longer list and leave the original supplies unchanged."
+        },
+        {
+          "kind": "function",
+          "function": "add_item",
+          "args": [
+            [],
+            "map"
+          ],
+          "expected": [
+            "map"
+          ],
+          "arg_after": {
+            "0": []
+          },
+          "message": "Adding to an empty list must still preserve the original empty list."
+        },
+        {
+          "kind": "function",
+          "function": "add_item",
+          "args": [
+            [
+              "torch",
+              "torch"
+            ],
+            "torch"
+          ],
+          "expected": [
+            "torch",
+            "torch",
+            "torch"
+          ],
+          "arg_after": {
+            "0": [
+              "torch",
+              "torch"
+            ]
+          },
+          "message": "Repeated values are allowed; still do not mutate the caller list."
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda original: [add_item(original, \"torch\"), original])([\"rope\"])",
+          "expected": [
+            [
+              "rope",
+              "torch"
+            ],
+            [
+              "rope"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "functions_18_ex5",
+      "type": "mini_project",
+      "title": "Expedition Dispatch System v1",
+      "prompt": "Write build_dispatch(destination, party, supplies, status=\"Review\") that returns a fresh dictionary with exactly these keys:\n- destination\n- party\n- supplies\n- member_count\n- supply_count\n- status\n\nRules:\n- party and supplies in the returned dictionary are fresh list copies\n- member_count is len(party)\n- supply_count is len(supplies)\n- status defaults to \"Review\" and may be overridden\n- do not print\n- do not mutate either input list",
+      "starter_code": "def build_dispatch(destination, party, supplies, status=\"Review\"):\n    # Return a fresh dispatch packet with copied lists and counts.\n    pass\n",
+      "topics": [
+        "functions",
+        "collections"
+      ],
+      "success_message": "Dispatch packet complete. The warning from Expedition 17 travels with the record.",
+      "hints": [
+        "Copy party and supplies into new lists before storing them in the dictionary.",
+        "Set member_count and supply_count with len on the inputs.",
+        "Include status from the parameter (default Review) and return the dictionary."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "build_dispatch",
+          "parameters": [
+            "destination",
+            "party",
+            "supplies",
+            "status"
+          ],
+          "defaults": {
+            "status": "Review"
+          },
+          "message": "Define build_dispatch(destination, party, supplies, status='Review')."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "len_call",
+          "names": [
+            "party"
+          ],
+          "in_function": "build_dispatch",
+          "message": "Use len(party) for member_count."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "len_call",
+          "names": [
+            "supplies"
+          ],
+          "in_function": "build_dispatch",
+          "message": "Use len(supplies) for supply_count."
+        },
+        {
+          "kind": "function",
+          "function": "build_dispatch",
+          "args": [
+            "Gloamfen",
+            [
+              "Mara",
+              "Tovin"
+            ],
+            [
+              "rope",
+              "torch"
+            ]
+          ],
+          "expected": {
+            "destination": "Gloamfen",
+            "party": [
+              "Mara",
+              "Tovin"
+            ],
+            "supplies": [
+              "rope",
+              "torch"
+            ],
+            "member_count": 2,
+            "supply_count": 2,
+            "status": "Review"
+          },
+          "arg_after": {
+            "1": [
+              "Mara",
+              "Tovin"
+            ],
+            "2": [
+              "rope",
+              "torch"
+            ]
+          },
+          "message": "build_dispatch must return the full packet with default status Review and leave inputs unchanged."
+        },
+        {
+          "kind": "function",
+          "function": "build_dispatch",
+          "args": [
+            "Ash Ford",
+            [
+              "Aria"
+            ],
+            [],
+            "Ready"
+          ],
+          "expected": {
+            "destination": "Ash Ford",
+            "party": [
+              "Aria"
+            ],
+            "supplies": [],
+            "member_count": 1,
+            "supply_count": 0,
+            "status": "Ready"
+          },
+          "message": "Positional status Ready must override the default."
+        },
+        {
+          "kind": "function",
+          "function": "build_dispatch",
+          "args": [
+            "Marsh Road",
+            [],
+            [
+              "map"
+            ],
+            "Denied"
+          ],
+          "expected": {
+            "destination": "Marsh Road",
+            "party": [],
+            "supplies": [
+              "map"
+            ],
+            "member_count": 0,
+            "supply_count": 1,
+            "status": "Denied"
+          },
+          "message": "Empty party and one supply must produce counts 0 and 1 with status Denied."
+        },
+        {
+          "kind": "function",
+          "function": "build_dispatch",
+          "args": [
+            "Ruins Gate",
+            [
+              "Selene",
+              "Rook",
+              "Mira"
+            ],
+            [
+              "chalk",
+              "lantern",
+              "rope",
+              "antidote"
+            ],
+            "Review"
+          ],
+          "expected": {
+            "destination": "Ruins Gate",
+            "party": [
+              "Selene",
+              "Rook",
+              "Mira"
+            ],
+            "supplies": [
+              "chalk",
+              "lantern",
+              "rope",
+              "antidote"
+            ],
+            "member_count": 3,
+            "supply_count": 4,
+            "status": "Review"
+          },
+          "message": "Do not hardcode destinations, names, or counts."
+        },
+        {
+          "kind": "expression",
+          "expression": "sorted(build_dispatch(\"Gloamfen\", [\"Mara\"], [\"rope\"]).keys())",
+          "expected": [
+            "destination",
+            "member_count",
+            "party",
+            "status",
+            "supplies",
+            "supply_count"
+          ]
+        },
+        {
+          "kind": "expression",
+          "expression": "type(build_dispatch(\"Gloamfen\", [\"Mara\"], [\"rope\"])).__name__",
+          "expected": "dict"
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda p, s: (lambda d: d[\"party\"] is not p and d[\"supplies\"] is not s)(build_dispatch(\"X\", p, s)))([\"a\"], [\"b\"])",
+          "expected": true
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda p, s: (build_dispatch(\"Y\", p, s), p, s))([\"Aria\"], [\"map\"])[1:]",
+          "expected": [
+            [
+              "Aria"
+            ],
+            [
+              "map"
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -404,16 +404,33 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
 
     if feature == "rebind_self":
         name = target or (required[0] if required else "")
-        for node in nodes:
+
+        def _is_rebind(node: ast.AST) -> bool:
             if isinstance(node, ast.AugAssign) and _assigned_name(node.target) == name:
-                return True, "Updated the variable using its current value."
+                return True
             if isinstance(node, ast.Assign):
                 assigned = [_assigned_name(item) for item in node.targets]
                 if name not in assigned:
-                    continue
+                    return False
                 used = {child.id for child in ast.walk(node.value) if isinstance(child, ast.Name)}
-                if name in used:
-                    return True, "Updated the variable using its current value."
+                return name in used
+            return False
+
+        if inside == "while_loop":
+            for node in nodes:
+                if not isinstance(node, ast.While):
+                    continue
+                for stmt in node.body:
+                    for child in ast.walk(stmt):
+                        if _is_rebind(child):
+                            return True, "Updated the variable inside the while loop."
+            return False, custom or (
+                f"Update {name} inside the while loop body so the condition can become false."
+            )
+
+        for node in nodes:
+            if _is_rebind(node):
+                return True, "Updated the variable using its current value."
         return False, custom or (
             f"Give {name} a new value that uses {name} on the right-hand side."
         )
@@ -519,6 +536,118 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
                 return True, "Used a for loop."
         return False, custom or "Use a for loop to visit each item in the list."
 
+    if feature == "while_loop":
+        for node in nodes:
+            if isinstance(node, ast.While):
+                return True, "Used a while loop."
+        return False, custom or (
+            "Use a while loop that repeats until its condition becomes false."
+        )
+
+    if feature == "method_call":
+        method = str(test.get("method") or "")
+        if not method:
+            return False, custom or "Call the required method."
+        min_args = test.get("min_args")
+        try:
+            min_args_n = int(min_args) if min_args is not None else None
+        except (TypeError, ValueError):
+            min_args_n = None
+
+        def _matching_method_call(node: ast.AST) -> bool:
+            if not isinstance(node, ast.Call):
+                return False
+            func = node.func
+            if not isinstance(func, ast.Attribute) or func.attr != method:
+                return False
+            if target and not (
+                isinstance(func.value, ast.Name) and func.value.id == target
+            ):
+                return False
+            if min_args_n is not None and len(node.args) < min_args_n:
+                return False
+            return True
+
+        if inside == "for_iter":
+            for node in nodes:
+                if not isinstance(node, ast.For):
+                    continue
+                if _matching_method_call(node.iter):
+                    return True, f"Used .{method}() to drive a for loop."
+            receiver = f"{target}." if target else ""
+            return False, custom or (
+                f"Use {receiver}{method}() as the sequence in your for loop header."
+            )
+
+        for node in nodes:
+            if _matching_method_call(node):
+                return True, f"Used .{method}()."
+        receiver = f"{target}." if target else ""
+        extra = ""
+        if min_args_n is not None:
+            extra = f" with at least {min_args_n} argument(s)"
+        return False, custom or f"Call {receiver}{method}(){extra}."
+
+    if feature == "function_signature":
+        func_name = str(test.get("name") or "")
+        parameters = list(test.get("parameters") or [])
+        defaults_map = dict(test.get("defaults") or {})
+        if not func_name:
+            return False, custom or "Define the required function."
+
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            if node.name != func_name:
+                continue
+            args = node.args
+            if args.vararg is not None or args.kwarg is not None:
+                return False, custom or (
+                    f"Define {func_name}({', '.join(parameters)}) with named parameters "
+                    "(not *args)."
+                )
+            if args.posonlyargs or args.kwonlyargs:
+                return False, custom or (
+                    f"Define {func_name}({', '.join(parameters)}) with the required "
+                    "positional parameters."
+                )
+            declared = [arg.arg for arg in args.args]
+            if declared != parameters:
+                return False, custom or (
+                    f"Define {func_name}({', '.join(parameters)})."
+                )
+            # defaults apply to the last N positional parameters
+            default_nodes = list(args.defaults)
+            defaulted_names = declared[len(declared) - len(default_nodes) :]
+            actual_defaults: dict[str, Any] = {}
+            for name, default_node in zip(defaulted_names, default_nodes):
+                try:
+                    actual_defaults[name] = ast.literal_eval(default_node)
+                except Exception:  # noqa: BLE001
+                    return False, custom or (
+                        f"Define {func_name} with literal default values in the signature."
+                    )
+            for key, expected_default in defaults_map.items():
+                if key not in actual_defaults:
+                    return False, custom or (
+                        f"Declare default parameter {key}={expected_default!r} "
+                        f"in the {func_name} signature."
+                    )
+                if actual_defaults[key] != expected_default:
+                    return False, custom or (
+                        f"Define {func_name} with {key}={expected_default!r}."
+                    )
+            # Reject unexpected defaults when a defaults map is provided.
+            if defaults_map:
+                for key in actual_defaults:
+                    if key not in defaults_map:
+                        return False, custom or (
+                            f"Define {func_name}({', '.join(parameters)}) with only "
+                            "the required defaults."
+                        )
+            return True, f"Defined {func_name} with the required signature."
+        return False, custom or f"Define a function named {func_name}."
+
     if feature == "elif_branch":
         # Prefer a real elif token so an indented else: if does not count.
         if in_function:
@@ -581,6 +710,19 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
                             return True, f"Called {want}() inside the loop."
             return False, custom or (
                 f"Call {want}() from inside the for loop body "
+                "(a call elsewhere is not enough)."
+            )
+
+        if inside == "while_loop":
+            for node in nodes:
+                if not isinstance(node, ast.While):
+                    continue
+                for stmt in node.body:
+                    for child in ast.walk(stmt):
+                        if _is_wanted_call(child):
+                            return True, f"Called {want}() inside the while loop."
+            return False, custom or (
+                f"Call {want}() from inside the while loop body "
                 "(a call elsewhere is not enough)."
             )
 

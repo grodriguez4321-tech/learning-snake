@@ -47,6 +47,12 @@ class TestCase:
     in_function: Optional[str] = None
     # source_uses: further scope (e.g. calls_name inside "for_loop")
     inside: Optional[str] = None
+    # source_uses method_call: method name, optional min positional args
+    method: Optional[str] = None
+    min_args: Optional[int] = None
+    # source_uses function_signature: ordered parameter names and literal defaults
+    parameters: list[str] = field(default_factory=list)
+    defaults: dict[str, Any] = field(default_factory=dict)
     # function: optional post-call argument expectations (mutation checks)
     arg_after: Optional[dict[str, Any]] = None
     return_shares_arg: Optional[int] = None
@@ -121,6 +127,12 @@ def test_case_from_dict(data: dict[str, Any]) -> TestCase:
         ops=list(data.get("ops", [])),
         in_function=data.get("in_function"),
         inside=data.get("inside"),
+        method=data.get("method"),
+        min_args=(
+            int(data["min_args"]) if data.get("min_args") is not None else None
+        ),
+        parameters=list(data.get("parameters", [])),
+        defaults=dict(data.get("defaults", {})),
         arg_after=(
             dict(data["arg_after"])
             if isinstance(data.get("arg_after"), dict)

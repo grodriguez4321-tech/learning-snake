@@ -18,8 +18,14 @@ from earlier releases are preserved.
 Boolean logic, `len`/`range`, list methods, and dictionaries, ending in a
 capstone that builds a structured expedition record.
 
-Later curriculum batches (nested data, parsing, classes, and beyond) remain
-deferred as described in `docs/phase2-curriculum-plan.md`.
+**Lessons 14–18** — Expedition Dispatch. Dictionary iteration and `.get`,
+`while` loops, multiple parameters, defaults/keywords, and returning fresh
+lists/dictionaries (Dispatch System v1). Catalog size after this batch:
+18 lessons / 79 exercises.
+
+Later curriculum batches (nested data, scope, strings/errors, references,
+classes, and beyond) remain deferred as described in
+`docs/phase2-curriculum-plan.md` and `docs/basilisk-master-curriculum-roadmap.md`.
 
 ## How to run
 

@@ -1,0 +1,310 @@
+{
+  "id": "functions_16_parameters",
+  "section": "Expedition Dispatch — Functions",
+  "section_order": 8,
+  "order": 1,
+  "title": "Give a Function the Full Situation",
+  "topics": [
+    "functions"
+  ],
+  "content": "What problem does this solve?\nOne parameter is enough for a single clue. Dispatch decisions often need several facts at once: a destination and a status, a price and a quantity, or a party, supplies, and a warning flag. Multiple parameters let the call site hand over the whole situation without leaning on global variables.\n\nPreviously in your program\nYou wrote functions like inspect_clue(clue) and antidote_count(stock) with one input. Now the parameter list can describe every value the decision needs.\n\nBasic syntax\n  def route_label(destination, status):\n      return f\"{destination}: {status}\"\n\n  print(route_label(\"Gloamfen\", \"Review\"))\n\nWhat actually happens\nParameters bind by position unless you later use keyword arguments. In route_label(\"Gloamfen\", \"Review\"), destination receives \"Gloamfen\" and status receives \"Review\". Swap the arguments and the meaning swaps too. A function can also receive lists as parameters and work from those values instead of hidden globals.\n\nWhen this is useful\nAdd another parameter when the function needs another independent fact to decide or build its result.",
+  "concepts": [
+    "A function can declare multiple parameters",
+    "Positional arguments bind in order to those parameters",
+    "Argument order matters for meaning",
+    "Collection parameters let a function work without global data"
+  ],
+  "examples": [
+    {
+      "title": "Two inputs, one label",
+      "code": "def route_label(destination, status):\n    return f\"{destination}: {status}\"\n\nprint(route_label(\"Gloamfen\", \"Review\"))",
+      "explanation": "The first argument fills destination; the second fills status."
+    },
+    {
+      "title": "Lists as parameters",
+      "code": "def party_size(party):\n    return len(party)\n\nprint(party_size([\"Mara\", \"Tovin\"]))",
+      "explanation": "The list arrives through the parameter. The function does not need a global party variable."
+    }
+  ],
+  "common_mistakes": [
+    "Swapping arguments at the call site so names and roles trade places",
+    "Trying to fake multiple inputs with *args when named parameters are the objective",
+    "Hardcoding a return value instead of using every parameter",
+    "Relying on global lists when the function should receive them as parameters"
+  ],
+  "exercises": [
+    {
+      "id": "functions_16_ex1",
+      "type": "predict_output",
+      "title": "Two inputs bind in order",
+      "prompt": "What does this print?",
+      "code_to_predict": "def route_label(destination, status):\n    return f\"{destination}: {status}\"\n\nprint(route_label(\"Gloamfen\", \"Review\"))",
+      "expected_answer": "Gloamfen: Review",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "Match arguments to parameters left to right.",
+        "destination becomes Gloamfen; status becomes Review.",
+        "The returned string is Gloamfen: Review."
+      ]
+    },
+    {
+      "id": "functions_16_ex2",
+      "type": "fill_blank",
+      "title": "Name both parameters",
+      "prompt": "Fill in the parameter list so supply_cost can multiply price by quantity when called as supply_cost(5, 3).",
+      "starter_code": "def supply_cost(____):\n    return price * quantity\n\nprint(supply_cost(5, 3))\n",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "The body uses two names: price and quantity.",
+        "Those names must appear in the def header.",
+        "Write def supply_cost(price, quantity):"
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "supply_cost",
+          "parameters": [
+            "price",
+            "quantity"
+          ],
+          "message": "Define supply_cost(price, quantity)."
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "15\n"
+        },
+        {
+          "kind": "function",
+          "function": "supply_cost",
+          "args": [
+            4,
+            2
+          ],
+          "expected": 8,
+          "message": "supply_cost must multiply its two parameters."
+        }
+      ]
+    },
+    {
+      "id": "functions_16_ex3",
+      "type": "debug",
+      "title": "Swapped at the call site",
+      "prompt": "The function is fine, but the call passes role and name in the wrong order. Fix the call so it prints Mira — Scout.",
+      "starter_code": "def badge(name, role):\n    return f\"{name} — {role}\"\n\nprint(badge(\"Scout\", \"Mira\"))\n",
+      "topics": [
+        "functions",
+        "debugging"
+      ],
+      "hints": [
+        "Parameters bind by position.",
+        "name should receive Mira; role should receive Scout.",
+        "Call badge(\"Mira\", \"Scout\")."
+      ],
+      "tests": [
+        {
+          "kind": "stdout_equals",
+          "expected": "Mira — Scout\n"
+        },
+        {
+          "kind": "function",
+          "function": "badge",
+          "args": [
+            "Aria",
+            "Guide"
+          ],
+          "expected": "Aria — Guide",
+          "message": "Keep badge(name, role) working for other inputs."
+        }
+      ]
+    },
+    {
+      "id": "functions_16_ex4",
+      "type": "write_code",
+      "title": "Carry capacity",
+      "prompt": "Write carry_capacity(base_slots, bonus_slots) that returns the sum of the two values. Accept ordinary totals, zero bonuses, and negative adjustments.",
+      "starter_code": "def carry_capacity(base_slots, bonus_slots):\n    # Return the combined slot count.\n    pass\n",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "Both inputs are numbers the caller provides.",
+        "Combine them with addition (or an equivalent calculation).",
+        "return base_slots + bonus_slots"
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "carry_capacity",
+          "parameters": [
+            "base_slots",
+            "bonus_slots"
+          ],
+          "message": "Define carry_capacity(base_slots, bonus_slots)."
+        },
+        {
+          "kind": "function",
+          "function": "carry_capacity",
+          "args": [
+            8,
+            2
+          ],
+          "expected": 10,
+          "message": "carry_capacity(8, 2) should return 10."
+        },
+        {
+          "kind": "function",
+          "function": "carry_capacity",
+          "args": [
+            5,
+            0
+          ],
+          "expected": 5,
+          "message": "A zero bonus should leave the base unchanged."
+        },
+        {
+          "kind": "function",
+          "function": "carry_capacity",
+          "args": [
+            10,
+            -3
+          ],
+          "expected": 7,
+          "message": "Negative adjustments must reduce the total."
+        },
+        {
+          "kind": "function",
+          "function": "carry_capacity",
+          "args": [
+            0,
+            4
+          ],
+          "expected": 4,
+          "message": "carry_capacity(0, 4) should return 4."
+        }
+      ]
+    },
+    {
+      "id": "functions_16_ex5",
+      "type": "mini_project",
+      "title": "Dispatch status",
+      "prompt": "Write dispatch_status(party, supplies, warning_active) that returns:\n- \"Denied\" when warning_active is True or party is empty\n- otherwise \"Ready\" when supplies has at least two items per party member\n- otherwise \"Review\"\n\nUse the three parameters to make the whole decision. Do not print.",
+      "starter_code": "def dispatch_status(party, supplies, warning_active):\n    # Return Denied, Ready, or Review for this dispatch.\n    pass\n",
+      "topics": [
+        "functions",
+        "conditionals"
+      ],
+      "success_message": "Status decided from the full situation — party, supplies, and warning together.",
+      "hints": [
+        "Check denial conditions first: an active warning or an empty party.",
+        "Ready means len(supplies) is at least twice len(party).",
+        "Use if / elif / else (or equivalent) and return one of the three strings."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "dispatch_status",
+          "parameters": [
+            "party",
+            "supplies",
+            "warning_active"
+          ],
+          "message": "Define dispatch_status(party, supplies, warning_active)."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "len_call",
+          "in_function": "dispatch_status",
+          "message": "Use len(...) inside dispatch_status when measuring party or supplies."
+        },
+        {
+          "kind": "function",
+          "function": "dispatch_status",
+          "args": [
+            [],
+            [],
+            false
+          ],
+          "expected": "Denied",
+          "message": "An empty party must be Denied."
+        },
+        {
+          "kind": "function",
+          "function": "dispatch_status",
+          "args": [
+            [
+              "Mara"
+            ],
+            [
+              "rope",
+              "torch"
+            ],
+            false
+          ],
+          "expected": "Ready",
+          "message": "One member with two supplies should be Ready."
+        },
+        {
+          "kind": "function",
+          "function": "dispatch_status",
+          "args": [
+            [
+              "Mara",
+              "Tovin"
+            ],
+            [
+              "rope",
+              "torch",
+              "map"
+            ],
+            false
+          ],
+          "expected": "Review",
+          "message": "Two members with only three supplies should be Review."
+        },
+        {
+          "kind": "function",
+          "function": "dispatch_status",
+          "args": [
+            [
+              "Mara"
+            ],
+            [
+              "rope",
+              "torch",
+              "map"
+            ],
+            true
+          ],
+          "expected": "Denied",
+          "message": "An active warning must Deny even when supplies look fine."
+        },
+        {
+          "kind": "function",
+          "function": "dispatch_status",
+          "args": [
+            [
+              "Mara",
+              "Tovin"
+            ],
+            [
+              "rope",
+              "torch",
+              "map",
+              "chalk"
+            ],
+            false
+          ],
+          "expected": "Ready",
+          "message": "Two members with four supplies should be Ready."
+        }
+      ]
+    }
+  ]
+}
