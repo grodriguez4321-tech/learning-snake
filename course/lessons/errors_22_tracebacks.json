@@ -1,0 +1,186 @@
+{
+  "id": "errors_22_tracebacks",
+  "section": "Realistic Data and Debugging",
+  "section_order": 9,
+  "order": 4,
+  "title": "Read the Last Line First",
+  "topics": ["errors"],
+  "content": "What problem does this solve?\nPrograms fail in two broad ways: syntax errors (found before running) and runtime errors (found while running). A traceback reports where and why a runtime error happened. Read the final line first for the error type and message, then move upward to your code. Change one likely cause and run again — a new error is new evidence.\n\nPreviously in your program\nYou fixed logic by reading output. Now you will use error types and messages as evidence when a program stops with a traceback.\n\nBasic syntax\n  # TypeError: can only concatenate str (not \"int\") to str\n  item = \"rope\"\n  count = 2\n  label = item + \": \" + count\n\nWhat actually happens\nA NameError means a variable name was never bound. A TypeError often means incompatible types are being combined. IndexError and KeyError come from selecting a missing position or key. A SyntaxError appears before code runs.\n\nWhen this is useful\nUse the error type and the referenced line to focus your inspection. Fix one problem at a time; the next run gives you the next clue.",
+  "concepts": [
+    "Read the final traceback line first",
+    "Name the error type and translate its message",
+    "Move upward to your code and inspect those values",
+    "Fix one cause and run again — new error, new evidence",
+    "SyntaxError appears before the program runs"
+  ],
+  "examples": [
+    {
+      "title": "Combine a string and integer",
+      "code": "item = \"rope\"\ncount = 2\nlabel = item + \": \" + count",
+      "explanation": "This raises TypeError: can only concatenate str (not \"int\") to str. Converting count or using an f-string fixes it."
+    }
+  ],
+  "common_mistakes": [
+    "Starting at the top of the traceback instead of the final error line",
+    "Changing many things at once and losing track of what changed the behavior",
+    "Deleting code to hide the error instead of fixing the cause"
+  ],
+  "exercises": [
+    {
+      "id": "errors_22_ex1",
+      "type": "architecture",
+      "title": "Where do you start?",
+      "prompt": "A short traceback ends in TypeError from combining a string and an integer. What is the best first step?",
+      "choices": [
+        "Read the final line for the error type/message, then inspect the referenced learner line.",
+        "Start at the first traceback line and rewrite every function shown.",
+        "Delete the failing line until the program stops reporting errors."
+      ],
+      "expected_answer": "1",
+      "topics": ["errors"],
+      "success_message": "Correct — read the final line first, then inspect the values used on your line.",
+      "failure_message": "Use the final error line as evidence. Inspect the values on the referenced learner line and change one likely cause.",
+      "hints": [
+        "The final line names the error type and message.",
+        "The referenced line is where your inspection should start.",
+        "Change one likely cause; a new error is new evidence."
+      ]
+    },
+    {
+      "id": "errors_22_ex2",
+      "type": "debug",
+      "title": "Syntax stops execution",
+      "prompt": "Fix the missing colon so the function runs.",
+      "starter_code": "def route_status(ready):\n    if ready\n        return \"Ready\"\n    return \"Review\"\n",
+      "topics": ["errors", "debugging"],
+      "hints": [
+        "SyntaxError means Python could not parse the code.",
+        "Add the missing colon after the if condition.",
+        "Do not change the function's behavior."
+      ],
+      "tests": [
+        {
+          "kind": "function",
+          "function": "route_status",
+          "args": [true],
+          "expected": "Ready",
+          "message": "route_status(True) should return \"Ready\"."
+        },
+        {
+          "kind": "function",
+          "function": "route_status",
+          "args": [false],
+          "expected": "Review",
+          "message": "route_status(False) should return \"Review\"."
+        }
+      ]
+    },
+    {
+      "id": "errors_22_ex3",
+      "type": "debug",
+      "title": "Follow the misspelled name",
+      "prompt": "Fix the misspelled local name so both fields are read from the same member dictionary.",
+      "starter_code": "def member_label(member):\n    return f\"{memeber['name']}: {member['role']}\"\n",
+      "topics": ["errors", "debugging"],
+      "hints": [
+        "NameError points to an unbound variable name.",
+        "Use the same parameter name on both sides.",
+        "Both fields come from the member dictionary."
+      ],
+      "tests": [
+        {
+          "kind": "function",
+          "function": "member_label",
+          "args": [{"name": "Mira", "role": "Scout"}],
+          "expected": "Mira: Scout",
+          "message": "Use the provided dictionary's name and role."
+        },
+        {
+          "kind": "function",
+          "function": "member_label",
+          "args": [{"name": "Rook", "role": "Guard"}],
+          "expected": "Rook: Guard",
+          "message": "Do not hardcode names or roles."
+        },
+        {
+          "kind": "function",
+          "function": "member_label",
+          "args": [{"name": "Selene", "role": "Scholar"}],
+          "expected": "Selene: Scholar",
+          "message": "Your fix must work for multiple records."
+        }
+      ]
+    },
+    {
+      "id": "errors_22_ex4",
+      "type": "debug",
+      "title": "Convert the value for display",
+      "prompt": "Fix the TypeError by converting the count to text (f-string or str(count)).",
+      "starter_code": "def supply_label(item, count):\n    return item + \": \" + count\n",
+      "topics": ["errors", "debugging"],
+      "hints": [
+        "You cannot concatenate a string and an integer directly.",
+        "Use an f-string or convert count to text with str(count).",
+        "Return the label string."
+      ],
+      "tests": [
+        {
+          "kind": "function",
+          "function": "supply_label",
+          "args": ["rope", 2],
+          "expected": "rope: 2",
+          "message": "supply_label(\"rope\", 2) should return \"rope: 2\"."
+        },
+        {
+          "kind": "function",
+          "function": "supply_label",
+          "args": ["torch", 0],
+          "expected": "torch: 0",
+          "message": "Zero should be shown as 0."
+        },
+        {
+          "kind": "function",
+          "function": "supply_label",
+          "args": ["map", 5],
+          "expected": "map: 5",
+          "message": "Do not hardcode — format the provided values."
+        }
+      ]
+    },
+    {
+      "id": "errors_22_ex5",
+      "type": "debug",
+      "title": "One error at a time",
+      "prompt": "The first run raises IndexError. Correcting that reveals KeyError. Repair both so the function returns the second member's \"health\".",
+      "starter_code": "def second_health(party):\n    return party[2][\"hp\"]\n\nparty = [\n    {\"name\": \"Mira\", \"health\": 8},\n    {\"name\": \"Rook\", \"health\": 10},\n]\n\nprint(second_health(party))\n",
+      "topics": ["errors", "debugging"],
+      "hints": [
+        "Index 2 is the third element; the second member is at index 1.",
+        "The key for health is \"health\", not \"hp\".",
+        "Fix one cause and run again to see the next clue."
+      ],
+      "tests": [
+        {
+          "kind": "stdout_equals",
+          "expected": "10\n",
+          "message": "After the repairs, the demonstration should print 10."
+        },
+        {
+          "kind": "function",
+          "function": "second_health",
+          "args": [[{"name": "Aria", "health": 3}, {"name": "Tovin", "health": 7}]],
+          "expected": 7,
+          "message": "Return the second member's health for a different two-member party."
+        },
+        {
+          "kind": "function",
+          "function": "second_health",
+          "args": [[{"name": "A", "health": 1}, {"name": "B", "health": 2}, {"name": "C", "health": 99}]],
+          "expected": 2,
+          "message": "Even in a longer party, still select index 1."
+        }
+      ]
+    }
+  ]
+}
+
