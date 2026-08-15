@@ -534,6 +534,218 @@ class Lessons1418GradingTests(unittest.TestCase):
             )
             self.assertTrue(result.message.strip(), exercise_id)
 
+    def test_issue22_semantic_live_path_bypasses_fail(self) -> None:
+        """Deceptive submissions from the Issue #22 semantic re-review must fail."""
+        cases = [
+            (
+                "collections_14_dict_iteration",
+                "collections_14_ex2",
+                (
+                    'stock = {"rope": 2, "torch": 1}\n'
+                    "for item, count in stock.items():\n"
+                    "    if False:\n"
+                    '        print(f"{item}: {count}")\n'
+                    'print("rope: 2")\n'
+                    'print("torch: 1")\n'
+                ),
+            ),
+            (
+                "collections_14_dict_iteration",
+                "collections_14_ex4",
+                (
+                    "def antidote_count(stock):\n"
+                    '    count = stock.get("antidote", 0)\n'
+                    '    count = stock["antidote"] if "antidote" in stock else 0\n'
+                    "    return count\n"
+                ),
+            ),
+            (
+                "collections_14_dict_iteration",
+                "collections_14_ex5",
+                (
+                    "def field_ledger(stock):\n"
+                    "    lines = []\n"
+                    "    scratch = []\n"
+                    "    for item, count in stock.items():\n"
+                    "        scratch.append(count)\n"
+                    "    for item in stock:\n"
+                    '        lines.append(f"{item}: {stock[item]}")\n'
+                    '    if stock.get("antidote", 0) > 0:\n'
+                    '        scratch.append("ready")\n'
+                    "    else:\n"
+                    '        scratch.append("missing")\n'
+                    '    if "antidote" in stock and stock["antidote"] > 0:\n'
+                    '        lines.append("Antidote ready")\n'
+                    "    else:\n"
+                    '        lines.append("Antidote missing")\n'
+                    "    return lines\n"
+                ),
+            ),
+            (
+                "collections_15_while",
+                "collections_15_ex2",
+                (
+                    "steps = 3\n"
+                    "distance = 3\n"
+                    "while distance > 0 and False:\n"
+                    "    distance -= 1\n"
+                    "print(steps)\n"
+                ),
+            ),
+            (
+                "collections_15_while",
+                "collections_15_ex2",
+                (
+                    "steps = 0\n"
+                    "distance = 3\n"
+                    "while distance > 0:\n"
+                    "    steps += 1\n"
+                    "    distance -= 1\n"
+                    "steps = 1 + 2\n"
+                    "print(steps)\n"
+                ),
+            ),
+            (
+                "collections_15_while",
+                "collections_15_ex3",
+                (
+                    "signal = 3\n"
+                    "while signal > 0 and False:\n"
+                    "    print(signal)\n"
+                    "    signal -= 1\n"
+                    "print(3)\n"
+                    "print(2)\n"
+                    "print(1)\n"
+                    'print("clear")\n'
+                ),
+            ),
+            (
+                "collections_15_while",
+                "collections_15_ex5",
+                (
+                    "totaler = sum\n"
+                    "\n"
+                    "def trail_total(distances):\n"
+                    "    index = 0\n"
+                    "    total = 0\n"
+                    "    while index >= 0 and False:\n"
+                    "        total += distances[index]\n"
+                    "        index += 1\n"
+                    "    len(distances)\n"
+                    "    return totaler(distances)\n"
+                ),
+            ),
+            (
+                "collections_15_while",
+                "collections_15_ex5",
+                (
+                    "def trail_total(distances):\n"
+                    "    index = 0\n"
+                    "    total = 0\n"
+                    "    while index >= 0 and False:\n"
+                    "        total += distances[index]\n"
+                    "        index += 1\n"
+                    "    len(distances)\n"
+                    "    if not distances:\n"
+                    "        return 0\n"
+                    "    return distances[0] + trail_total(distances[1:])\n"
+                ),
+            ),
+            (
+                "collections_15_while",
+                "collections_15_ex5",
+                (
+                    "totaler = sum\n"
+                    "\n"
+                    "def trail_total(distances):\n"
+                    "    index = 0\n"
+                    "    total = 0\n"
+                    "    while index < len(distances):\n"
+                    "        total += distances[index]\n"
+                    "        index += 1\n"
+                    "    return totaler(distances)\n"
+                ),
+            ),
+            (
+                "collections_15_while",
+                "collections_15_ex5",
+                (
+                    "def trail_total(distances):\n"
+                    "    index = 0\n"
+                    "    total = 0\n"
+                    "    while index < len(distances):\n"
+                    "        total += distances[index]\n"
+                    "        index += 1\n"
+                    "    if not distances:\n"
+                    "        return 0\n"
+                    "    return distances[0] + trail_total(distances[1:])\n"
+                ),
+            ),
+        ]
+        for lesson_id, exercise_id, code in cases:
+            exercise = self._exercise(lesson_id, exercise_id)
+            result = self.checker.check(exercise, code=code)
+            self.assertFalse(
+                result.passed,
+                f"{exercise_id} unexpectedly passed: {result.message}",
+            )
+            self.assertTrue(result.message.strip(), exercise_id)
+
+    def test_issue22_semantic_correct_alternatives_pass(self) -> None:
+        """Behaviorally correct alternatives must still pass after live-path hardening."""
+        cases = [
+            (
+                "collections_14_dict_iteration",
+                "collections_14_ex5",
+                (
+                    "def field_ledger(stock):\n"
+                    "    lines = []\n"
+                    "    for item, count in stock.items():\n"
+                    '        lines.append(f"{item}: {count}")\n'
+                    '    if stock.get("antidote", 0) > 0:\n'
+                    '        status = "Antidote ready"\n'
+                    "    else:\n"
+                    '        status = "Antidote missing"\n'
+                    "    lines.append(status)\n"
+                    "    return lines\n"
+                ),
+            ),
+            (
+                "collections_15_while",
+                "collections_15_ex2",
+                (
+                    "steps = 0\n"
+                    "distance = 3\n"
+                    "if distance > 0:\n"
+                    "    while distance > 0:\n"
+                    "        steps += 1\n"
+                    "        distance -= 1\n"
+                    "print(steps)\n"
+                ),
+            ),
+            (
+                "collections_15_while",
+                "collections_15_ex5",
+                (
+                    "def trail_total(distances):\n"
+                    "    index = 0\n"
+                    "    total = 0\n"
+                    "    if distances:\n"
+                    "        while index < len(distances):\n"
+                    "            total += distances[index]\n"
+                    "            index += 1\n"
+                    "    return total\n"
+                ),
+            ),
+        ]
+        for lesson_id, exercise_id, code in cases:
+            exercise = self._exercise(lesson_id, exercise_id)
+            result = self.checker.check(exercise, code=code)
+            self.assertTrue(
+                result.passed,
+                f"{exercise_id} unexpectedly failed: {result.message}",
+            )
+
     def test_dispatch_status_accepts_loop_counting_without_len(self) -> None:
         exercise = self._exercise("functions_16_parameters", "functions_16_ex5")
         loop_only = (

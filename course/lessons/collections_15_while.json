@@ -203,6 +203,12 @@
         },
         {
           "kind": "source_uses",
+          "feature": "no_self_call",
+          "in_function": "trail_total",
+          "message": "Do not call trail_total from inside itself — accumulate with your while loop."
+        },
+        {
+          "kind": "source_uses",
           "feature": "rebind_self",
           "name": "total",
           "inside": "while_loop",

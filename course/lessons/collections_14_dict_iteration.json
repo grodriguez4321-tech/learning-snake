@@ -230,7 +230,7 @@
           "arg_equals": {
             "0": "antidote"
           },
-          "contributes": "branching_append"
+          "contributes": "antidote_status"
         },
         {
           "kind": "source_uses",
