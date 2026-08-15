@@ -63,7 +63,7 @@
         {
           "kind": "stdout_equals",
           "expected": "Mira\n",
-          "message": "Read the name from the first party record: dispatch[\"party\"][0][\"name\"], not a top-level \"name\"."
+          "message": "Read the name from the first party record, not the outer dispatch dictionary."
         }
       ]
     },
@@ -100,6 +100,13 @@
         "Return the final total."
       ],
       "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "total_party_health",
+          "parameters": ["party"],
+          "message": "Define total_party_health(party) with exactly one parameter."
+        },
         {
           "kind": "source_uses",
           "feature": "for_loop",
@@ -149,6 +156,13 @@
         "Append each formatted line to a list and return it."
       ],
       "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "numbered_roster",
+          "parameters": ["party"],
+          "message": "Define numbered_roster(party) with exactly one parameter."
+        },
         {
           "kind": "source_uses",
           "feature": "calls_name",

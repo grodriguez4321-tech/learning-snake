@@ -14,9 +14,9 @@
   ],
   "examples": [
     {
-      "title": "Boundary before general case",
-      "code": "def tier(score):\n    if score >= 80:\n        return \"Elite\"\n    elif score >= 50:\n        return \"Ready\"\n    return \"Hold\"",
-      "explanation": "Order matters — test the more specific Elite boundary before the general Ready case."
+      "title": "Check the tighter boundary first",
+      "code": "def rating(points):\n    if points >= 90:\n        return \"Gold\"\n    elif points >= 60:\n        return \"Silver\"\n    return \"Bronze\"",
+      "explanation": "Order matters — a more specific boundary must be tested before a more general one."
     }
   ],
   "common_mistakes": [
@@ -173,6 +173,13 @@
           "feature": "for_loop",
           "in_function": "expedition_report",
           "message": "Keep a for loop in expedition_report and compute totals there."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "expedition_report",
+          "parameters": ["party"],
+          "message": "Define expedition_report(party) with exactly one parameter."
         },
         {
           "kind": "function",

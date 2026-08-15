@@ -14,9 +14,9 @@
   ],
   "examples": [
     {
-      "title": "Normalize one direction",
-      "code": "command = \"  NORTH  \"\ncleaned = command.strip().lower()\nprint(cleaned)",
-      "explanation": "The printed value is north; command itself is unchanged."
+      "title": "Normalize one command",
+      "code": "command = \"   WEST   \"\ncleaned = command.strip().lower()\nprint(cleaned)",
+      "explanation": "Method calls return a new, cleaned string; the original name still refers to the unmodified text."
     }
   ],
   "common_mistakes": [
@@ -92,6 +92,13 @@
         "Return the final string."
       ],
       "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "normalize_username",
+          "parameters": ["text"],
+          "message": "Define normalize_username(text) with exactly one parameter."
+        },
         {
           "kind": "source_uses",
           "feature": "method_call",

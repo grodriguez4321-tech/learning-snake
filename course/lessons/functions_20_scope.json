@@ -15,9 +15,9 @@
   ],
   "examples": [
     {
-      "title": "Local assignment does not change the outer name",
-      "code": "status = \"waiting\"\n\ndef prepare():\n    status = \"ready\"\n    return status\n\nprepare()\nprint(status)",
-      "explanation": "status inside prepare is local; the outer status remains \"waiting\"."
+      "title": "Return value versus outer name",
+      "code": "state = \"queued\"\n\ndef mark_ready(current):\n    current = \"ready\"\n    return current\n\nprint(mark_ready(state))\nprint(state)",
+      "explanation": "The function returns a new value while the outer name keeps its original text."
     }
   ],
   "common_mistakes": [

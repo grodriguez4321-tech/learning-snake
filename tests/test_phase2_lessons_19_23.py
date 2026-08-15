@@ -93,6 +93,29 @@ class Lessons1923CatalogTests(unittest.TestCase):
                         missing.append(f"{exercise.id}:{test.kind}")
         self.assertEqual(missing, [])
 
+    def test_examples_do_not_duplicate_prediction_code_or_disclose_known_solution(self) -> None:
+        for lesson_id in BATCH_IDS:
+            lesson = self.catalog.get(lesson_id)
+            assert lesson is not None
+            example_blobs = [ex.code for ex in lesson.examples]
+            for exercise in lesson.exercises:
+                if exercise.type == "predict_output":
+                    for blob in example_blobs:
+                        self.assertNotEqual(
+                            blob.strip(), exercise.code_to_predict.strip(), f"{lesson_id} duplicates predict code"
+                        )
+                        self.assertNotIn(
+                            exercise.code_to_predict.strip(),
+                            blob,
+                            f"{lesson_id} embeds predict code inside example",
+                        )
+        # Lesson 23 example must not reveal the repaired signal_level solution
+        l23 = self.catalog.get("errors_23_logic_debugging")
+        assert l23 is not None
+        text = "\n".join(ex.code for ex in l23.examples)
+        self.assertNotIn("def signal_level(", text)
+        self.assertFalse(">=" in text and "80" in text and "50" in text and "Elite" in text and "Ready" in text)
+
 
 class Lessons1923GradingTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -159,6 +182,40 @@ class Lessons1923GradingTests(unittest.TestCase):
         self.assertTrue(chain.passed, chain.message)
         # Parse variants
         self.assertTrue(self.checker.check(parse, code=SOLUTIONS[parse.id]["code"]).passed)
+
+    def test_required_function_signatures_and_methods_are_enforced(self) -> None:
+        lesson = self.catalog.get("strings_21_methods")
+        assert lesson is not None
+        ex4 = next(ex for ex in lesson.exercises if ex.id == "strings_21_ex4")
+        sig_tests = [t for t in ex4.tests if t.kind == "source_uses" and t.feature == "function_signature"]
+        self.assertTrue(any(t.name == "normalize_username" and t.parameters == ["text"] for t in sig_tests))
+        ex5 = next(ex for ex in lesson.exercises if ex.id == "strings_21_ex5")
+        methods = [t for t in ex5.tests if t.kind == "source_uses" and t.feature == "method_call"]
+        names = {t.method for t in methods}
+        self.assertTrue({"split", "strip", "lower"} <= names)
+
+    def test_deferred_syntax_absent_in_new_lessons_and_solutions(self) -> None:
+        import re
+        comp_list = re.compile(r"\\[[^\\]]*\\bfor\\b[^\\]]*\\]")
+        comp_dict = re.compile(r"\\{[^\\}]*\\bfor\\b[^\\}]*\\}")
+        # Lesson examples/starters
+        for lesson_id in BATCH_IDS:
+            lesson = self.catalog.get(lesson_id)
+            assert lesson is not None
+            for example in lesson.examples:
+                self.assertIsNone(comp_list.search(example.code))
+                self.assertIsNone(comp_dict.search(example.code))
+            for exercise in lesson.exercises:
+                if exercise.starter_code:
+                    self.assertIsNone(comp_list.search(exercise.starter_code))
+                    self.assertIsNone(comp_dict.search(exercise.starter_code))
+        # Recorded solutions for this batch
+        batch_ex_ids = [ex.id for lid in BATCH_IDS for ex in self.catalog.get(lid).exercises]  # type: ignore[union-attr]
+        for ex_id in batch_ex_ids:
+            code = SOLUTIONS.get(ex_id, {}).get("code", "")
+            if code:
+                self.assertIsNone(comp_list.search(code), ex_id)
+                self.assertIsNone(comp_dict.search(code), ex_id)
 
     def test_broken_starters_raise_intended_error_families(self) -> None:
         # Lesson 22 debug starters: SyntaxError, NameError, TypeError, IndexError/KeyError progression

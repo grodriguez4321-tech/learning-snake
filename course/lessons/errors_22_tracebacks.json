@@ -144,6 +144,13 @@
           "args": ["map", 5],
           "expected": "map: 5",
           "message": "Do not hardcode — format the provided values."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "supply_label",
+          "parameters": ["item", "count"],
+          "message": "Define supply_label(item, count) with exactly two parameters."
         }
       ]
     },
