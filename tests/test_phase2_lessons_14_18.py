@@ -259,13 +259,12 @@ class Lessons1418CatalogTests(unittest.TestCase):
 
     def test_catalog_order_and_counts(self) -> None:
         ids = [lesson.id for lesson in self.catalog.lessons]
-        self.assertEqual(ids, EXPECTED_CATALOG_IDS)
-        self.assertEqual(len(self.catalog.lessons), 18)
-        exercise_ids = [
-            exercise.id
-            for lesson in self.catalog.lessons
-            for exercise in lesson.exercises
-        ]
+        # Preserve exact order for the first 18 lessons; later lessons may exist.
+        self.assertGreaterEqual(len(ids), 18)
+        self.assertEqual(ids[:18], EXPECTED_CATALOG_IDS)
+        # Count only the first 18 lessons here (batch 14–18 regression scope).
+        first_eighteen = self.catalog.lessons[:18]
+        exercise_ids = [ex.id for lesson in first_eighteen for ex in lesson.exercises]
         self.assertEqual(len(exercise_ids), 79)
         self.assertEqual(len(exercise_ids), len(set(exercise_ids)))
 
