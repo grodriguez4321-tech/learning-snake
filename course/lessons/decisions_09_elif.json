@@ -1,0 +1,125 @@
+{
+  "id": "decisions_09_elif",
+  "section": "Making Decisions",
+  "section_order": 5,
+  "order": 2,
+  "title": "More Than Two Paths",
+  "topics": ["conditionals"],
+  "content": "What problem does this solve?\nA single if can answer one yes-or-no question. The intake desk for the Gloamfen route has three possible outcomes, but the expedition must receive exactly one of them.\n\nBasic syntax\n  if supplies >= 10:\n      status = \"Cleared\"\n  elif supplies >= 5:\n      status = \"Review\"\n  else:\n      status = \"Denied\"\n\nWhat actually happens\nelif means \"otherwise, test this next.\" Python checks conditions top to bottom. The first true branch runs, then the rest of the chain is skipped. With supplies equal to 8, both \"not enough for clearance\" and \"at least 5\" feel relevant, but Python stops at the first matching branch.\n\nOrder matters\nIf you put a broad threshold before a stricter one, the stricter branch may never run. Separate if statements can all fire; an if/elif/else chain picks exactly one outcome.\n\nWhen this is useful\nUse elif when several tiers are possible and the program must assign exactly one result.",
+  "concepts": [
+    "elif adds another test after if fails",
+    "Only the first true branch in an if/elif/else chain runs",
+    "Put stricter thresholds before broader ones"
+  ],
+  "examples": [
+    {
+      "title": "Supply readiness",
+      "code": "supplies = 8\nif supplies >= 10:\n    status = \"Cleared\"\nelif supplies >= 5:\n    status = \"Review\"\nelse:\n    status = \"Denied\"\nprint(status)",
+      "explanation": "8 fails >= 10, then matches >= 5, so Review is chosen and the else is skipped."
+    }
+  ],
+  "common_mistakes": [
+    "Writing else supplies < 5: instead of a bare else:",
+    "Using = instead of == in a comparison",
+    "Placing a broad threshold before a narrower one",
+    "Assuming every true-looking branch in an if/elif chain runs",
+    "Using separate if statements when exactly one result is required"
+  ],
+  "exercises": [
+    {
+      "id": "decisions_09_ex1",
+      "type": "predict_output",
+      "title": "The first matching route",
+      "prompt": "What does this print? Trace from the top of the chain.",
+      "code_to_predict": "torch_count = 12\n\nif torch_count >= 12:\n    print(\"Long route\")\nelif torch_count >= 6:\n    print(\"Short route\")\nelse:\n    print(\"Remain at camp\")",
+      "expected_answer": "Long route",
+      "topics": ["conditionals"],
+      "failure_message": "Trace from the top. Once one condition is true, Python skips the rest of this chain.",
+      "hints": [
+        "Start at the first if. Is torch_count >= 12 true when torch_count is 12?",
+        "When the first condition is true, elif and else are not checked.",
+        "12 meets the first threshold, so Long route prints."
+      ]
+    },
+    {
+      "id": "decisions_09_ex2",
+      "type": "debug",
+      "title": "Put the thresholds in order",
+      "prompt": "The expedition has 14 rations and should be Cleared, but the program prints Review. Repair the decision without changing rations or the status text.",
+      "starter_code": "rations = 14\n\nif rations >= 5:\n    status = \"Review\"\nelif rations >= 12:\n    status = \"Cleared\"\nelse:\n    status = \"Denied\"\n\nprint(status)\n",
+      "topics": ["conditionals"],
+      "hints": [
+        "The comparisons are valid. The problem is which one Python reaches first.",
+        "A value of 14 also satisfies rations >= 5.",
+        "Test the stricter >= 12 threshold before the broader >= 5 threshold."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "if_statement",
+          "message": "Keep an if / elif / else decision chain."
+        },
+        {"kind": "stdout_equals", "expected": "Cleared\n"},
+        {
+          "kind": "expression",
+          "expression": "status",
+          "expected": "Cleared",
+          "message": "status should end as Cleared for 14 rations."
+        }
+      ]
+    },
+    {
+      "id": "decisions_09_ex3",
+      "type": "write_code",
+      "title": "Expedition status",
+      "prompt": "Create a function readiness_status(supplies) that returns:\n- \"Cleared\" for 10 or more supplies\n- \"Review\" for 5 through 9 supplies\n- \"Denied\" for fewer than 5 supplies\n\nUse one if / elif / else chain. Return the string; do not print it.",
+      "starter_code": "def readiness_status(supplies):\n    # Write one if / elif / else chain.\n    pass\n",
+      "topics": ["conditionals", "functions"],
+      "success_message": "The desk can now make one clear decision from several possibilities.",
+      "hints": [
+        "Begin with the highest threshold.",
+        "After the first condition fails, elif supplies >= 5 handles the middle group.",
+        "Use if supplies >= 10, then elif supplies >= 5, then else."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "if_statement",
+          "message": "Use an if / elif / else chain to choose the status."
+        },
+        {"kind": "function", "function": "readiness_status", "args": [14], "expected": "Cleared"},
+        {"kind": "function", "function": "readiness_status", "args": [10], "expected": "Cleared"},
+        {"kind": "function", "function": "readiness_status", "args": [9], "expected": "Review"},
+        {"kind": "function", "function": "readiness_status", "args": [5], "expected": "Review"},
+        {"kind": "function", "function": "readiness_status", "args": [4], "expected": "Denied"},
+        {"kind": "function", "function": "readiness_status", "args": [0], "expected": "Denied"}
+      ]
+    },
+    {
+      "id": "decisions_09_ex4",
+      "type": "write_code",
+      "title": "Threat labels",
+      "prompt": "Write threat_label(level) returning \"Severe\" for 8 or more, \"Elevated\" for 4 through 7, and \"Low\" otherwise.\n\nReturn the label; do not print it. Use if / elif / else.",
+      "starter_code": "def threat_label(level):\n    # Return Severe, Elevated, or Low\n    pass\n",
+      "topics": ["conditionals", "functions"],
+      "hints": [
+        "Start with the highest severity threshold.",
+        "The middle band is level >= 4 after the severe check fails.",
+        "Use if level >= 8, elif level >= 4, else for Low."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "if_statement",
+          "message": "Use an if / elif / else chain."
+        },
+        {"kind": "function", "function": "threat_label", "args": [3], "expected": "Low"},
+        {"kind": "function", "function": "threat_label", "args": [4], "expected": "Elevated"},
+        {"kind": "function", "function": "threat_label", "args": [7], "expected": "Elevated"},
+        {"kind": "function", "function": "threat_label", "args": [8], "expected": "Severe"},
+        {"kind": "function", "function": "threat_label", "args": [12], "expected": "Severe"},
+        {"kind": "function", "function": "threat_label", "args": [0], "expected": "Low"}
+      ]
+    }
+  ]
+}
