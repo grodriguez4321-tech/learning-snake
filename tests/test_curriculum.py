@@ -320,6 +320,68 @@ class GradingHoleTests(unittest.TestCase):
         )
         self.assertFalse(always_clear.passed)
 
+    def test_capstone_requires_len_on_party_and_supplies(self) -> None:
+        exercise = self._exercise(
+            "collections_13_dictionaries", "collections_13_ex6"
+        )
+        # Behaviorally correct counts, but only len(party) — supplies counted manually.
+        partial_len = self.checker.check(
+            exercise,
+            code=(
+                "def build_expedition_record(destination, party, supplies, has_guide, warning_active):\n"
+                "    supply_count = 0\n"
+                "    for item in supplies:\n"
+                "        supply_count += 1\n"
+                "    record = {\n"
+                '        "destination": destination,\n'
+                '        "party": party,\n'
+                '        "supplies": supplies,\n'
+                '        "has_guide": has_guide,\n'
+                '        "warning_active": warning_active,\n'
+                '        "member_count": len(party),\n'
+                '        "supply_count": supply_count,\n'
+                "    }\n"
+                "    if not has_guide or warning_active:\n"
+                '        record["status"] = "Denied"\n'
+                "    elif supply_count >= 5:\n"
+                '        record["status"] = "Cleared"\n'
+                "    else:\n"
+                '        record["status"] = "Review"\n'
+                "    return record\n"
+            ),
+        )
+        self.assertFalse(partial_len.passed)
+
+    def test_capstone_returns_configured_success_message(self) -> None:
+        exercise = self._exercise(
+            "collections_13_dictionaries", "collections_13_ex6"
+        )
+        result = self.checker.check(
+            exercise,
+            code=(
+                "def build_expedition_record(destination, party, supplies, has_guide, warning_active):\n"
+                "    record = {\n"
+                '        "destination": destination,\n'
+                '        "party": party,\n'
+                '        "supplies": supplies,\n'
+                '        "has_guide": has_guide,\n'
+                '        "warning_active": warning_active,\n'
+                '        "member_count": len(party),\n'
+                '        "supply_count": len(supplies),\n'
+                "    }\n"
+                "    if not has_guide or warning_active:\n"
+                '        record["status"] = "Denied"\n'
+                "    elif len(supplies) >= 5:\n"
+                '        record["status"] = "Cleared"\n'
+                "    else:\n"
+                '        record["status"] = "Review"\n'
+                "    return record\n"
+            ),
+        )
+        self.assertTrue(result.passed, result.message)
+        self.assertEqual(result.message, exercise.success_message)
+        self.assertIn("Do not trust the statues", result.message)
+
     def test_expedition_report_requires_calling_inspect_clue(self) -> None:
         exercise = self._exercise("functions_01_basics", "functions_01_ex4")
         rebuilt = self.checker.check(
@@ -355,6 +417,24 @@ class GradingHoleTests(unittest.TestCase):
             ),
         )
         self.assertFalse(dummy_outside.passed)
+        for_else_bypass = self.checker.check(
+            exercise,
+            code=(
+                "evidence = ['broken lantern', 'gray dust', 'torn cloak']\n"
+                "def inspect_clue(clue):\n"
+                "    if clue == 'gray dust':\n"
+                "        return f'FLAG: {clue}'\n"
+                "    return f'logged: {clue}'\n"
+                "for clue in evidence:\n"
+                "    if clue == 'gray dust':\n"
+                "        print(f'FLAG: {clue}')\n"
+                "    else:\n"
+                "        print(f'logged: {clue}')\n"
+                "else:\n"
+                "    inspect_clue('noop')\n"
+            ),
+        )
+        self.assertFalse(for_else_bypass.passed)
 
     def test_use_last_supply_rejects_list_copy(self) -> None:
         exercise = self._exercise(
