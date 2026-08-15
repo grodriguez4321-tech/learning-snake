@@ -47,6 +47,23 @@ class TestCase:
     in_function: Optional[str] = None
     # source_uses: further scope (e.g. calls_name inside "for_loop")
     inside: Optional[str] = None
+    # source_uses method_call: method name, optional min positional args
+    method: Optional[str] = None
+    min_args: Optional[int] = None
+    # source_uses method_call: require literal positional args (index -> value)
+    arg_equals: dict[str, Any] = field(default_factory=dict)
+    # source_uses method_call: call must feed a return/decision (not a discarded expr)
+    contributes: Any = None
+    # source_uses method_call + inside for_iter: work required in that loop body
+    body_calls_name: Optional[str] = None
+    body_method: Optional[str] = None
+    # source_uses while_loop: reject constant tests such as while False
+    nonconstant: bool = False
+    # source_uses no_literal_assign: only flag assigns after a while
+    after_while: bool = False
+    # source_uses function_signature: ordered parameter names and literal defaults
+    parameters: list[str] = field(default_factory=list)
+    defaults: dict[str, Any] = field(default_factory=dict)
     # function: optional post-call argument expectations (mutation checks)
     arg_after: Optional[dict[str, Any]] = None
     return_shares_arg: Optional[int] = None
@@ -121,6 +138,21 @@ def test_case_from_dict(data: dict[str, Any]) -> TestCase:
         ops=list(data.get("ops", [])),
         in_function=data.get("in_function"),
         inside=data.get("inside"),
+        method=data.get("method"),
+        min_args=(
+            int(data["min_args"]) if data.get("min_args") is not None else None
+        ),
+        arg_equals={
+            str(key): value
+            for key, value in dict(data.get("arg_equals") or {}).items()
+        },
+        contributes=data.get("contributes"),
+        body_calls_name=data.get("body_calls_name"),
+        body_method=data.get("body_method"),
+        nonconstant=bool(data.get("nonconstant")),
+        after_while=bool(data.get("after_while")),
+        parameters=list(data.get("parameters", [])),
+        defaults=dict(data.get("defaults", {})),
         arg_after=(
             dict(data["arg_after"])
             if isinstance(data.get("arg_after"), dict)

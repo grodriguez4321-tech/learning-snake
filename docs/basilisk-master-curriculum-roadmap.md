@@ -138,7 +138,7 @@ A green check proves that submitted code met an assessment contract. It does not
 
 # 3. Committed Curriculum: Lessons 1-28
 
-> **Boundary:** This section records the accepted curriculum architecture. Lessons 1-13 are implemented, Lessons 14-18 are the active bounded batch, and Lessons 19-28 have an approved sequence that still requires detailed batch specifications.
+> **Boundary:** This section records the accepted curriculum architecture. Lessons 1-18 are implemented, Lessons 19-28 have an approved sequence that still requires detailed batch specifications.
 
 **PHASE 1 - LESSONS 1-8**
 
@@ -181,7 +181,7 @@ A green check proves that submitted code met an assessment contract. It does not
 
 # Expedition Dispatch: Repetition and Structured Functions
 
-**Status: Active batch - 25 exercises planned**
+**Status: Implemented - 25 exercises (Issue #18)**
 
 > **Phase promise:** I can process complete records, write terminating condition-driven loops, design flexible functions, and return fresh structured results.
 

@@ -1,12 +1,12 @@
 # Phase 2 Curriculum Plan (Revised)
 
-**Status:** Curriculum-design approval stage — **revised per targeted feedback (Aug 2026)**. Not yet implemented.
+**Status:** Lessons 9–13 (Expedition Intake) and Lessons 14–18 (Expedition Dispatch) are **implemented** on main. Lessons 19–28 remain planned — see map below and `docs/basilisk-master-curriculum-roadmap.md`.
 
 **Master map:** For the full course arc beyond Phase 2 (Practical Python → data/ML literacy → Build the Basilisk), see `docs/basilisk-master-curriculum-roadmap.md`.
 
 **Scope:** Continue immediately after Phase 1 (`functions_01_basics`) through **basic classes and introductory has-a composition**, stopping before Phase 3 (inheritance, `try`/`except`, advanced debugging, comprehensions).
 
-**Size:** **8 Phase 1 lessons (28 exercises) + Lessons 9–13 Intake batch implemented**; remaining Phase 2 lessons (14+) still planned — see map below.
+**Size:** **8 Phase 1 lessons (28 exercises) + Lessons 9–13 Intake + Lessons 14–18 Dispatch implemented** (18 lessons / 79 exercises total); remaining Phase 2 lessons (19–28) still planned.
 
 **Difficulty arc:** Phase 1 averages ~2; Phase 2 ramps **2 → 4–5** (capstone).
 
@@ -267,84 +267,89 @@ Debugging is a **normal part of programming**, not a separate topic.
 
 ---
 
-### Lesson 14 — `collections_08_dict_iteration`
+### Lesson 14 — `collections_14_dict_iteration` (implemented)
 
 | Field | Value |
 |-------|-------|
-| **Title** | Visiting Every Entry in a Dictionary |
+| **Title** | Read the Whole Ledger |
+| **Section** | Expedition Dispatch — Collections |
 | **Learning objective** | Loop keys and `.items()`; `.get(key, default)` for safe reads. |
-| **Prerequisites** | `collections_07_dictionaries`, `for` loops |
+| **Prerequisites** | `collections_13_dictionaries`, `for` loops |
 | **Concepts introduced** | `for key in d`, `.items()`, `.get()` |
 | **Concepts reviewed** | f-strings, unpacking, conditionals |
-| **Debugging** | Debug: loop treats `.items()` as keys only. |
-| **Exercise progression** | predict (keys vs items) → write_code (stat lines) → debug → `write_code` `price(item, shop)` |
-| **Assessment** | `function` with shop dict arg; `.get(item, 0)` for missing keys |
+| **Debugging** | Debug: loop treats `.items()` pairs as keys. |
+| **Exercise progression** | predict (keys) → fill_blank (`.items()`) → debug → `antidote_count` → `field_ledger` |
+| **Assessment** | `function` cases; `method_call` for `.items()` / `.get`; one-parameter functions only |
 | **Difficulty** | **3** |
 
 ---
 
-### Lesson 15 — `collections_09_while`
+### Lesson 15 — `collections_15_while` (implemented)
 
 | Field | Value |
 |-------|-------|
-| **Title** | Repeating While a Condition Holds |
+| **Title** | Repeat Until the Condition Changes |
+| **Section** | Expedition Dispatch — Collections |
 | **Learning objective** | Condition-driven repetition; trace exit; connect missing updates to timeout message. |
-| **Prerequisites** | boolean logic, reassignment, `collections_04_len_range` |
+| **Prerequisites** | comparisons, `len`/indexing |
 | **Concepts introduced** | `while condition:`, counters/accumulators, termination |
-| **Concepts reviewed** | comparisons, compound conditions |
+| **Concepts reviewed** | comparisons, for vs while |
 | **Debugging** | Debug: missing decrement (timeout). Predict finite while. Architecture: `for` vs `while`. |
-| **Exercise progression** | predict → fill_blank → debug → `write_code` `drain_total(numbers)` → architecture |
-| **Assessment** | `function` 4 cases; infinite loop caught by runner |
+| **Exercise progression** | predict → fill_blank → debug → architecture → `trail_total` |
+| **Assessment** | `while_loop` scoped checks; `function` cases that defeat hardcoded totals |
 | **Difficulty** | **3–4** |
 
 ---
 
 ## Section 4: Functions (continued)
 
-### Lesson 16 — `functions_02_parameters`
+### Lesson 16 — `functions_16_parameters` (implemented)
 
 | Field | Value |
 |-------|-------|
-| **Title** | Functions with Multiple Parameters |
+| **Title** | Give a Function the Full Situation |
+| **Section** | Expedition Dispatch — Functions |
 | **Learning objective** | Multi-parameter signatures; argument order; pass collections into functions. |
-| **Prerequisites** | `functions_01_basics`, lists, dicts |
+| **Prerequisites** | `functions_01_basics`, lists, dicts, Boolean logic |
 | **Concepts introduced** | Multi-param defs, ordered args, collection parameters |
-| **Concepts reviewed** | `return`, f-strings, dict/list access |
+| **Concepts reviewed** | `return`, Boolean logic |
 | **Debugging** | Debug: swapped arguments at call site. Predict two-arg call. |
-| **Exercise progression** | predict → fill_blank → debug → `apply_bonus` → `party_summary` |
-| **Assessment** | 4+ `function` cases each |
+| **Exercise progression** | predict → fill_blank → debug → `carry_capacity` → `dispatch_status` |
+| **Assessment** | `function_signature`; 4+ `function` cases including Ready/Review/Denied matrix |
 | **Difficulty** | **2–3** |
 
 ---
 
-### Lesson 17 — `functions_03_defaults`
+### Lesson 17 — `functions_17_defaults` (implemented)
 
 | Field | Value |
 |-------|-------|
-| **Title** | Optional Parameters with Default Values |
-| **Learning objective** | Defaults in signature; call with fewer args; binding rules. |
-| **Prerequisites** | `functions_02_parameters` |
-| **Concepts introduced** | Default parameter values, optional omission |
-| **Concepts reviewed** | return, f-strings |
-| **Debugging** | Debug: SyntaxError from param order. Predict with/without optional arg. |
-| **Exercise progression** | predict → fill_blank → debug → `format_loot(item, quantity=1)` → architecture |
-| **Assessment** | Include `kwargs` test; warn on mutable defaults (defer deep dive) |
+| **Title** | Defaults for the Common Case |
+| **Section** | Expedition Dispatch — Functions |
+| **Learning objective** | Defaults in signature; call with fewer args; keyword binding. |
+| **Prerequisites** | `functions_16_parameters` |
+| **Concepts introduced** | Default parameter values, optional omission, keywords |
+| **Concepts reviewed** | multiple parameters, f-strings |
+| **Debugging** | Debug: SyntaxError from param order. Predict with default. Architecture: valid signature order. |
+| **Exercise progression** | predict → architecture → fill_blank → debug → `log_entry` |
+| **Assessment** | Include `kwargs` tests; `function_signature` with defaults; warn on mutable defaults (defer deep dive) |
 | **Difficulty** | **3** |
 
 ---
 
-### Lesson 18 — `functions_04_returning_data`
+### Lesson 18 — `functions_18_returning_data` (implemented)
 
 | Field | Value |
 |-------|-------|
-| **Title** | Returning Lists and Dictionaries from Functions |
-| **Learning objective** | Return structured data; contrast return vs in-place mutation; `list()` copy preview. |
-| **Prerequisites** | functions, lists, dicts, loops |
-| **Concepts introduced** | Returning composites; assembling structures in function body |
-| **Concepts reviewed** | `return` vs `print`, `append`, dict literals |
-| **Debugging** | Debug: missing `return` → `None`. Architecture: mutate input vs return new list. |
-| **Exercise progression** | predict → `new_quest` → debug → `add_item` (returns **new** list) → `build_party()` (list of dicts — sets up Lesson 19) |
-| **Assessment** | List equality via `function`; caller-owned list unchanged when spec requires new list |
+| **Title** | Return a Whole Dispatch |
+| **Section** | Expedition Dispatch — Functions |
+| **Learning objective** | Return structured data; contrast return vs in-place mutation; copy lists before changing. |
+| **Prerequisites** | functions, lists, dicts, loops, defaults |
+| **Concepts introduced** | Returning composites; assembling structures; shallow list copy |
+| **Concepts reviewed** | `return` vs `print`, loops, multiple/default parameters |
+| **Debugging** | Debug: early `return` inside loop. Architecture: mutate input vs return new list. |
+| **Exercise progression** | predict → architecture → debug → `add_item` → `build_dispatch` (Dispatch System v1) |
+| **Assessment** | List/dict equality via `function`; caller-owned lists unchanged; exact key set |
 | **Difficulty** | **3** |
 
 ---
@@ -598,11 +603,11 @@ Prepares **Phase 3**: inheritance, `try`/`except`, advanced debugging, comprehen
 | 11 | `collections_04_len_range` | Collections | Measuring and Generating Sequences with len and range | 2 |
 | 12 | `collections_05_list_methods` | Collections | Checking and Changing Lists with in, remove, and pop | 2–3 |
 | 13 | `collections_07_dictionaries` | Collections | Storing Labeled Data in Dictionaries | 3 |
-| 14 | `collections_08_dict_iteration` | Collections | Visiting Every Entry in a Dictionary | 3 |
-| 15 | `collections_09_while` | Collections | Repeating While a Condition Holds | 3–4 |
-| 16 | `functions_02_parameters` | Functions | Functions with Multiple Parameters | 2–3 |
-| 17 | `functions_03_defaults` | Functions | Optional Parameters with Default Values | 3 |
-| 18 | `functions_04_returning_data` | Functions | Returning Lists and Dictionaries from Functions | 3 |
+| 14 | `collections_14_dict_iteration` | Expedition Dispatch — Collections | Read the Whole Ledger | 3 |
+| 15 | `collections_15_while` | Expedition Dispatch — Collections | Repeat Until the Condition Changes | 3–4 |
+| 16 | `functions_16_parameters` | Expedition Dispatch — Functions | Give a Function the Full Situation | 2–3 |
+| 17 | `functions_17_defaults` | Expedition Dispatch — Functions | Defaults for the Common Case | 3 |
+| 18 | `functions_18_returning_data` | Expedition Dispatch — Functions | Return a Whole Dispatch | 3 |
 | 19 | `collections_10_nested_data` | Collections | Working with Nested Lists and Dictionaries | 3–4 |
 | 20 | `functions_05_scope` | Functions | Local Names and Global Names | 3–4 |
 | 21 | `strings_01_methods` | Working with Text | Cleaning and Comparing Strings with Methods | 2–3 |

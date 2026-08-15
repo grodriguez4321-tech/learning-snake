@@ -24,7 +24,7 @@ class CatalogTests(unittest.TestCase):
     def test_loads_ordered_lessons(self) -> None:
         catalog = CourseCatalog(ROOT / "course" / "lessons")
         catalog.load()
-        self.assertGreaterEqual(len(catalog.lessons), 13)
+        self.assertGreaterEqual(len(catalog.lessons), 18)
         ids = [lesson.id for lesson in catalog.lessons]
         self.assertEqual(
             ids,
@@ -42,6 +42,11 @@ class CatalogTests(unittest.TestCase):
                 "collections_11_len_range",
                 "collections_12_list_methods",
                 "collections_13_dictionaries",
+                "collections_14_dict_iteration",
+                "collections_15_while",
+                "functions_16_parameters",
+                "functions_17_defaults",
+                "functions_18_returning_data",
             ],
         )
         # Ordering is stable by section_order then order.
@@ -80,7 +85,7 @@ class CatalogTests(unittest.TestCase):
             exercise.id for lesson in catalog.lessons for exercise in lesson.exercises
         ]
         self.assertEqual(len(exercise_ids), len(set(exercise_ids)))
-        self.assertGreaterEqual(len(exercise_ids), 54)
+        self.assertGreaterEqual(len(exercise_ids), 79)
 
 
 class RunnerTests(unittest.TestCase):
