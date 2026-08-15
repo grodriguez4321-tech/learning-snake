@@ -1,0 +1,343 @@
+{
+  "id": "collections_12_list_methods",
+  "section": "Expedition Intake \u2014 Collections",
+  "section_order": 6,
+  "order": 5,
+  "title": "Lists That Change",
+  "topics": [
+    "collections",
+    "debugging"
+  ],
+  "content": "What problem does this solve?\nA supply list is not frozen. New gear arrives, damaged gear is removed, and the next ration is consumed. List methods change the existing list. One vial in the crate is etched with a small eye symbol \u2014 treat it as ordinary inventory data for now.\n\nPreviously in your program\nFor a four-item list, range(len(items)) yields the valid indexes 0, 1, 2, and 3 \u2014 it stops before 4.\n\nBasic syntax\n  supplies.append(\"antidote\")\n  supplies.remove(\"torch\")\n  used_item = supplies.pop()\n\nWhat actually happens\nappend(value) adds one item to the end. remove(value) removes the first matching value. pop() removes and returns the final item; pop(index) removes and returns one position. These methods mutate the list rather than creating a separate updated list. The important trap: append() returns None \u2014 do not assign its result back to the list.\n\nWhen this is useful\nChoose the method based on what you know: a value (remove) or a position (pop).",
+  "concepts": [
+    "append adds one item at the end of the same list",
+    "remove deletes the first matching value",
+    "pop removes and returns an item by position (last by default)",
+    "append returns None \u2014 call it without assigning the result back"
+  ],
+  "examples": [
+    {
+      "title": "Update a loadout",
+      "code": "supplies = [\"rope\", \"torch\"]\nsupplies.append(\"antidote\")\nsupplies.remove(\"torch\")\nused_item = supplies.pop()\n\nprint(supplies)\nprint(used_item)",
+      "explanation": "After append and remove, pop takes the last remaining item and returns it."
+    }
+  ],
+  "common_mistakes": [
+    "Writing supplies = supplies.append(\"rope\") and ending up with None",
+    "Using remove(0) when you meant to remove the item at index 0",
+    "Expecting remove() to return the removed value",
+    "Calling append([\"rope\", \"torch\"]) when you meant to add two separate items"
+  ],
+  "exercises": [
+    {
+      "id": "collections_12_ex1",
+      "type": "predict_output",
+      "title": "What does pop give back?",
+      "prompt": "What does this print? Type each line of output exactly.",
+      "code_to_predict": "supplies = [\"rope\", \"torch\", \"chalk\"]\nused = supplies.pop()\nprint(used)\nprint(supplies)",
+      "expected_answer": "chalk\n['rope', 'torch']",
+      "topics": [
+        "collections"
+      ],
+      "hints": [
+        "pop() removes the final item and returns it.",
+        "print(used) shows the removed string; print(supplies) shows what remains.",
+        "First chalk, then the two-item list with rope and torch."
+      ]
+    },
+    {
+      "id": "collections_12_ex2",
+      "type": "architecture",
+      "title": "Value or position?",
+      "prompt": "You know the damaged item is named \"cracked vial\", but you do not know its index. Which operation best expresses the task?",
+      "choices": [
+        "supplies.remove(\"cracked vial\")",
+        "supplies.pop(\"cracked vial\")",
+        "supplies.append(\"cracked vial\")"
+      ],
+      "expected_answer": "1",
+      "topics": [
+        "collections"
+      ],
+      "success_message": "Right \u2014 remove looks up by value when you know the name but not the index.",
+      "failure_message": "pop works by position. append adds an item. Which method removes a known value?",
+      "hints": [
+        "You know the item's name, not its position.",
+        "pop expects an index (or defaults to the last item).",
+        "Choose remove with the string \"cracked vial\"."
+      ]
+    },
+    {
+      "id": "collections_12_ex3",
+      "type": "debug",
+      "title": "The vanished list",
+      "prompt": "The quartermaster expected a three-item list but got None. Fix the append operation.",
+      "starter_code": "supplies = [\"rope\", \"torch\"]\nsupplies = supplies.append(\"antidote\")\nprint(supplies)\n",
+      "topics": [
+        "collections",
+        "debugging"
+      ],
+      "hints": [
+        "append() changes the list directly.",
+        "The value returned by append() is None.",
+        "Call supplies.append(\"antidote\") without assigning it back to supplies."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "append_call",
+          "name": "supplies",
+          "message": "Fix the call to supplies.append(\"antidote\") \u2014 do not assign the result."
+        },
+        {
+          "kind": "globals",
+          "name": "supplies",
+          "type_name": "list",
+          "expected": [
+            "rope",
+            "torch",
+            "antidote"
+          ]
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "['rope', 'torch', 'antidote']\n"
+        }
+      ]
+    },
+    {
+      "id": "collections_12_ex4",
+      "type": "write_code",
+      "title": "Update the loadout",
+      "prompt": "Write prepare_supplies(supplies, new_item, damaged_item). It must add new_item, remove damaged_item, and return the updated list.\n\nYou may assume damaged_item is present in the list.",
+      "starter_code": "def prepare_supplies(supplies, new_item, damaged_item):\n    pass\n",
+      "topics": [
+        "collections",
+        "functions"
+      ],
+      "hints": [
+        "Add the new item first, then remove the damaged one.",
+        "Use append for the new item and remove for the damaged value.",
+        "Return the same supplies list after both mutations."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "append_call",
+          "name": "supplies",
+          "in_function": "prepare_supplies",
+          "message": "Inside prepare_supplies, call supplies.append(new_item)."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "remove_call",
+          "name": "supplies",
+          "in_function": "prepare_supplies",
+          "message": "Inside prepare_supplies, call supplies.remove(damaged_item)."
+        },
+        {
+          "kind": "function",
+          "function": "prepare_supplies",
+          "args": [
+            [
+              "rope",
+              "torch"
+            ],
+            "antidote",
+            "torch"
+          ],
+          "expected": [
+            "rope",
+            "antidote"
+          ],
+          "arg_after": {
+            "0": [
+              "rope",
+              "antidote"
+            ]
+          }
+        },
+        {
+          "kind": "function",
+          "function": "prepare_supplies",
+          "args": [
+            [
+              "chalk",
+              "map",
+              "rope"
+            ],
+            "lantern",
+            "map"
+          ],
+          "expected": [
+            "chalk",
+            "rope",
+            "lantern"
+          ],
+          "arg_after": {
+            "0": [
+              "chalk",
+              "rope",
+              "lantern"
+            ]
+          }
+        },
+        {
+          "kind": "function",
+          "function": "prepare_supplies",
+          "args": [
+            [
+              "torch",
+              "torch",
+              "rope"
+            ],
+            "antidote",
+            "torch"
+          ],
+          "expected": [
+            "torch",
+            "rope",
+            "antidote"
+          ],
+          "message": "remove deletes only the first matching value.",
+          "arg_after": {
+            "0": [
+              "torch",
+              "rope",
+              "antidote"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "collections_12_ex5",
+      "type": "write_code",
+      "title": "Consume the next ration",
+      "prompt": "Write use_last_supply(supplies) that removes the final item with pop() and returns only that removed item.\n\nThe supplies list itself must be mutated in place (the checker inspects the list after your call).",
+      "starter_code": "def use_last_supply(supplies):\n    # Remove the last item and return it.\n    pass\n",
+      "topics": [
+        "collections",
+        "functions"
+      ],
+      "hints": [
+        "pop() removes the last item and gives it back to you.",
+        "Store the popped value, then return that value alone.",
+        "return supplies.pop()"
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "pop_call",
+          "name": "supplies",
+          "in_function": "use_last_supply",
+          "message": "Inside use_last_supply, call supplies.pop()."
+        },
+        {
+          "kind": "function",
+          "function": "use_last_supply",
+          "args": [
+            [
+              "rope",
+              "torch",
+              "ration"
+            ]
+          ],
+          "expected": "ration",
+          "arg_after": {
+            "0": [
+              "rope",
+              "torch"
+            ]
+          }
+        },
+        {
+          "kind": "function",
+          "function": "use_last_supply",
+          "args": [
+            [
+              "chalk"
+            ]
+          ],
+          "expected": "chalk",
+          "arg_after": {
+            "0": []
+          }
+        },
+        {
+          "kind": "function",
+          "function": "use_last_supply",
+          "args": [
+            [
+              "map",
+              "lantern",
+              "antidote",
+              "rope"
+            ]
+          ],
+          "expected": "rope",
+          "arg_after": {
+            "0": [
+              "map",
+              "lantern",
+              "antidote"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "collections_12_ex6",
+      "type": "mini_project",
+      "title": "Quartermaster's update",
+      "prompt": "Quartermaster's Update\n\nStarting from the supplied party and supplies lists:\n1. remove \"cracked vial\";\n2. append \"antidote\";\n3. print the member count;\n4. print the updated supply count;\n5. with an if/elif/else chain, print Cleared (10+ supplies), Review (5\u20139), or Denied (below 5).\n\nAfter your updates the supply count should be 5, so a correct chain prints Review.",
+      "starter_code": "party = [\"Mara\", \"Tovin\", \"Sable\"]\nsupplies = [\"rope\", \"torch\", \"chalk\", \"map\", \"cracked vial\"]\n# Remove cracked vial, append antidote, print counts, then Cleared/Review/Denied\n",
+      "topics": [
+        "collections",
+        "conditionals",
+        "loops"
+      ],
+      "success_message": "The expedition list can now change as the situation changes.",
+      "hints": [
+        "Mutate supplies with remove and append before you measure it.",
+        "Print len(party), then len(supplies), then choose Cleared / Review / Denied from the supply count.",
+        "After updates you should have 5 supplies, which falls in the Review branch of the Lesson 9 thresholds."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "remove_call",
+          "name": "supplies",
+          "message": "Remove \"cracked vial\" with supplies.remove(...)."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "append_call",
+          "name": "supplies",
+          "message": "Append \"antidote\" with supplies.append(...)."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "elif_branch",
+          "message": "Use if / elif / else so Cleared, Review, and Denied are all possible."
+        },
+        {
+          "kind": "globals",
+          "name": "supplies",
+          "type_name": "list",
+          "expected": [
+            "rope",
+            "torch",
+            "chalk",
+            "map",
+            "antidote"
+          ]
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "3\n5\nReview\n"
+        }
+      ]
+    }
+  ]
+}

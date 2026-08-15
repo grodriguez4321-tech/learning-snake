@@ -8,7 +8,7 @@
 
 ## 1. Design philosophy
 
-The Interactive Python Course exists to help learners **actually learn programming** — not to maximize completion rates, session counts, or superficial engagement metrics.
+Basilisk exists to help learners **actually learn programming** — not to maximize completion rates, session counts, or superficial engagement metrics.
 
 ### Primary reward
 
@@ -115,7 +115,7 @@ Learn → Attempt → Run → Observe → Debug → Check → Reflect
 
 **Anti-pattern to avoid:** Read paragraph → copy syntax → submit → next lesson.
 
-Every **Phase 2 lesson (9–28)** should contain at least one exercise that forces **prediction, debugging, or design reasoning** — not only `write_code`. Phase 1 lessons are a baseline exception (e.g., `functions_01` opens with `write_code`).
+Every lesson from Phase 1 onward should contain at least one exercise that forces **prediction, debugging, or design reasoning** — not only `write_code`. Phase 1 V2 already opens with prediction and debugging in Lesson 1 and is not exempt from the richer teaching model.
 
 ### Lesson loop (within one lesson)
 
@@ -149,7 +149,9 @@ The persistent project evolves from a single variable through nested data, funct
 
 A single **RPG/adventure program** grows throughout the course. Characters (Aria, Rook, Mira, Selene), health, gold, inventory, party, and quests provide continuity without forcing every concept into the theme.
 
-**Phase 1 baseline:** Thematic continuity only (shared names/contexts in isolated exercises) — **no cumulative learner-owned program file**. The persistent artifact pattern **begins in Lesson 9** with named functions (`wound_label`, `can_enter`, `make_stats`). Callback references to prior work start in Lesson 14+.
+**Phase 1 (Lessons 1–8):** Expedition 17 continuity through data and examples, ending in the Expedition 17 Report mini-project — **not** a pedagogical exception. Debugging begins in Lesson 1; retrieval in Lesson 2; integration by Lesson 3; a mini-project in Lesson 4; a cumulative program in Lesson 8.
+
+**Lessons 9–13:** The persistent **Expedition Intake System** begins here with named capabilities (`readiness_status`, `can_depart`, roster helpers, supply mutation, dictionary records). Callback references to prior work continue in Lesson 14+.
 
 Use simpler non-RPG examples when they teach more clearly (e.g., a shop checkout for pure arithmetic, a score analyzer for list processing).
 
@@ -453,7 +455,7 @@ These anchor the debugging spine; micro-debug exercises in every other lesson re
 
 Current lesson JSON supports `hints: []` as a flat list mapping to these levels. Future UI may label them explicitly.
 
-**Phase 2 (Lessons 9+):** **3–4 progressive hints** per exercise (concept → explain → example → scaffold). Phase 1 exercises may retain 3 hints; fourth hint optional on short exercises.
+**All lessons:** **3 progressive hints** per applicable exercise (concept → structure → near-solution). A fourth hint remains optional on short later exercises.
 
 ### Rules
 
@@ -865,27 +867,27 @@ Do **not** label exercises as "review."
 
 #### Persistent project thread
 
-**Introduce** stable names in Lesson 9 — Phase 1 provides thematic context only, not a cumulative program:
+**Introduce** stable intake names in Lesson 9 — Phase 1 already builds cumulative Expedition 17 tools; Lessons 9+ grow the Expedition Intake System:
 
 | Lesson | Project touch |
 |--------|---------------|
-| 9 | Health tier labels (`wound_label(health)`) |
-| 10 | Gate entry (`can_enter(has_key, gold)`) |
-| 11 | Numbered inventory lines, `last_item` |
-| 12 | Inventory membership and conditional remove |
-| 13 | `make_stats(name, hp, gold)` dict — **formal hero stats structure** |
+| 9 | Expedition readiness tiers (`readiness_status(supplies)`) |
+| 10 | Compound departure clearance (`can_depart(...)`) |
+| 11 | Numbered roster / name length |
+| 12 | Supply mutation + Quartermaster’s Update |
+| 13 | Dictionary field records + Intake System v1 capstone |
 
-Each function/structure gets a **stable name** reused later (`make_stats`, party/inventory patterns).
+Each function/structure gets a **stable name** reused later (`readiness_status`, `can_depart`, expedition records).
 
 #### Progressive hints
 
-**3–4 progressive hints** per exercise (concept → explain → example → scaffold). Fourth hint optional on short exercises.
+**3 progressive hints** per applicable exercise (concept → structure → near-solution). Fourth hint optional on short later exercises.
 
-#### Scaffolding curve (Lessons 9–13 = early-middle Phase 2)
+#### Scaffolding curve (Lessons 9–13)
 
-- Difficulty 2–3
-- First exercise per lesson: predict or fill_blank
-- Last exercise: most independent (`write_code` with 4+ function tests)
+- Difficulty builds from Phase 1 into early intake work
+- First exercise per lesson: predict or retrieval
+- Last exercise: most independent construction or mini-project
 - Examples resemble but do not duplicate exercise solutions
 
 #### Prediction workflow
@@ -900,16 +902,16 @@ Progression in Lessons 9–13: branch (9–10) → loop boundary (11) → mutati
 
 #### Debugging as recurring activity
 
-Follow Phase 2 debug exercise contract on **code** exercises: broken starter, Run to observe, Check to validate fix. Lesson 9 satisfies reasoning via predict + architecture without runnable debug.
+Follow the debug exercise contract on **code** exercises: broken starter, Run to observe, Check to validate fix. Lesson 9 includes threshold-order debugging; Boolean and mutation lessons continue the thread.
 
 #### Assessment specifics (Lessons 9–13)
 
 | Lesson | Critical test design |
 |--------|---------------------|
-| 10 | `can_enter`: 5+ cases; **must fail** gold-only and key-only shortcuts |
-| 11 | `last_item`: accept `items[-1]`; define behavior for `[]` |
-| 12 | Mention ValueError on bad `remove` in passing |
-| 13 | `make_stats` returns dict with required keys; purchase check uses comparisons |
+| 10 | `can_depart`: multi-case matrix; **must fail** guide-only and supplies-only shortcuts |
+| 11 | Roster numbering via `range`; distinguish `len` from last index |
+| 12 | Mutation vs rebind; `append` must not be assigned back to the list |
+| 13 | `build_expedition_record` returns dict with required keys; full denial/clearance matrix |
 
 Every test needs explicit `message` naming failing **behavior**.
 
@@ -992,7 +994,7 @@ These five principles take precedence when authoring the first Phase 2 batch. Wh
 
 4. **Competence feedback, not gamification** — Use behavioral `message` fields and `success_message` that name what the learner demonstrated. No XP, streaks, or shame framing.
 
-5. **Persistent project continuity** — **Introduce** stable function/structure names (`wound_label`, `can_enter`, `make_stats`) in Lesson 9+ for later callback; Phase 1 did not build a cumulative program.
+5. **Persistent project continuity** — Phase 1 ends with the Expedition 17 Report; Lessons 9+ introduce stable intake functions/structures (`readiness_status`, `can_depart`, dictionary records) for later callback.
 
 Supporting principles: 3–4 progressive hints per exercise; 4+ `function` test cases on write exercises; examples teach structure without duplicating solutions; difficulty stays in 2–3 range for this batch.
 

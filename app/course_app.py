@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.branding import WINDOW_TITLE
 from app.pages import (
     DashboardPage,
     LessonsPage,
@@ -72,7 +73,7 @@ class CourseApp(QMainWindow):
         self._editor_visible = self.prefs_store.prefs.editor_visible
         self._jobs = AsyncJobHost(self)
 
-        self.setWindowTitle("Python Course")
+        self.setWindowTitle(WINDOW_TITLE)
         self.resize(1400, 900)
         self.setMinimumSize(1100, 700)
 

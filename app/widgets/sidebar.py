@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.branding import APP_NAME
 from course.catalog import CourseCatalog
 from engine.course_controller import CourseController
 
@@ -127,7 +128,7 @@ class Sidebar(QFrame):
         root.setContentsMargins(14, 18, 14, 14)
         root.setSpacing(4)
 
-        brand = QLabel("Python Course")
+        brand = QLabel(APP_NAME)
         brand.setObjectName("BrandTitle")
         brand.setContentsMargins(6, 0, 0, 8)
         root.addWidget(brand)

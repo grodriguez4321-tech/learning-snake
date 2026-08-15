@@ -3,9 +3,11 @@
   "section": "Collections",
   "section_order": 3,
   "order": 2,
-  "title": "Growing a List",
-  "topics": ["collections"],
-  "content": "What problem does this solve?\nInventories change. You need to add an item to a list you already have, without building a brand-new list from scratch every time.\n\nBasic syntax\n  inventory.append(\"torch\")\n\nWhat actually happens\nA list can be changed after you create it. append adds another element at the end of the same list. The name inventory still refers to that same list; it now has one more item.\n\nWhen this is useful\nUse append when something new should join a collection you already named — a picked-up item, a new party member, another turn.",
+  "title": "Record New Evidence",
+  "topics": [
+    "collections"
+  ],
+  "content": "What problem does this solve?\nA field record changes when new evidence arrives. You need to add an item to a list you already have, without building a brand-new list from scratch every time.\n\nBasic syntax\n  evidence.append(\"gray dust\")\n\nWhat actually happens\nA list can be changed after you create it. append adds another element at the end of the same list. The name evidence still refers to that same list; it now has one more item.\n\nWhen this is useful\nUse append when something new should join a collection you already named \u2014 a recovered clue, a new party member, another entry in the log. Deeper list methods come later; this lesson focuses on append().",
   "concepts": [
     "You can change a list after you create it",
     "append adds an item at the end of the same list",
@@ -13,92 +15,125 @@
   ],
   "examples": [
     {
-      "title": "A new party member",
-      "code": "party = [\"Aria\", \"Rook\"]\nparty.append(\"Mira\")\nprint(party)",
-      "explanation": "append changes the list in place. party now has three names."
+      "title": "Recovered evidence",
+      "code": "evidence = [\"broken lantern\", \"drag marks\"]\nevidence.append(\"gray dust\")\nprint(evidence)",
+      "explanation": "append changes the list in place. evidence now holds three clues, ending with gray dust."
     }
   ],
   "common_mistakes": [
-    "Expecting append to return a new list — it changes the existing one and returns None",
-    "Replacing the whole list with a four-item literal instead of adding to the list you already have"
+    "Expecting append to return a new list \u2014 it changes the existing one and returns None",
+    "Replacing the whole list with a finished literal instead of adding to the list you already have"
   ],
   "exercises": [
     {
       "id": "collections_02_ex1",
       "type": "predict_output",
-      "title": "Predict after append",
+      "title": "Predict the mutation",
       "prompt": "What does this print? Type the exact output, including square brackets and quotes.",
-      "code_to_predict": "party = [\"Aria\", \"Rook\"]\nparty.append(\"Mira\")\nprint(party)",
-      "expected_answer": "['Aria', 'Rook', 'Mira']",
-      "topics": ["collections"],
+      "code_to_predict": "evidence = [\"broken lantern\", \"drag marks\"]\nevidence.append(\"torn cloak\")\nprint(evidence)",
+      "expected_answer": "['broken lantern', 'drag marks', 'torn cloak']",
+      "topics": [
+        "collections"
+      ],
       "hints": [
         "append adds to the end of the existing list.",
-        "print(party) shows the whole list, not just the new name.",
+        "print(evidence) shows the whole list, not just the new clue.",
         "Python prints lists with square brackets and quotes around each string."
       ]
     },
     {
       "id": "collections_02_ex2",
       "type": "write_code",
-      "title": "Pick up a torch",
-      "prompt": "inventory already has three items. Add \"torch\" to the end of that list, then print the list. Do not replace inventory with a brand-new four-item list.",
-      "starter_code": "inventory = [\"sword\", \"shield\", \"potion\"]\n# Add torch, then print inventory\n",
-      "topics": ["collections"],
+      "title": "Add recovered evidence",
+      "prompt": "evidence already has two clues. Append \"gray dust\" to that list, then print the list. Do not replace evidence with a brand-new three-item literal.",
+      "starter_code": "evidence = [\"broken lantern\", \"drag marks\"]\n# Append gray dust, then print evidence\n",
+      "topics": [
+        "collections"
+      ],
       "hints": [
-        "Call a method on inventory to add one string at the end.",
+        "Call a method on evidence to add one string at the end.",
         "After adding, print the list variable itself.",
-        "Use append on inventory, then print inventory."
+        "Use evidence.append(\"gray dust\"), then print evidence."
       ],
       "tests": [
         {
           "kind": "source_uses",
-          "feature": "append_or_extend",
-          "name": "inventory",
-          "message": "Add torch to the existing inventory list with append, extend, or +=."
+          "feature": "append_call",
+          "name": "evidence",
+          "message": "Add gray dust to the existing evidence list with append()."
         },
         {
           "kind": "globals",
-          "name": "inventory",
+          "name": "evidence",
           "type_name": "list",
-          "expected": ["sword", "shield", "potion", "torch"]
+          "expected": [
+            "broken lantern",
+            "drag marks",
+            "gray dust"
+          ]
         },
         {
           "kind": "stdout_contains",
-          "contains": "sword"
+          "contains": "broken lantern"
         },
         {
           "kind": "stdout_contains",
-          "contains": "torch"
+          "contains": "gray dust"
         }
       ]
     },
     {
       "id": "collections_02_ex3",
       "type": "write_code",
-      "title": "Announce the first item",
-      "prompt": "inventory is already created. Print exactly:\nWielding sword\n\nUse an f-string and inventory[0] so the item comes from the list.",
-      "starter_code": "inventory = [\"sword\", \"shield\", \"potion\"]\n# Print what they are wielding\n",
-      "topics": ["collections", "strings"],
+      "title": "Report the new clue",
+      "prompt": "evidence already has two clues. Append \"gray dust\", then print exactly:\nNewest evidence: gray dust\n\nThe clue in that line must come from indexing into the updated list and an f-string \u2014 do not hardcode gray dust only in the print.",
+      "starter_code": "evidence = [\"broken lantern\", \"drag marks\"]\n# Append the new clue, then report it\n",
+      "topics": [
+        "collections",
+        "strings"
+      ],
       "hints": [
-        "The first item in a list is at index 0.",
-        "An f-string can include inventory[0] inside braces.",
-        "Print a line that starts with Wielding and inserts the first inventory item."
+        "Append first so the new clue becomes the last item.",
+        "The last item of a three-element list is at index 2.",
+        "Print an f-string such as Newest evidence: {evidence[2]} after appending."
       ],
       "tests": [
         {
           "kind": "source_uses",
+          "feature": "append_call",
+          "name": "evidence",
+          "message": "Append gray dust to evidence with append() before reporting it."
+        },
+        {
+          "kind": "source_uses",
           "feature": "fstring",
-          "names": ["inventory"],
-          "message": "Use an f-string that reads from the list."
+          "names": [
+            "evidence"
+          ],
+          "message": "Use an f-string that reads from the evidence list."
         },
         {
           "kind": "source_uses",
           "feature": "subscript",
-          "name": "inventory",
-          "message": "Read the item with inventory[0], not a hardcoded sword."
+          "name": "evidence",
+          "message": "Read the newest clue with evidence[...], not a hardcoded string alone."
         },
-        {"kind": "stdout_equals", "expected": "Wielding sword\n"}
-      ]
+        {
+          "kind": "globals",
+          "name": "evidence",
+          "type_name": "list",
+          "expected": [
+            "broken lantern",
+            "drag marks",
+            "gray dust"
+          ]
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "Newest evidence: gray dust\n"
+        }
+      ],
+      "success_message": "Newest clue recorded. The list changed, and your report used its updated state."
     }
   ]
 }

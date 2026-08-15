@@ -3,88 +3,109 @@
   "section": "Python Fundamentals",
   "section_order": 1,
   "order": 1,
-  "title": "Print and Comments",
-  "topics": ["print"],
-  "content": "What problem does this solve?\nYou need a way to see what your program is doing. print() sends text to the console so you can observe values while you learn.\n\nBasic syntax\n  print(value)\n  print(value1, value2)\n\nWhat actually happens\nWhen Python reaches a print() call, it converts each argument to text, joins them with spaces by default, writes that text to the console, then continues with the next line. An argument is a value you pass into print() inside the parentheses.\n\nComments start with #. Python ignores them entirely — they are notes for humans, not instructions for the computer.\n\nWhen this is useful\nUse print() to check a greeting, a score, or any value you want to see. Use comments to record why a line exists.",
+  "title": "Leave a Trace",
+  "topics": [
+    "print"
+  ],
+  "content": "What problem does this solve?\nA program that never shows anything is difficult to understand. print() gives it a way to leave evidence of what it did.\n\nBasic syntax\n  print(value)\n  print(value1, value2)\n  # this is a comment\n\nWhat actually happens\nWhen Python reaches a print() call, it converts each argument to text, joins them with spaces by default, writes that text to the console, then continues with the next line. Multiple print() calls run from top to bottom in order. An argument is a value you pass into print() inside the parentheses.\n\nText in quotes is a string \u2014 literal text Python should take as written. Comments start with #. Python ignores them entirely; they are notes for humans, not instructions for the computer.\n\nWhen this is useful\nUse print() whenever you need to observe a value, a status line, or a short log. Use comments to record why a line exists.",
   "concepts": [
     "print() writes values to the console",
-    "Text in quotes is a string — a piece of text Python should take literally",
+    "Text in quotes is a string \u2014 a piece of text Python should take literally",
+    "Multiple print() calls execute from top to bottom",
     "Multiple arguments to print are separated by spaces",
     "Lines starting with # are comments and do not run"
   ],
   "examples": [
     {
-      "title": "A simple greeting",
-      "code": "print(\"Hello, adventurer!\")",
-      "explanation": "The quotes mark a string. print writes that string, then a newline."
+      "title": "Recovered record",
+      "code": "print(\"EXPEDITION LOG 17\")\nprint(\"Party registered:\", 4)\nprint(\"Status: OVERDUE\")",
+      "explanation": "Three print calls run in order. The middle call passes two arguments \u2014 a string and a number \u2014 and inserts a space between them."
     },
     {
-      "title": "Comments explain intent",
-      "code": "# Show the starting gold amount\nprint(\"Gold:\", 50)",
-      "explanation": "The comment is skipped. print receives two arguments — a string and a number — and inserts a space between them."
+      "title": "Notes for humans",
+      "code": "# Last report received three days ago\nprint(\"Search authorized\")",
+      "explanation": "The comment is skipped. Only Search authorized appears in the console."
     }
   ],
   "common_mistakes": [
     "Forgetting quotes around text: print(Hello) looks for a variable named Hello",
-    "Expecting comments to change program behavior — they never do"
+    "Expecting comments to change program behavior \u2014 they never do",
+    "Assuming print adds commas or other punctuation between arguments \u2014 it only adds spaces"
   ],
   "exercises": [
     {
-      "id": "fundamentals_01_ex2",
+      "id": "fundamentals_01_ex1",
       "type": "predict_output",
-      "title": "Predict the print",
-      "prompt": "What does the following program print? Type the exact output (no quotes).",
-      "code_to_predict": "print(\"HP:\", 100)",
-      "expected_answer": "HP: 100",
-      "topics": ["print"],
+      "title": "Predict the log",
+      "prompt": "What does the following program print? Type the exact output (no quotes around the whole answer).",
+      "code_to_predict": "print(\"WAYSTATION 7\")\nprint(\"Expedition:\", 17)",
+      "expected_answer": "WAYSTATION 7\nExpedition: 17",
+      "topics": [
+        "print"
+      ],
       "hints": [
+        "Read the program from top to bottom \u2014 each print becomes its own line.",
         "print joins multiple arguments with a single space.",
-        "There is no extra punctuation added between HP: and 100.",
-        "The two arguments become one line with a space between them."
-      ]
+        "The first line is WAYSTATION 7; the second line is Expedition: then a space then 17."
+      ],
+      "failure_message": "Check spacing, capitalization, and that each print ends up on its own line."
     },
     {
-      "id": "fundamentals_01_ex1",
-      "type": "write_code",
-      "title": "Greet the adventurer",
-      "prompt": "Write a program that prints exactly:\nHello, Adventurer!\n\nUse print and a string.",
-      "starter_code": "# Print the greeting below\n",
-      "topics": ["print"],
+      "id": "fundamentals_01_ex2",
+      "type": "debug",
+      "title": "Fix the record",
+      "prompt": "This line is supposed to print exactly:\nEXPEDITION 17\n\nIt is broken. Repair it so literal text is treated as a string.",
+      "starter_code": "print(EXPEDITION 17)\n",
+      "topics": [
+        "print"
+      ],
       "hints": [
-        "print() needs parentheses, and text needs quotes.",
-        "Use double or single quotes around the whole message.",
-        "A working shape is: print(\"Hello, Adventurer!\")"
+        "Python needs to know whether EXPEDITION 17 is a name or literal text.",
+        "Literal text belongs inside quotes.",
+        "Wrap the whole message in quotes: print(\"EXPEDITION 17\")."
       ],
       "tests": [
         {
           "kind": "stdout_equals",
-          "expected": "Hello, Adventurer!\n"
+          "expected": "EXPEDITION 17\n"
         }
       ]
     },
     {
       "id": "fundamentals_01_ex3",
       "type": "write_code",
-      "title": "Comment and two arguments",
-      "prompt": "Print exactly:\nGold: 50\n\nUse print with two arguments (the label and the number). Put a real comment on the line above print that explains what the line shows.",
-      "starter_code": "print(\"Gold:\", 50)\n",
-      "topics": ["print"],
+      "title": "Create the dispatch",
+      "prompt": "Write a short dispatch that prints exactly these three lines:\nSEARCH DISPATCH\nExpedition: 17\nStatus: OVERDUE\n\nRequirements:\n- use three print() calls\n- include at least one real comment (a # note for humans)\n- the Expedition line must use two arguments to print (the label and the number)",
+      "starter_code": "# Write the three-line dispatch\n",
+      "topics": [
+        "print"
+      ],
       "hints": [
-        "A comment starts with # and is a note for humans.",
-        "print can take two arguments: a string, then a number, separated by a comma.",
-        "Put a # comment on its own line above the print call."
+        "Think about one print per line of output, plus a # comment somewhere.",
+        "For the Expedition line, pass a string and the number 17 as two separate arguments.",
+        "A working shape is: print(\"SEARCH DISPATCH\"), then print(\"Expedition:\", 17), then print(\"Status: OVERDUE\"), with a # comment on its own line."
       ],
       "tests": [
         {
           "kind": "source_uses",
           "feature": "comment",
-          "message": "Add a comment that starts with # and explains the next line."
+          "message": "Add a comment that starts with # and explains something about the dispatch."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "print_min_calls",
+          "expected": 3,
+          "names": [
+            "multi_arg"
+          ],
+          "message": "Use three print() calls, and make the Expedition line pass two arguments."
         },
         {
           "kind": "stdout_equals",
-          "expected": "Gold: 50\n"
+          "expected": "SEARCH DISPATCH\nExpedition: 17\nStatus: OVERDUE\n"
         }
-      ]
+      ],
+      "success_message": "Dispatch recorded. Your program left a readable trace of Expedition 17."
     }
   ]
 }

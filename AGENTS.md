@@ -2,7 +2,9 @@
 
 ## Cursor Cloud specific instructions
 
-This repo is a single self-contained **PySide6 desktop app** ("Interactive Python Course"). There is no backend, database, or network service — everything runs locally in one process. See `README.md` for the full architecture and command reference.
+This repo is a single self-contained **PySide6 desktop app** (**Basilisk**).
+There is no backend, database, or network service — everything runs locally in
+one process. See `README.md` for the full architecture and command reference.
 
 ### Environment
 

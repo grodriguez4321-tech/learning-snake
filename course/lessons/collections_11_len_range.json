@@ -1,0 +1,263 @@
+{
+  "id": "collections_11_len_range",
+  "section": "Expedition Intake \u2014 Collections",
+  "section_order": 6,
+  "order": 4,
+  "title": "Count What You Have",
+  "topics": [
+    "collections",
+    "loops"
+  ],
+  "content": "What problem does this solve?\nThe clerk should not manually recount every name or write every roster number. Python can measure a collection and generate a predictable sequence of numbers.\n\nPreviously in your program\nDeparture needs a guide, enough supplies, and no active warning. Which expression approves departure?\n  has_guide and supplies >= 10 and not warning_active\nA version that uses or, or that forgets not, clears the wrong expeditions.\n\nBasic syntax\n  len(party)\n  for number in range(1, len(party) + 1):\n      print(number)\n  for index in range(len(party)):\n      print(index, party[index])\n\nWhat actually happens\nlen(value) returns how many items are present. It works on lists and strings, but counts different things: list items versus characters. range(stop) begins at 0 and stops before stop. range(start, stop) uses an explicit start and still excludes the stop. range(len(party)) produces valid list indexes. For human-facing numbering, range(1, len(party) + 1) produces 1 through the party size.\n\nWhen this is useful\nUse len to measure, and range when you need a known sequence of numbers or index positions.",
+  "concepts": [
+    "len(sequence) returns how many items it holds",
+    "range stops before its end value",
+    "range(len(party)) yields valid indexes; range(1, len(party) + 1) yields human numbers"
+  ],
+  "examples": [
+    {
+      "title": "Party size and human numbers",
+      "code": "party = [\"Mara\", \"Tovin\", \"Sable\"]\nprint(len(party))\n\nfor number in range(1, len(party) + 1):\n    print(number)",
+      "explanation": "len returns 3. range(1, 4) yields 1, 2, 3 \u2014 the stop value is not produced."
+    },
+    {
+      "title": "Index plus name",
+      "code": "party = [\"Mara\", \"Tovin\", \"Sable\"]\nfor index in range(len(party)):\n    print(index, party[index])",
+      "explanation": "Indexes 0, 1, and 2 pair with each name in order."
+    }
+  ],
+  "common_mistakes": [
+    "Expecting range(1, 4) to include 4",
+    "Confusing item count with the last valid index",
+    "Writing len[party] instead of len(party)",
+    "Adding + 1 when generating indexes",
+    "Treating a string as one item instead of a sequence of characters"
+  ],
+  "exercises": [
+    {
+      "id": "collections_11_ex1",
+      "type": "predict_output",
+      "title": "Stop before the stop",
+      "prompt": "What does this print? Type each line of output.",
+      "code_to_predict": "for number in range(1, 4):\n    print(number)",
+      "expected_answer": "1\n2\n3",
+      "topics": [
+        "collections",
+        "loops"
+      ],
+      "failure_message": "The second number passed to range is the stopping boundary; it is not produced.",
+      "hints": [
+        "range starts at the first argument and stops before the second.",
+        "The values are 1, then 2, then 3 \u2014 not 4.",
+        "Type three lines: 1, then 2, then 3."
+      ]
+    },
+    {
+      "id": "collections_11_ex2",
+      "type": "predict_output",
+      "title": "Count or final index?",
+      "prompt": "What does this print? Type each line of output.",
+      "code_to_predict": "party = [\"Mara\", \"Tovin\", \"Sable\"]\nprint(len(party))\nprint(party[len(party) - 1])",
+      "expected_answer": "3\nSable",
+      "topics": [
+        "collections"
+      ],
+      "hints": [
+        "len(party) counts how many names are in the list.",
+        "The last valid index is one less than the length.",
+        "First line is 3; second line is the final name, Sable."
+      ]
+    },
+    {
+      "id": "collections_11_ex3",
+      "type": "debug",
+      "title": "The missing final member",
+      "prompt": "The roster stops before Sable. Fix the range() call without changing the list or print line.",
+      "starter_code": "party = [\"Mara\", \"Tovin\", \"Sable\"]\n\nfor index in range(len(party) - 1):\n    print(party[index])\n",
+      "topics": [
+        "collections",
+        "loops",
+        "debugging"
+      ],
+      "hints": [
+        "range already stops before its ending number.",
+        "len(party) is 3, which generates the valid indexes 0, 1, and 2.",
+        "Remove the - 1 from range(len(party) - 1)."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "range_call",
+          "message": "Keep range(...) as the sequence driving the for loop."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "message": "Keep the for loop that walks indexes."
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "Mara\nTovin\nSable\n"
+        }
+      ]
+    },
+    {
+      "id": "collections_11_ex4",
+      "type": "write_code",
+      "title": "Numbered roster",
+      "prompt": "Write numbered_roster(party) that returns a list of strings, one per member, in this exact format:\n1: Mara\n2: Tovin\n3: Sable\n\nUse a for loop and range. Do not hardcode names or positions. Return the list of formatted lines (do not print them).",
+      "starter_code": "def numbered_roster(party):\n    # Each list index starts at 0, but each displayed number starts at 1.\n    pass\n",
+      "topics": [
+        "collections",
+        "loops",
+        "functions"
+      ],
+      "hints": [
+        "Human numbers run from 1 to len(party); indexes run from 0.",
+        "Loop with range and build each line from the number and party[index].",
+        "Collect f\"{number}: {party[index]}\" strings in a list and return that list."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "range_call",
+          "message": "Inside numbered_roster, use range(...) as the for-loop sequence.",
+          "in_function": "numbered_roster"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "message": "Use a for loop with range to build the roster lines.",
+          "in_function": "numbered_roster"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "subscript",
+          "name": "party",
+          "message": "Read each name with party[index], not a hardcoded string."
+        },
+        {
+          "kind": "function",
+          "function": "numbered_roster",
+          "args": [
+            [
+              "Mara",
+              "Tovin",
+              "Sable"
+            ]
+          ],
+          "expected": [
+            "1: Mara",
+            "2: Tovin",
+            "3: Sable"
+          ]
+        },
+        {
+          "kind": "function",
+          "function": "numbered_roster",
+          "args": [
+            [
+              "Aria"
+            ]
+          ],
+          "expected": [
+            "1: Aria"
+          ]
+        },
+        {
+          "kind": "function",
+          "function": "numbered_roster",
+          "args": [
+            [
+              "Rook",
+              "Mira",
+              "Selene",
+              "Bren"
+            ]
+          ],
+          "expected": [
+            "1: Rook",
+            "2: Mira",
+            "3: Selene",
+            "4: Bren"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collections_11_ex5",
+      "type": "write_code",
+      "title": "Name length",
+      "prompt": "Write is_long_name(name) returning True when a name contains 8 or more characters.",
+      "starter_code": "def is_long_name(name):\n    # Return True when the name has 8 or more characters.\n    pass\n",
+      "topics": [
+        "collections",
+        "functions"
+      ],
+      "hints": [
+        "len works on strings as well as lists.",
+        "Compare the character count to 8.",
+        "Return len(name) >= 8."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "len_call",
+          "names": [
+            "name"
+          ],
+          "in_function": "is_long_name",
+          "message": "Inside is_long_name, measure the name with len(name)."
+        },
+        {
+          "kind": "function",
+          "function": "is_long_name",
+          "args": [
+            "Sable"
+          ],
+          "expected": false
+        },
+        {
+          "kind": "function",
+          "function": "is_long_name",
+          "args": [
+            "Tovin"
+          ],
+          "expected": false
+        },
+        {
+          "kind": "function",
+          "function": "is_long_name",
+          "args": [
+            "Clarissa"
+          ],
+          "expected": true
+        },
+        {
+          "kind": "function",
+          "function": "is_long_name",
+          "args": [
+            "abcdefgh"
+          ],
+          "expected": true
+        },
+        {
+          "kind": "function",
+          "function": "is_long_name",
+          "args": [
+            "abcdefg"
+          ],
+          "expected": false
+        },
+        {
+          "kind": "function",
+          "function": "is_long_name",
+          "args": [
+            "abcdefghi"
+          ],
+          "expected": true
+        }
+      ]
+    }
+  ]
+}

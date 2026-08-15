@@ -118,23 +118,29 @@ class RunCheckSeparationTests(unittest.TestCase):
 
             lesson = controller.catalog.get("fundamentals_01_print")
             assert lesson is not None
-            write_ex = next(ex for ex in lesson.exercises if ex.id == "fundamentals_01_ex1")
+            write_ex = next(ex for ex in lesson.exercises if ex.id == "fundamentals_01_ex3")
             idx = lesson.exercises.index(write_ex)
             course._show_lesson(lesson, idx)
             self.app.processEvents()
 
-            course.editor.set_code('print("Hello, Adventurer!")')
+            course.editor.set_code(
+                '# Search dispatch\n'
+                'print("SEARCH DISPATCH")\n'
+                'print("Expedition:", 17)\n'
+                'print("Status: OVERDUE")\n'
+            )
             course._run_code()
             _wait_until(self.app, course)
             run_output = course.lessons_page.ide.output_text()
-            self.assertIn("Hello, Adventurer!", run_output)
+            self.assertIn("SEARCH DISPATCH", run_output)
 
             course._check_answer()
             _wait_until(self.app, course)
-            self.assertIn("Hello, Adventurer!", course.lessons_page.ide.output_text())
+            self.assertIn("SEARCH DISPATCH", course.lessons_page.ide.output_text())
             feedback = course.lessons_page.ide.feedback._view.toPlainText()
             self.assertTrue(
                 "Correct" in feedback or "Nice work" in feedback or "passed" in feedback.lower()
+                or "Dispatch" in feedback
             )
 
             course.close()

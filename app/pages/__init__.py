@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.branding import APP_NAME, APP_TAGLINE
 from app.theme import Theme
 from app.widgets.ide_panel import IdePanel
 from app.widgets.lesson_content import LessonContent
@@ -36,9 +37,14 @@ class DashboardPage(QWidget):
         layout.setContentsMargins(32, 28, 32, 28)
         layout.setSpacing(16)
 
-        title = QLabel("Dashboard")
+        title = QLabel(APP_NAME)
         title.setObjectName("PageTitle")
         layout.addWidget(title)
+
+        tagline = QLabel(APP_TAGLINE)
+        tagline.setWordWrap(True)
+        tagline.setObjectName("MutedLabel")
+        layout.addWidget(tagline)
 
         self._summary = QLabel()
         self._summary.setWordWrap(True)
@@ -82,7 +88,7 @@ class DashboardPage(QWidget):
         if lesson:
             self._lesson_label.setText(f"Current lesson: {lesson.title}")
             self._summary.setText(
-                f"Welcome back. You are in {lesson.section}. "
+                f"Welcome back to {APP_NAME}. You are in {lesson.section}. "
                 "Pick up where you left off or experiment in the playground."
             )
         else:
@@ -275,7 +281,7 @@ class SettingsPage(QWidget):
         layout.addWidget(title)
 
         body = QLabel(
-            "Theme and panel visibility can also be changed from the top toolbar. "
+            f"{APP_NAME} saves theme and panel visibility from the top toolbar. "
             "Progress and drafts are saved automatically when you leave an exercise "
             "or close the app — use Save for an explicit checkpoint."
         )

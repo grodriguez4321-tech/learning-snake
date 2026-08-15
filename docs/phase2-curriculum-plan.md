@@ -4,7 +4,7 @@
 
 **Scope:** Continue immediately after Phase 1 (`functions_01_basics`) through **basic classes and introductory has-a composition**, stopping before Phase 3 (inheritance, `try`/`except`, advanced debugging, comprehensions).
 
-**Size:** **20 new lessons** (28 total with Phase 1’s 8).
+**Size:** **8 Phase 1 lessons (28 exercises) + Lessons 9–13 Intake batch implemented**; remaining Phase 2 lessons (14+) still planned — see map below.
 
 **Difficulty arc:** Phase 1 averages ~2; Phase 2 ramps **2 → 4–5** (capstone).
 
@@ -36,22 +36,39 @@
 
 ---
 
-## Phase 1 foundation (complete)
+## Phase 1 foundation (complete — Basilisk V2)
 
-**8 lessons, 25 exercises, 4 sections** — linear unlock, behavior-based grading.
+**8 lessons, 28 exercises, 4 sections** — linear unlock, behavior-based grading.
+Phase 1 follows the full Basilisk teaching rhythm (predict, debug, retrieve,
+integrate). Stable lesson IDs are unchanged so saved progress and later
+prerequisites remain compatible.
 
 | # | ID | Section | Title |
 |---|-----|---------|-------|
-| 1 | `fundamentals_01_print` | Python Fundamentals | Print and Comments |
-| 2 | `fundamentals_02_variables` | Python Fundamentals | Variables, Types, and Assignment |
-| 3 | `fundamentals_03_fstrings` | Python Fundamentals | Strings and f-strings |
-| 4 | `decisions_01_conditionals` | Making Decisions | If and else |
-| 5 | `collections_01_lists` | Collections | Lists and Indexing |
-| 6 | `collections_02_append` | Collections | Growing a List |
-| 7 | `collections_03_loops` | Collections | Repeating with for |
-| 8 | `functions_01_basics` | Functions | Defining Functions and return |
+| 1 | `fundamentals_01_print` | Python Fundamentals | Leave a Trace |
+| 2 | `fundamentals_02_variables` | Python Fundamentals | Store the Record |
+| 3 | `fundamentals_03_fstrings` | Python Fundamentals | Assemble the Report |
+| 4 | `decisions_01_conditionals` | Making Decisions | Make a Decision |
+| 5 | `collections_01_lists` | Collections | Organize the Expedition |
+| 6 | `collections_02_append` | Collections | Record New Evidence |
+| 7 | `collections_03_loops` | Collections | Search Every Entry |
+| 8 | `functions_01_basics` | Functions | Build an Investigation Tool |
 
----
+### Lessons 9–13 (Expedition Intake System — implemented)
+
+These five lessons unlock immediately after Phase 1 and grow one persistent
+intake program. Stable IDs:
+
+| # | ID | Title |
+|---|-----|-------|
+| 9 | `decisions_09_elif` | More Than Two Paths |
+| 10 | `decisions_10_boolean_logic` | Decisions With More Than One Condition |
+| 11 | `collections_11_len_range` | Count What You Have |
+| 12 | `collections_12_list_methods` | Lists That Change |
+| 13 | `collections_13_dictionaries` | One Record, Many Facts |
+
+The remainder of this document’s Phase 2 map (Lessons 14+) remains the approved
+later sequencing and is not implemented in this redesign.
 
 ## Phase 2 lesson map (revised)
 

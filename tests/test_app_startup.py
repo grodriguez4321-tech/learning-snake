@@ -54,7 +54,17 @@ class AppStartupTests(unittest.TestCase):
             course = CourseApp(controller, runner, prefs_store=prefs)
             self.app.processEvents()
 
-            self.assertEqual(course.windowTitle(), "Python Course")
+            from PySide6.QtWidgets import QLabel
+
+            self.assertEqual(course.windowTitle(), "Basilisk")
+            brand_label = course.sidebar.findChild(QLabel, "BrandTitle")
+            self.assertIsNotNone(brand_label)
+            assert brand_label is not None
+            self.assertEqual(brand_label.text(), "Basilisk")
+            page_title = course.dashboard_page.findChild(QLabel, "PageTitle")
+            self.assertIsNotNone(page_title)
+            assert page_title is not None
+            self.assertEqual(page_title.text(), "Basilisk")
             self.assertIsNotNone(course.lesson_view.lesson)
             self.assertFalse(course._busy)
             self.assertFalse(course._closing)

@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -19,6 +20,7 @@ from PySide6.QtCore import QSize
 from PySide6.QtWidgets import QApplication
 
 ROOT = Path(__file__).resolve().parents[1]
+PRODUCTION_DATA = (ROOT / "data").resolve()
 sys.path.insert(0, str(ROOT))
 
 from app.course_app import CourseApp
@@ -57,23 +59,39 @@ def playground_output(course: CourseApp) -> str:
     return course.playground_page.output._view.toPlainText()
 
 
-def reset_runtime_state() -> None:
-    data = ROOT / "data"
-    data.mkdir(exist_ok=True)
-    for name in ("progress.json", "ui_prefs.json"):
-        path = data / name
-        if path.exists():
-            path.unlink()
-    for orphan in data.glob("progress.json.corrupt-*"):
-        orphan.unlink()
+def assert_isolated_runtime(data_dir: Path) -> None:
+    """Safety: E2E must never read or write the repository production data dir."""
+    resolved = data_dir.resolve()
+    progress = (resolved / "progress.json").resolve()
+    prefs = (resolved / "ui_prefs.json").resolve()
+    if resolved == PRODUCTION_DATA:
+        raise AssertionError(
+            f"E2E data_dir must not be production data ({PRODUCTION_DATA})"
+        )
+    if PRODUCTION_DATA in progress.parents or progress == PRODUCTION_DATA / "progress.json":
+        raise AssertionError(f"E2E progress path targets production data: {progress}")
+    if PRODUCTION_DATA in prefs.parents or prefs == PRODUCTION_DATA / "ui_prefs.json":
+        raise AssertionError(f"E2E prefs path targets production data: {prefs}")
 
 
 def main() -> int:
-    reset_runtime_state()
+    with tempfile.TemporaryDirectory(prefix="basilisk-e2e-") as tmp:
+        return _run_with_data_dir(Path(tmp))
+
+
+def _run_with_data_dir(data_dir: Path) -> int:
+    data_dir.mkdir(parents=True, exist_ok=True)
+    assert_isolated_runtime(data_dir)
+    record(
+        "0. isolated temp progress dir",
+        True,
+        f"data_dir={data_dir} (not {PRODUCTION_DATA})",
+    )
 
     # 1. launch app
     try:
-        controller, runner, prefs = build_controller(ROOT)
+        controller, runner, prefs = build_controller(ROOT, data_dir=data_dir)
+        assert_isolated_runtime(controller.progress.path.parent)
         controller.progress.load_warning = None
         controller.progress.recovered_from_corrupt = False
         qt = QApplication.instance() or QApplication(sys.argv)
@@ -198,12 +216,17 @@ def main() -> int:
 
     # 10. correct alternative solution (single quotes / variant)
     try:
-        write_ex = next(ex for ex in first.exercises if ex.id == "fundamentals_01_ex1")
+        write_ex = next(ex for ex in first.exercises if ex.id == "fundamentals_01_ex3")
         idx = first.exercises.index(write_ex)
         course._show_lesson(first, idx)
         qt.processEvents()
         # Alternative to recorded double-quote solution
-        course.editor.set_code("print('Hello, Adventurer!')\n")
+        course.editor.set_code(
+            "# Dispatch\n"
+            "print('SEARCH DISPATCH')\n"
+            "print('Expedition:', 17)\n"
+            "print('Status: OVERDUE')\n"
+        )
         course._check_answer()
         wait_until(qt, course)
         ok = controller.progress.is_exercise_complete(write_ex.id)
@@ -281,13 +304,14 @@ def main() -> int:
 
     # 15–16. reopen and confirm drafts/progress persist
     try:
-        controller2, runner2, prefs2 = build_controller(ROOT)
+        controller2, runner2, prefs2 = build_controller(ROOT, data_dir=data_dir)
+        assert_isolated_runtime(controller2.progress.path.parent)
         course2 = CourseApp(controller2, runner2, prefs_store=prefs2)
         course2.show()
         qt.processEvents()
         record("15. reopen it", True)
 
-        progress_after = (ROOT / "data" / "progress.json").read_text(encoding="utf-8")
+        progress_after = (data_dir / "progress.json").read_text(encoding="utf-8")
         data = json.loads(progress_after)
         lesson_done = first.id in data.get("completed_lessons", []) or any(
             data.get("exercises", {}).get(eid, {}).get("completed") for eid in first.exercise_ids

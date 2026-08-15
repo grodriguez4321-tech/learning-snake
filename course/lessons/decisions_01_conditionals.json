@@ -3,25 +3,29 @@
   "section": "Making Decisions",
   "section_order": 2,
   "order": 1,
-  "title": "If and else",
-  "topics": ["conditionals"],
-  "content": "What problem does this solve?\nPrograms need to choose between paths: stand or fall, buy an item or walk away. An if statement runs a block of code only when a condition is true.\n\nBasic syntax\n  if health > 0:\n      print(\"Standing\")\n  else:\n      print(\"KO\")\n\nWhat actually happens\nPython evaluates the condition. If it is true, the indented block under if runs. Otherwise the indented block under else runs. Comparisons such as >, >=, and == ask a yes-or-no question; they do not assign a new value.\n\nWhen this is useful\nUse if/else when two outcomes are possible and the program must pick one before continuing.",
+  "title": "Make a Decision",
+  "topics": [
+    "conditionals"
+  ],
+  "content": "What problem does this solve?\nBefore this lesson, Python follows instructions in order. After it, your program can choose what happens based on its data \u2014 investigate a strange camp, or mark it clear.\n\nBasic syntax\n  if bedrolls < registered:\n      print(\"Investigate\")\n  else:\n      print(\"Camp accounted for\")\n\nWhat actually happens\nPython evaluates the condition. If it is true, the indented block under if runs. Otherwise the indented block under else runs. Exactly one of those two branches runs. Comparisons such as <, >, >=, and == ask a yes-or-no question; they do not assign a new value. A single = assigns; == compares.\n\nWhen this is useful\nUse if/else when two outcomes are possible and the program must pick one before continuing.",
   "concepts": [
     "if runs a block only when a condition is true",
     "else runs when the condition is false",
-    ">, >=, and == compare values; = assigns a name"
+    "Exactly one of the two branches runs",
+    ">, <, >=, and == compare values; = assigns a name",
+    "Indented lines belong to the branch above them"
   ],
   "examples": [
     {
-      "title": "Standing or KO",
-      "code": "health = 40\nif health > 0:\n    print(\"Standing\")\nelse:\n    print(\"KO\")",
-      "explanation": "40 is greater than 0, so only Standing is printed."
+      "title": "Abandoned camp",
+      "code": "bedrolls = 3\nregistered = 4\nif bedrolls < registered:\n    print(\"Investigate\")\nelse:\n    print(\"Camp accounted for\")",
+      "explanation": "Three bedrolls is fewer than four registered adventurers, so only Investigate is printed."
     }
   ],
   "common_mistakes": [
-    "Using = where you meant == — assignment is not a comparison",
+    "Using = where you meant == \u2014 assignment is not a comparison",
     "Forgetting the colon after if or else",
-    "Forgetting to indent the lines that belong inside the if"
+    "Forgetting to indent the lines that belong inside the if or else"
   ],
   "exercises": [
     {
@@ -29,56 +33,150 @@
       "type": "predict_output",
       "title": "Predict the branch",
       "prompt": "What does this print?",
-      "code_to_predict": "health = 0\nif health > 0:\n    print(\"Standing\")\nelse:\n    print(\"KO\")",
-      "expected_answer": "KO",
-      "topics": ["conditionals"],
+      "code_to_predict": "returned = 0\nif returned > 0:\n    print(\"Contact\")\nelse:\n    print(\"No contact\")",
+      "expected_answer": "No contact",
+      "topics": [
+        "conditionals"
+      ],
       "hints": [
-        "Check whether the condition health > 0 is true or false.",
+        "Check whether the condition returned > 0 is true or false.",
         "When the condition is false, the else block runs.",
-        "health is 0, so the program takes the else path."
-      ]
+        "returned is 0, so the program takes the else path."
+      ],
+      "failure_message": "Trace from the condition. Only one branch runs."
     },
     {
       "id": "decisions_01_ex2",
       "type": "fill_blank",
-      "title": "Finish the condition",
-      "prompt": "Print Standing if health is greater than 0, otherwise print KO. Replace None with the correct comparison.",
-      "starter_code": "health = 80\nif None:  # TODO: compare health with 0\n    print(\"Standing\")\nelse:\n    print(\"KO\")\n",
-      "topics": ["conditionals"],
+      "title": "Complete the condition",
+      "prompt": "Print Investigate if bedrolls is fewer than registered; otherwise print Camp accounted for. Replace the placeholder condition with the correct comparison.",
+      "starter_code": "bedrolls = 3\nregistered = 4\nif True:  # TODO: replace True with bedrolls < registered\n    print(\"Investigate\")\nelse:\n    print(\"Camp accounted for\")\n",
+      "topics": [
+        "conditionals"
+      ],
       "hints": [
-        "The condition should ask whether health is greater than 0.",
-        "Use the > comparison, not =.",
-        "The if line should compare health to 0, then keep the two print blocks."
+        "The condition should ask whether bedrolls is less than registered.",
+        "Use the < comparison, not =.",
+        "The if line should compare bedrolls to registered, then keep the two print blocks."
       ],
       "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "compares_names",
+          "names": [
+            "bedrolls",
+            "registered"
+          ],
+          "message": "Compare bedrolls and registered with < (or an equivalent comparison)."
+        },
         {
           "kind": "source_uses",
           "feature": "if_statement",
           "message": "Use if and else to choose what to print."
         },
-        {"kind": "stdout_equals", "expected": "Standing\n"}
+        {
+          "kind": "stdout_equals",
+          "expected": "Investigate\n"
+        }
       ]
     },
     {
       "id": "decisions_01_ex3",
-      "type": "write_code",
-      "title": "Can they buy a potion?",
-      "prompt": "gold is already set. If gold is at least 10, print exactly:\nenough\n\nOtherwise print exactly:\ntoo little",
-      "starter_code": "gold = 8\n# Print enough or too little\n",
-      "topics": ["conditionals"],
+      "type": "debug",
+      "title": "Debug the decision",
+      "prompt": "This program should print Active search when status is OVERDUE. It currently fails because the comparison is written incorrectly. Repair the decision so the comparison uses ==.",
+      "starter_code": "status = \"OVERDUE\"\nif status = \"OVERDUE\":\n    print(\"Active search\")\nelse:\n    print(\"Cleared\")\n",
+      "topics": [
+        "conditionals"
+      ],
       "hints": [
-        "at least 10 means gold >= 10.",
-        "Use if and else, each with its own print.",
-        "The else path should print too little because gold starts at 8."
+        "Look at the symbol between status and \"OVERDUE\".",
+        "A single = assigns; a comparison that asks \"are these equal?\" needs ==.",
+        "Change the if line to use status == \"OVERDUE\"."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "compares_names",
+          "names": [
+            "status"
+          ],
+          "message": "Compare status to the string OVERDUE using ==."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "if_statement",
+          "message": "Keep an if/else decision in the program."
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "Active search\n"
+        }
+      ],
+      "failure_message": "The decision cannot run correctly until the comparison is valid Python. Remember that = assigns and == compares."
+    },
+    {
+      "id": "decisions_01_ex4",
+      "type": "mini_project",
+      "title": "Encounter: The Abandoned Camp",
+      "prompt": "Encounter: The Abandoned Camp\n\nVariables are already set for the expedition number, how many adventurers were registered, and how many bedrolls you found.\n\nIf bedrolls are fewer than registered, print:\n  Expedition <n>: INVESTIGATE\nOtherwise print:\n  Expedition <n>: CLEAR\n\nUse if/else, a fewer-than comparison, an f-string that includes the expedition variable (do not hardcode only the number 17 in the printed text), and print(). Do not define a function \u2014 write script-level code with the variables already provided.",
+      "starter_code": "expedition = 17\nregistered = 4\nbedrolls = 3\n# Print INVESTIGATE or CLEAR using if/else and an f-string\n",
+      "topics": [
+        "conditionals",
+        "strings"
+      ],
+      "hints": [
+        "Compare bedrolls with registered using < to decide which message to print.",
+        "Both branches should use an f-string that includes expedition.",
+        "if bedrolls < registered: print(f\"Expedition {expedition}: INVESTIGATE\") else print the CLEAR line."
       ],
       "tests": [
         {
           "kind": "source_uses",
           "feature": "if_statement",
-          "message": "Use if and else to choose what to print."
+          "message": "Use if/else to choose INVESTIGATE or CLEAR."
         },
-        {"kind": "stdout_equals", "expected": "too little\n"}
-      ]
+        {
+          "kind": "source_uses",
+          "feature": "compares_names",
+          "names": [
+            "bedrolls",
+            "registered"
+          ],
+          "ops": [
+            "Lt"
+          ],
+          "message": "Compare bedrolls < registered (a fewer-than check). Do not substitute !=."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "fstring",
+          "names": [
+            "expedition"
+          ],
+          "message": "Build the printed sentence with an f-string that includes expedition."
+        },
+        {
+          "kind": "globals",
+          "name": "expedition",
+          "expected": 17
+        },
+        {
+          "kind": "globals",
+          "name": "registered",
+          "expected": 4
+        },
+        {
+          "kind": "globals",
+          "name": "bedrolls",
+          "expected": 3
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "Expedition 17: INVESTIGATE\n"
+        }
+      ],
+      "success_message": "You handled the missing-bedroll case \u2014 variables, comparison, and an f-string working together."
     }
   ]
 }
