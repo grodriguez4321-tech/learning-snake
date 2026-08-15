@@ -23,8 +23,13 @@ capstone that builds a structured expedition record.
 lists/dictionaries (Dispatch System v1). Catalog size after this batch:
 18 lessons / 79 exercises.
 
-Later curriculum batches (nested data, scope, strings/errors, references,
-classes, and beyond) remain deferred as described in
+**Lessons 19–23** — Realistic Data and Debugging. Nested lists/dictionaries,
+scope (local vs global), string methods (`strip`/`lower`/`split`), reading
+tracebacks, and repairing logic errors. Catalog size after this batch:
+23 lessons / 104 exercises.
+
+Later curriculum batches (shared references, classes/objects, methods, and
+composition) remain deferred as described in
 `docs/phase2-curriculum-plan.md` and `docs/basilisk-master-curriculum-roadmap.md`.
 
 ## How to run

@@ -138,7 +138,7 @@ A green check proves that submitted code met an assessment contract. It does not
 
 # 3. Committed Curriculum: Lessons 1-28
 
-> **Boundary:** This section records the accepted curriculum architecture. Lessons 1-18 are implemented, Lessons 19-28 have an approved sequence that still requires detailed batch specifications.
+> **Boundary:** This section records the accepted curriculum architecture. Lessons 1–23 are implemented. Lessons 24–28 have an approved sequence that still requires detailed batch specifications.
 
 **PHASE 1 - LESSONS 1-8**
 
@@ -199,7 +199,7 @@ A green check proves that submitted code met an assessment contract. It does not
 
 # Realistic Data and Debugging
 
-**Status: Approved sequence - detailed specifications pending**
+**Status: Implemented — Realistic Data and Debugging (Lessons 19–23)**
 
 > **Phase promise:** I can navigate nested data, reason about scope, normalize text, read tracebacks, and systematically repair logic errors.
 
