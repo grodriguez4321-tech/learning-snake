@@ -3,9 +3,9 @@
   "section": "Python Fundamentals",
   "section_order": 1,
   "order": 3,
-  "title": "Strings and f-strings",
+  "title": "Assemble the Report",
   "topics": ["strings"],
-  "content": "What problem does this solve?\nA string is a piece of text. You often need to build readable messages that mix that text with live values — a status line, battle log, or inventory note.\n\nBasic syntax\n  f\"Health: {health}\"\n\nWhat actually happens\nAn f-string is a string with f before the opening quote. At runtime Python finds each {expression}, evaluates it, converts the result to text, and inserts it into the surrounding string.\n\nLast lesson you printed values separately, or used print(\"HP:\", health) with two arguments. An f-string keeps the whole sentence in one template: f\"HP: {health}\". That is clearer than gluing pieces together with +.\n\nWhen this is useful\nUse an f-string when the message has a fixed shape and the numbers or names inside it change.",
+  "content": "What problem does this solve?\nLesson 2 created named data. Now you turn changing values into a readable field report. An f-string keeps the sentence shape fixed while the numbers and names inside it update.\n\nBasic syntax\n  f\"Expedition {expedition}: {days_overdue} days overdue\"\n\nWhat actually happens\nAn f-string is a string with f before the opening quote. At runtime Python finds each {expression}, evaluates it, converts the result to text, and inserts it into the surrounding string. Braces can hold a single name or a small expression.\n\nLast lesson you printed values on separate lines. An f-string builds one coherent message: f\"Party registered: {registered}\". That is clearer than gluing pieces with + or relying only on print's multiple arguments.\n\nWhen this is useful\nUse an f-string when the message has a fixed shape and the values inside it change.",
   "concepts": [
     "A string is text in quotes",
     "f-strings start with f before the opening quote",
@@ -14,83 +14,86 @@
   ],
   "examples": [
     {
-      "title": "Character status line",
-      "code": "name = \"Mira\"\nhealth = 42\nprint(f\"{name} has {health} HP\")",
-      "explanation": "Python substitutes the current values of name and health into the string."
+      "title": "Report",
+      "code": "expedition = 17\ndays_overdue = 3\nprint(f\"Expedition {expedition}: {days_overdue} days overdue\")",
+      "explanation": "Python substitutes the current values of expedition and days_overdue into one readable line."
     },
     {
       "title": "Forgot the leading f",
-      "code": "health = 42\nprint(\"HP: {health}\")",
-      "explanation": "Without the f, braces print literally. The output is HP: {health}, not HP: 42."
-    },
-    {
-      "title": "An expression in braces",
-      "code": "health = 40\nprint(f\"After a potion: {health + 10}\")",
-      "explanation": "Braces can hold an expression, not only a single name. health + 10 is evaluated first."
+      "code": "status = \"OVERDUE\"\nprint(\"Status: {status}\")",
+      "explanation": "Without the f, braces print literally. The output is Status: {status}, not Status: OVERDUE."
     }
   ],
   "common_mistakes": [
-    "Forgetting the leading f — then {health} prints literally",
-    "Putting quotes incorrectly inside the braces"
+    "Forgetting the leading f — then {status} prints literally",
+    "Putting quotes incorrectly inside the braces",
+    "Hardcoding numbers into the message instead of inserting the variable names"
   ],
   "exercises": [
     {
-      "id": "fundamentals_03_ex2",
+      "id": "fundamentals_03_ex1",
       "type": "predict_output",
-      "title": "Predict the f-string",
+      "title": "Predict the report",
       "prompt": "What does this print?",
-      "code_to_predict": "item = \"Potion\"\ncount = 3\nprint(f\"Inventory: {count}x {item}\")",
-      "expected_answer": "Inventory: 3x Potion",
+      "code_to_predict": "registered = 4\nprint(f\"Party registered: {registered}\")",
+      "expected_answer": "Party registered: 4",
       "topics": ["strings"],
       "hints": [
-        "Substitute the braced expressions with their values.",
+        "Substitute the braced expression with its value.",
         "Keep the surrounding words and spaces exactly.",
-        "count becomes 3 and item becomes Potion inside one string."
+        "registered becomes 4 inside the finished string."
       ]
     },
     {
-      "id": "fundamentals_03_ex3",
+      "id": "fundamentals_03_ex2",
       "type": "debug",
-      "title": "Forgot the f",
-      "prompt": "This program is supposed to print:\nReady, Mira!\n\nIt currently prints the braces literally. Fix it.",
-      "starter_code": "name = \"Mira\"\nprint(\"Ready, {name}!\")\n",
+      "title": "Repair the template",
+      "prompt": "This program is supposed to print:\nStatus: OVERDUE\n\nIt currently prints the braces literally. Fix it.",
+      "starter_code": "status = \"OVERDUE\"\nprint(\"Status: {status}\")\n",
       "topics": ["strings"],
       "hints": [
         "An f-string starts with f immediately before the quote.",
         "The braces should contain the variable name, not extra quotes.",
-        "Turn the printed string into an f-string so {name} is replaced."
+        "Turn the printed string into an f-string so {status} is replaced."
       ],
       "tests": [
         {
           "kind": "source_uses",
           "feature": "fstring",
-          "names": ["name"],
-          "message": "Use an f-string that includes name inside braces — do not hardcode Mira."
+          "names": ["status"],
+          "message": "Use an f-string that includes status inside braces — do not hardcode OVERDUE in the print."
         },
-        {"kind": "stdout_equals", "expected": "Ready, Mira!\n"}
+        {
+          "kind": "stdout_equals",
+          "expected": "Status: OVERDUE\n"
+        }
       ]
     },
     {
-      "id": "fundamentals_03_ex1",
+      "id": "fundamentals_03_ex3",
       "type": "write_code",
-      "title": "Formatted character card",
-      "prompt": "The variables are already created. Print exactly one line:\nSelene - Level 5 - HP 90\n\nUse an f-string that inserts name, level, and health. Do not hardcode those values in the printed string.",
-      "starter_code": "name = \"Selene\"\nhealth = 90\nlevel = 5\n# Print the formatted summary\n",
+      "title": "Build the dispatch line",
+      "prompt": "The variables are already created. Print exactly one line:\nExpedition 17 | Party 4 | 3 days overdue\n\nBuild that line with an f-string so expedition, registered, and days_overdue come from the variables — do not hardcode those numbers in the printed string.",
+      "starter_code": "expedition = 17\nregistered = 4\ndays_overdue = 3\n# Print the dispatch line\n",
       "topics": ["strings"],
       "hints": [
         "Start your string with f and put expressions in braces.",
-        "Keep the hyphens and spaces exactly as shown in the required line.",
-        "The printed f-string should mention name, level, and health inside braces."
+        "Keep the pipes, spaces, and wording exactly as shown.",
+        "The f-string should mention expedition, registered, and days_overdue inside braces."
       ],
       "tests": [
         {
           "kind": "source_uses",
           "feature": "fstring",
-          "names": ["name", "level", "health"],
-          "message": "Use an f-string that includes name, level, and health in braces."
+          "names": ["expedition", "registered", "days_overdue"],
+          "message": "Use an f-string that includes expedition, registered, and days_overdue in braces."
         },
-        {"kind": "stdout_equals", "expected": "Selene - Level 5 - HP 90\n"}
-      ]
+        {
+          "kind": "stdout_equals",
+          "expected": "Expedition 17 | Party 4 | 3 days overdue\n"
+        }
+      ],
+      "success_message": "Dispatch line assembled. Variables, a string template, and print now work as one small program."
     }
   ]
 }

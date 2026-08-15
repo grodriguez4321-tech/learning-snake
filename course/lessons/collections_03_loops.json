@@ -3,9 +3,9 @@
   "section": "Collections",
   "section_order": 3,
   "order": 3,
-  "title": "Repeating with for",
+  "title": "Search Every Entry",
   "topics": ["loops"],
-  "content": "What problem does this solve?\nA list can grow. Visiting item1, item2, item3 by hand does not scale. A for loop runs the same block once for each value in a list.\n\nBasic syntax\n  for item in inventory:\n      print(item)\n\nWhat actually happens\nPython takes the first value in inventory, binds it to item, and runs the indented block. Then it repeats with the next value, until the list is finished.\n\nWhen this is useful\nUse a for loop whenever you want to do the same thing to every item — print them, check them, or format a line for each one.",
+  "content": "What problem does this solve?\nPrinting every evidence index by hand works for two clues and falls apart for twenty. A for loop runs the same block once for each value in a list.\n\nBasic syntax\n  for clue in evidence:\n      print(clue)\n\nWhat actually happens\nPython takes the first value in evidence, binds it to clue, and runs the indented block. Then it repeats with the next value, until the list is finished. The loop variable holds the current item, not an index.\n\nWhen this is useful\nUse a for loop whenever you want to do the same thing to every item — print them, format a line for each one, or make a small decision about the current clue. You already know if/else; combining it inside a loop is ordinary program composition, not a brand-new topic.",
   "concepts": [
     "for item in a_list repeats a block once per value",
     "The loop variable holds the current item, not an index",
@@ -13,9 +13,9 @@
   ],
   "examples": [
     {
-      "title": "Print every item",
-      "code": "inventory = [\"sword\", \"shield\"]\nfor item in inventory:\n    print(item)",
-      "explanation": "The block runs twice: first with sword, then with shield."
+      "title": "Evidence collection",
+      "code": "evidence = [\n    \"broken lantern\",\n    \"drag marks\",\n    \"gray dust\",\n    \"torn cloak\",\n]\nfor clue in evidence:\n    print(clue)",
+      "explanation": "The block runs four times — once for each clue, in order."
     }
   ],
   "common_mistakes": [
@@ -27,63 +27,104 @@
     {
       "id": "collections_03_ex1",
       "type": "predict_output",
-      "title": "Predict the loop",
+      "title": "Predict the scan",
       "prompt": "What does this print? Type each line of output.",
-      "code_to_predict": "inventory = [\"sword\", \"shield\"]\nfor item in inventory:\n    print(item)",
-      "expected_answer": "sword\nshield",
+      "code_to_predict": "evidence = [\"broken lantern\", \"drag marks\", \"gray dust\"]\nfor clue in evidence:\n    print(clue)",
+      "expected_answer": "broken lantern\ndrag marks\ngray dust",
       "topics": ["loops"],
       "hints": [
         "The loop body runs once per item, in order.",
-        "Each print ends a line, so you get one name per line.",
-        "First sword, then shield."
+        "Each print ends a line, so you get one clue per line.",
+        "Three iterations: broken lantern, then drag marks, then gray dust."
       ]
     },
     {
       "id": "collections_03_ex2",
-      "type": "write_code",
-      "title": "List the party",
-      "prompt": "party is already created. Print each member on its own line, in order, using a for loop.",
-      "starter_code": "party = [\"Aria\", \"Rook\", \"Mira\"]\n# Print each party member\n",
+      "type": "debug",
+      "title": "Repair the loop",
+      "prompt": "This program is supposed to print each clue on its own line, but it prints the whole list once. Fix it so the loop prints the current item.",
+      "starter_code": "evidence = [\"broken lantern\", \"drag marks\", \"gray dust\"]\nfor clue in evidence:\n    print(evidence)\n",
       "topics": ["loops"],
       "hints": [
-        "for some_name in party: repeats a block for each value.",
-        "Print the loop variable, not the whole list.",
-        "One print inside the loop is enough."
+        "Look at what is being printed inside the loop.",
+        "The loop variable already holds the current clue.",
+        "Print clue each time, not evidence."
       ],
       "tests": [
         {
           "kind": "source_uses",
           "feature": "for_loop",
-          "message": "Use a for loop to visit each party member."
+          "message": "Keep a for loop that visits each clue."
         },
-        {"kind": "stdout_equals", "expected": "Aria\nRook\nMira\n"}
+        {
+          "kind": "stdout_equals",
+          "expected": "broken lantern\ndrag marks\ngray dust\n"
+        }
       ]
     },
     {
       "id": "collections_03_ex3",
       "type": "write_code",
-      "title": "Label each item",
-      "prompt": "inventory is already created. For each item, print a line like:\n- sword\n\nUse a for loop and an f-string. The three lines should be:\n- sword\n- shield\n- potion",
-      "starter_code": "inventory = [\"sword\", \"shield\", \"potion\"]\n# Print a labeled line for each item\n",
+      "title": "Create an evidence report",
+      "prompt": "evidence is already created. Print these three lines using a for loop and an f-string:\nEvidence: broken lantern\nEvidence: drag marks\nEvidence: gray dust",
+      "starter_code": "evidence = [\"broken lantern\", \"drag marks\", \"gray dust\"]\n# Print a labeled line for each clue\n",
       "topics": ["loops", "strings"],
       "hints": [
-        "Loop over inventory so item is each string in turn.",
-        "An f-string can start with - and insert the current item.",
+        "Loop over evidence so clue is each string in turn.",
+        "An f-string can start with Evidence: and insert the current clue.",
         "Print once inside the loop, not three separate print calls."
       ],
       "tests": [
         {
           "kind": "source_uses",
           "feature": "for_loop",
-          "message": "Use a for loop so the work repeats for each item."
+          "message": "Use a for loop so the work repeats for each clue."
         },
         {
           "kind": "source_uses",
           "feature": "fstring",
           "message": "Build each line with an f-string."
         },
-        {"kind": "stdout_equals", "expected": "- sword\n- shield\n- potion\n"}
+        {
+          "kind": "stdout_equals",
+          "expected": "Evidence: broken lantern\nEvidence: drag marks\nEvidence: gray dust\n"
+        }
       ]
+    },
+    {
+      "id": "collections_03_ex4",
+      "type": "write_code",
+      "title": "Flag a suspicious entry",
+      "prompt": "evidence is already created. Loop through every clue. When the clue is \"gray dust\", print:\nFLAG: gray dust\n\nFor every other clue, print:\nlogged: <clue>\n\nUse a for loop and if/else. Build each line with an f-string.",
+      "starter_code": "evidence = [\"broken lantern\", \"drag marks\", \"gray dust\", \"torn cloak\"]\n# Scan each clue; flag gray dust\n",
+      "topics": ["loops", "conditionals", "strings"],
+      "hints": [
+        "Inside the loop, ask whether the current clue equals \"gray dust\".",
+        "Use if/else so exactly one labeled line prints per clue.",
+        "Print f\"FLAG: {clue}\" for gray dust and f\"logged: {clue}\" otherwise."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "message": "Use a for loop to visit each clue."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "if_statement",
+          "message": "Use if/else inside the loop to choose FLAG or logged."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "fstring",
+          "message": "Build each output line with an f-string."
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "logged: broken lantern\nlogged: drag marks\nFLAG: gray dust\nlogged: torn cloak\n"
+        }
+      ],
+      "success_message": "Scan complete. Ordinary clues are logged; gray dust is flagged."
     }
   ]
 }
