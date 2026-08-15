@@ -153,7 +153,8 @@
           "kind": "source_uses",
           "feature": "calls_name",
           "name": "inspect_clue",
-          "message": "Inside the loop, call inspect_clue(clue) and print what it returns."
+          "message": "Call inspect_clue(clue) from inside the evidence for-loop body (a dummy call elsewhere is not enough).",
+          "inside": "for_loop"
         },
         {
           "kind": "source_uses",

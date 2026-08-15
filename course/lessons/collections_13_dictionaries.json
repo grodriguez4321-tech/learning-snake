@@ -111,6 +111,15 @@
       ],
       "tests": [
         {
+          "kind": "source_uses",
+          "feature": "len_call",
+          "names": [
+            "party"
+          ],
+          "in_function": "make_record",
+          "message": "Inside make_record, set member_count with len(party)."
+        },
+        {
           "kind": "expression",
           "expression": "make_record(\"Gloamfen\", [\"Mara\", \"Tovin\"], [\"rope\"])[\"member_count\"]",
           "expected": 2
@@ -243,8 +252,15 @@
       "tests": [
         {
           "kind": "source_uses",
-          "feature": "if_statement",
-          "message": "Use if / elif / else to choose Denied, Cleared, or Review."
+          "feature": "len_call",
+          "in_function": "build_expedition_record",
+          "message": "Inside build_expedition_record, use len() for member_count and supply_count."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "elif_branch",
+          "in_function": "build_expedition_record",
+          "message": "Use if / elif / else inside build_expedition_record to choose Denied, Cleared, or Review."
         },
         {
           "kind": "function",

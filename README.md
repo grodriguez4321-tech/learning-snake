@@ -192,14 +192,74 @@ Only names in the curated curriculum catalog can be enabled (`math`, `json`,
 `random`, …). Requests for modules like `os` or `subprocess` are rejected even if
 listed by mistake.
 
-## Progress
+## Progress saving
 
-Progress lives in `data/progress.json` (git-ignored). It stores completed
-lessons, per-exercise attempts/hints/drafts, mastery scores, and the current
-lesson. Corrupt files are quarantined and replaced with a fresh store.
+Progress is stored in `data/progress.json`:
+
+- `curriculum_version` (currently **2** for Basilisk Curriculum V2)
+- completed lessons / exercises
+- attempt counts and hints used
+- draft code for unfinished exercises
+- current lesson id
+- mastery scores and mistake topic counts
+
+It loads automatically on launch and saves after checks, hints, navigation, and
+on quit. **Reset…** in the toolbar (also Settings) clears everything after
+confirmation.
+
+If the progress file is corrupt or malformed, the app quarantines it (renamed to
+`progress.json.corrupt-<timestamp>`), starts fresh, and shows a warning instead of
+crashing.
+
+### Curriculum V2 migration
+
+Basilisk Curriculum V2 reuses Phase 1 exercise IDs while changing their meaning.
+Loading an older or unversioned progress file:
+
+- archives the prior file as `progress.json.pre-basilisk-v2-<timestamp>`
+- keeps mastery scores and mistake topic counts
+- clears Phase 1 lesson completions and Phase 1 exercise records (including drafts)
+- requires Lessons 1–8 to be retaken
+- never shows old draft code inside an unrelated new exercise
+
+UI preferences in `data/ui_prefs.json` are unrelated and are left alone.
+
+## How to add another lesson
+
+1. Create `course/lessons/<id>.json` using an existing lesson as a template.
+2. Set `section`, `section_order`, and `order` so it sorts where you want.
+3. Add exercises with `tests` (or `expected_answer` / `choices`).
+4. Optionally set `allowed_modules` on the lesson or exercise when imports are needed.
+5. Restart the app (catalog loads at startup).
+6. Optionally extend mastery topic names in `engine/progress.py` if you introduce
+   a new major topic label.
+
+No GUI code changes are required for ordinary new lessons. See
+`course/lessons/README.md` for the check kinds and `source_uses` features.
+
+## Unlocking
+
+Lesson 1 is unlocked. Each following lesson unlocks when every exercise in the
+previous lesson is marked complete. Sidebar section labels follow the same
+linear order (Expedition Intake sections for Lessons 9–13).
+
+## Playground
+
+The Playground tab runs code in a persistent namespace. JSON/pickle-serializable
+values remain until you click **Reset Environment**. Some objects (notably many
+class definitions) may not persist across playground runs; recreate them if
+needed.
+
+## Phase roadmap
+
+- **Phase 1 (Lessons 1–8)**: Basilisk foundation — `print` through functions (28 exercises)
+- **Lessons 9–13**: Expedition Intake System — `elif`, Boolean logic, `len`/`range`, list methods, dictionaries
+- **Later batches**: nested data, parsing, classes, composition, and beyond — see
+  `docs/phase2-curriculum-plan.md`
 
 ## Design docs
 
 - `docs/phase2-curriculum-plan.md` — later sequencing after Lessons 1–13
 - `docs/engagement-retention-design.md` — teaching philosophy and retention
 - `docs/basilisk-curriculum-implementation-plan.md` — implementation notes for this redesign
+- `docs/basilisk-curriculum-reconciliation.md` — review findings and decisions

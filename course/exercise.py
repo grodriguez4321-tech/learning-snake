@@ -38,9 +38,15 @@ class TestCase:
     expression: Optional[str] = None
     contains: Optional[str] = None
     message: str = ""
-    # source_uses: fstring | binop_names | rebind_self | append_or_extend | subscript | comment
+    # source_uses: construct feature name (see execution_worker.apply_source_uses)
     feature: Optional[str] = None
     names: list[str] = field(default_factory=list)
+    # source_uses: optional Compare op names (Lt, Gt, Eq, NotEq, …)
+    ops: list[str] = field(default_factory=list)
+    # source_uses: limit the AST walk to a named function body
+    in_function: Optional[str] = None
+    # source_uses: further scope (e.g. calls_name inside "for_loop")
+    inside: Optional[str] = None
     # function: optional post-call argument expectations (mutation checks)
     arg_after: Optional[dict[str, Any]] = None
     return_shares_arg: Optional[int] = None
@@ -112,6 +118,9 @@ def test_case_from_dict(data: dict[str, Any]) -> TestCase:
         message=data.get("message", ""),
         feature=data.get("feature"),
         names=list(data.get("names", [])),
+        ops=list(data.get("ops", [])),
+        in_function=data.get("in_function"),
+        inside=data.get("inside"),
         arg_after=(
             dict(data["arg_after"])
             if isinstance(data.get("arg_after"), dict)

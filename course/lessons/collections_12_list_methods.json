@@ -85,9 +85,9 @@
       "tests": [
         {
           "kind": "source_uses",
-          "feature": "append_or_extend",
+          "feature": "append_call",
           "name": "supplies",
-          "message": "Add antidote with append on supplies."
+          "message": "Fix the call to supplies.append(\"antidote\") \u2014 do not assign the result."
         },
         {
           "kind": "globals",
@@ -122,6 +122,20 @@
       ],
       "tests": [
         {
+          "kind": "source_uses",
+          "feature": "append_call",
+          "name": "supplies",
+          "in_function": "prepare_supplies",
+          "message": "Inside prepare_supplies, call supplies.append(new_item)."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "remove_call",
+          "name": "supplies",
+          "in_function": "prepare_supplies",
+          "message": "Inside prepare_supplies, call supplies.remove(damaged_item)."
+        },
+        {
           "kind": "function",
           "function": "prepare_supplies",
           "args": [
@@ -135,7 +149,13 @@
           "expected": [
             "rope",
             "antidote"
-          ]
+          ],
+          "arg_after": {
+            "0": [
+              "rope",
+              "antidote"
+            ]
+          }
         },
         {
           "kind": "function",
@@ -153,7 +173,14 @@
             "chalk",
             "rope",
             "lantern"
-          ]
+          ],
+          "arg_after": {
+            "0": [
+              "chalk",
+              "rope",
+              "lantern"
+            ]
+          }
         },
         {
           "kind": "function",
@@ -172,7 +199,14 @@
             "rope",
             "antidote"
           ],
-          "message": "remove deletes only the first matching value."
+          "message": "remove deletes only the first matching value.",
+          "arg_after": {
+            "0": [
+              "torch",
+              "rope",
+              "antidote"
+            ]
+          }
         }
       ]
     },
@@ -180,18 +214,25 @@
       "id": "collections_12_ex5",
       "type": "write_code",
       "title": "Consume the next ration",
-      "prompt": "Write use_last_supply(supplies) that removes the final item and returns a two-item list: [used_item, supplies].\n\nThe second value should be the same list after mutation so the checker can verify both the consumed item and the remaining supplies.",
-      "starter_code": "def use_last_supply(supplies):\n    # Remove the last item; return [used_item, supplies].\n    pass\n",
+      "prompt": "Write use_last_supply(supplies) that removes the final item with pop() and returns only that removed item.\n\nThe supplies list itself must be mutated in place (the checker inspects the list after your call).",
+      "starter_code": "def use_last_supply(supplies):\n    # Remove the last item and return it.\n    pass\n",
       "topics": [
         "collections",
         "functions"
       ],
       "hints": [
         "pop() removes the last item and gives it back to you.",
-        "Store the popped value, then return both that value and the supplies list.",
-        "Return [used_item, supplies] as a two-item list."
+        "Store the popped value, then return that value alone.",
+        "return supplies.pop()"
       ],
       "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "pop_call",
+          "name": "supplies",
+          "in_function": "use_last_supply",
+          "message": "Inside use_last_supply, call supplies.pop()."
+        },
         {
           "kind": "function",
           "function": "use_last_supply",
@@ -202,20 +243,13 @@
               "ration"
             ]
           ],
-          "expected": [
-            "ration",
-            [
-              "rope",
-              "torch"
-            ]
-          ],
+          "expected": "ration",
           "arg_after": {
             "0": [
               "rope",
               "torch"
             ]
-          },
-          "return_shares_arg": 0
+          }
         },
         {
           "kind": "function",
@@ -225,14 +259,10 @@
               "chalk"
             ]
           ],
-          "expected": [
-            "chalk",
-            []
-          ],
+          "expected": "chalk",
           "arg_after": {
             "0": []
-          },
-          "return_shares_arg": 0
+          }
         },
         {
           "kind": "function",
@@ -245,22 +275,14 @@
               "rope"
             ]
           ],
-          "expected": [
-            "rope",
-            [
-              "map",
-              "lantern",
-              "antidote"
-            ]
-          ],
+          "expected": "rope",
           "arg_after": {
             "0": [
               "map",
               "lantern",
               "antidote"
             ]
-          },
-          "return_shares_arg": 0
+          }
         }
       ]
     },
@@ -279,14 +301,20 @@
       "hints": [
         "Mutate supplies with remove and append before you measure it.",
         "Print len(party), then len(supplies), then choose Cleared / Review / Denied from the supply count.",
-        "After updates you should have 3 supplies, which falls in the Denied branch of the Lesson 9 thresholds."
+        "After updates you should have 5 supplies, which falls in the Review branch of the Lesson 9 thresholds."
       ],
       "tests": [
         {
           "kind": "source_uses",
-          "feature": "append_or_extend",
+          "feature": "remove_call",
           "name": "supplies",
-          "message": "Append antidote to the supplies list."
+          "message": "Remove \"cracked vial\" with supplies.remove(...)."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "append_call",
+          "name": "supplies",
+          "message": "Append \"antidote\" with supplies.append(...)."
         },
         {
           "kind": "source_uses",

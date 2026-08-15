@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -149,7 +150,25 @@ class GradingHoleTests(unittest.TestCase):
                 "print(evidence)\n"
             ),
         )
-        self.assertTrue(plus.passed, plus.message)
+        self.assertFalse(plus.passed)
+        extend = self.checker.check(
+            exercise,
+            code=(
+                'evidence = ["broken lantern", "drag marks"]\n'
+                'evidence.extend(["gray dust"])\n'
+                "print(evidence)\n"
+            ),
+        )
+        self.assertFalse(extend.passed)
+        augassign = self.checker.check(
+            exercise,
+            code=(
+                'evidence = ["broken lantern", "drag marks"]\n'
+                'evidence += ["gray dust"]\n'
+                "print(evidence)\n"
+            ),
+        )
+        self.assertFalse(augassign.passed)
         append = self.checker.check(
             exercise,
             code=(
@@ -251,6 +270,20 @@ class GradingHoleTests(unittest.TestCase):
             ),
         )
         self.assertFalse(separate_ifs.passed)
+        else_if = self.checker.check(
+            exercise,
+            code=(
+                "def readiness_status(supplies):\n"
+                "    if supplies >= 10:\n"
+                '        return "Cleared"\n'
+                "    else:\n"
+                "        if supplies >= 5:\n"
+                '            return "Review"\n'
+                "        else:\n"
+                '            return "Denied"\n'
+            ),
+        )
+        self.assertFalse(else_if.passed)
         with_elif = self.checker.check(
             exercise,
             code=(
@@ -305,6 +338,23 @@ class GradingHoleTests(unittest.TestCase):
             ),
         )
         self.assertFalse(rebuilt.passed)
+        dummy_outside = self.checker.check(
+            exercise,
+            code=(
+                "evidence = ['broken lantern', 'gray dust', 'torn cloak']\n"
+                "def inspect_clue(clue):\n"
+                "    if clue == 'gray dust':\n"
+                "        return f'FLAG: {clue}'\n"
+                "    return f'logged: {clue}'\n"
+                "inspect_clue('noop')\n"
+                "for clue in evidence:\n"
+                "    if clue == 'gray dust':\n"
+                "        print(f'FLAG: {clue}')\n"
+                "    else:\n"
+                "        print(f'logged: {clue}')\n"
+            ),
+        )
+        self.assertFalse(dummy_outside.passed)
 
     def test_use_last_supply_rejects_list_copy(self) -> None:
         exercise = self._exercise(
@@ -315,10 +365,157 @@ class GradingHoleTests(unittest.TestCase):
             code=(
                 "def use_last_supply(supplies):\n"
                 "    used = supplies[-1]\n"
-                "    return [used, supplies[:-1]]\n"
+                "    return used\n"
             ),
         )
         self.assertFalse(copied.passed)
+        via_pop = self.checker.check(
+            exercise,
+            code=(
+                "def use_last_supply(supplies):\n"
+                "    return supplies.pop()\n"
+            ),
+        )
+        self.assertTrue(via_pop.passed, via_pop.message)
+
+    def test_prepare_supplies_rejects_replacement_list(self) -> None:
+        exercise = self._exercise(
+            "collections_12_list_methods", "collections_12_ex4"
+        )
+        rebuilt = self.checker.check(
+            exercise,
+            code=(
+                "def prepare_supplies(supplies, new_item, damaged_item):\n"
+                "    return [item for item in supplies if item != damaged_item] + [new_item]\n"
+            ),
+        )
+        self.assertFalse(rebuilt.passed)
+
+    def test_quartermaster_hints_match_starter_and_expected(self) -> None:
+        exercise = self._exercise(
+            "collections_12_list_methods", "collections_12_ex6"
+        )
+        self.assertEqual(len(exercise.hints), 3)
+        hint3 = exercise.hints[2].lower()
+        self.assertNotIn("3 supplies", hint3)
+        self.assertNotIn("denied", hint3)
+        self.assertIn("5 supplies", hint3)
+        self.assertIn("review", hint3)
+        self.assertIn("cracked vial", exercise.starter_code)
+        self.assertIn('["rope", "torch", "chalk", "map", "cracked vial"]', exercise.starter_code)
+        stdout = next(t for t in exercise.tests if t.kind == "stdout_equals")
+        self.assertEqual(stdout.expected, "3\n5\nReview\n")
+        # Hint 2 may name all three branches; hint 3 must match the graded Review path.
+        self.assertTrue(
+            any("review" in h.lower() for h in exercise.hints),
+            "hints should mention Review for the expected outcome",
+        )
+
+    def test_abandoned_camp_is_script_level(self) -> None:
+        exercise = self._exercise("decisions_01_conditionals", "decisions_01_ex4")
+        self.assertNotIn("def ", exercise.starter_code)
+        self.assertNotIn("camp_report", exercise.prompt.lower())
+        with_func = self.checker.check(
+            exercise,
+            code=(
+                "expedition = 17\n"
+                "registered = 4\n"
+                "bedrolls = 3\n"
+                "def camp_report(expedition, registered, bedrolls):\n"
+                "    if bedrolls != registered:\n"
+                '        return f"Expedition {expedition}: INVESTIGATE"\n'
+                '    return f"Expedition {expedition}: CLEAR"\n'
+                "print(camp_report(expedition, registered, bedrolls))\n"
+            ),
+        )
+        # May or may not pass behaviorally; != must fail construct check
+        ne = self.checker.check(
+            exercise,
+            code=(
+                "expedition = 17\n"
+                "registered = 4\n"
+                "bedrolls = 3\n"
+                "if bedrolls != registered:\n"
+                '    print(f"Expedition {expedition}: INVESTIGATE")\n'
+                "else:\n"
+                '    print(f"Expedition {expedition}: CLEAR")\n'
+            ),
+        )
+        self.assertFalse(ne.passed)
+        good = self.checker.check(
+            exercise,
+            code=(
+                "expedition = 17\n"
+                "registered = 4\n"
+                "bedrolls = 3\n"
+                "if bedrolls < registered:\n"
+                '    print(f"Expedition {expedition}: INVESTIGATE")\n'
+                "else:\n"
+                '    print(f"Expedition {expedition}: CLEAR")\n'
+            ),
+        )
+        self.assertTrue(good.passed, good.message)
+
+    def test_boolean_constructs_required(self) -> None:
+        and_ex = self._exercise("decisions_10_boolean_logic", "decisions_10_ex3")
+        nested = self.checker.check(
+            and_ex,
+            code=(
+                "def can_depart(has_guide, supplies):\n"
+                "    if has_guide:\n"
+                "        if supplies >= 10:\n"
+                "            return True\n"
+                "    return False\n"
+            ),
+        )
+        self.assertFalse(nested.passed)
+        not_ex = self._exercise("decisions_10_boolean_logic", "decisions_10_ex4")
+        without_not = self.checker.check(
+            not_ex,
+            code=(
+                "def can_depart(has_guide, supplies, warning_active):\n"
+                "    return has_guide and supplies >= 10 and warning_active == False\n"
+            ),
+        )
+        self.assertFalse(without_not.passed)
+        or_ex = self._exercise("decisions_10_boolean_logic", "decisions_10_ex5")
+        with_or = self.checker.check(
+            or_ex,
+            code=(
+                "def has_escape_route(north_open, south_open):\n"
+                "    return north_open or south_open\n"
+            ),
+        )
+        self.assertTrue(with_or.passed, with_or.message)
+
+    def test_range_and_len_constructs_required(self) -> None:
+        roster = self._exercise("collections_11_len_range", "collections_11_ex4")
+        dummy_range = self.checker.check(
+            roster,
+            code=(
+                "def numbered_roster(party):\n"
+                "    range(1)\n"
+                "    lines = []\n"
+                "    index = 0\n"
+                "    while index < len(party):\n"
+                '        lines.append(f"{index + 1}: {party[index]}")\n'
+                "        index += 1\n"
+                "    return lines\n"
+            ),
+        )
+        self.assertFalse(dummy_range.passed)
+        name_len = self._exercise("collections_11_len_range", "collections_11_ex5")
+        hardcoded = self.checker.check(
+            name_len,
+            code=(
+                "def is_long_name(name):\n"
+                "    count = 0\n"
+                "    for _ in name:\n"
+                "        count += 1\n"
+                "    return count >= 8\n"
+            ),
+        )
+        self.assertFalse(hardcoded.passed)
 
     def test_can_depart_rejects_low_supply_shortcut(self) -> None:
         exercise = self._exercise(
@@ -343,6 +540,34 @@ class GradingHoleTests(unittest.TestCase):
             ),
         )
         self.assertFalse(single.passed)
+
+    def test_e2e_harness_refuses_production_data_dir(self) -> None:
+        from tests.e2e_learning_loop import PRODUCTION_DATA, assert_isolated_runtime
+
+        with self.assertRaises(AssertionError):
+            assert_isolated_runtime(PRODUCTION_DATA)
+
+    def test_pre_basilisk_progress_migration(self) -> None:
+        from engine.progress import CURRENT_CURRICULUM_VERSION, ProgressStore
+
+        fixture = ROOT / "tests" / "fixtures" / "pre_basilisk_v2_progress.json"
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "progress.json"
+            path.write_text(fixture.read_text(encoding="utf-8"), encoding="utf-8")
+            store = ProgressStore(path)
+            store.load()
+            self.assertTrue(store.migrated_from_legacy)
+            self.assertIsNotNone(store.load_warning)
+            self.assertEqual(store.data.curriculum_version, CURRENT_CURRICULUM_VERSION)
+            self.assertNotIn("fundamentals_01_print", store.data.completed_lessons)
+            self.assertNotIn("decisions_01_ex4", store.data.exercises)
+            self.assertNotIn("fundamentals_01_ex3", store.data.exercises)
+            self.assertAlmostEqual(store.data.mastery["print"], 0.45)
+            archives = list(Path(tmp).glob("progress.json.pre-basilisk-v2-*"))
+            self.assertEqual(len(archives), 1)
+            reloaded = json.loads(path.read_text(encoding="utf-8"))
+            self.assertEqual(reloaded["curriculum_version"], CURRENT_CURRICULUM_VERSION)
+            self.assertNotIn("decisions_01_ex4", reloaded.get("exercises", {}))
 
 
 class FullCatalogLoopTests(unittest.TestCase):

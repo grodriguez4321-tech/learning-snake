@@ -13,6 +13,7 @@ import io
 import json
 import pickle
 import sys
+import tokenize
 import traceback
 from contextlib import redirect_stderr, redirect_stdout
 from typing import Any
@@ -311,12 +312,51 @@ def _assigned_name(target: ast.AST) -> str | None:
     return None
 
 
+def _function_nodes(tree: ast.AST, name: str) -> list[ast.AST]:
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == name:
+            return list(ast.walk(node))
+    return []
+
+
+def _scoped_nodes(tree: ast.AST, in_function: str = "") -> list[ast.AST]:
+    if in_function:
+        return _function_nodes(tree, in_function)
+    return list(ast.walk(tree))
+
+
+def _has_method_call(nodes: list[ast.AST], method: str, list_name: str = "") -> bool:
+    for node in nodes:
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        if not isinstance(func, ast.Attribute) or func.attr != method:
+            continue
+        if not list_name:
+            return True
+        if isinstance(func.value, ast.Name) and func.value.id == list_name:
+            return True
+    return False
+
+
+def _source_has_elif_token(source: str) -> bool:
+    """True when source contains a real ``elif`` keyword (not ``else: if``)."""
+    try:
+        tokens = tokenize.generate_tokens(io.StringIO(source).readline)
+        return any(tok.type == tokenize.NAME and tok.string == "elif" for tok in tokens)
+    except tokenize.TokenError:
+        return False
+
+
 def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
     """Check that learner code uses a construct that is itself the learning objective."""
     feature = str(test.get("feature") or "")
     required = list(test.get("names") or [])
     target = str(test.get("name") or "")
     custom = str(test.get("message") or "")
+    in_function = str(test.get("in_function") or "")
+    inside = str(test.get("inside") or "")
+    ops_wanted = list(test.get("ops") or [])
 
     if feature == "comment":
         for line in source.splitlines():
@@ -332,8 +372,12 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
     except SyntaxError:
         return False, custom or "Your code could not be parsed."
 
+    nodes = _scoped_nodes(tree, in_function)
+    if in_function and not nodes:
+        return False, custom or f"Define a function named {in_function}."
+
     if feature == "fstring":
-        for node in ast.walk(tree):
+        for node in nodes:
             if isinstance(node, ast.JoinedStr):
                 used = {child.id for child in ast.walk(node) if isinstance(child, ast.Name)}
                 if not required or set(required) <= used:
@@ -345,7 +389,7 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
 
     if feature == "binop_names":
         want = set(required)
-        for node in ast.walk(tree):
+        for node in nodes:
             if not isinstance(node, ast.Assign):
                 continue
             names = [_assigned_name(item) for item in node.targets]
@@ -360,7 +404,7 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
 
     if feature == "rebind_self":
         name = target or (required[0] if required else "")
-        for node in ast.walk(tree):
+        for node in nodes:
             if isinstance(node, ast.AugAssign) and _assigned_name(node.target) == name:
                 return True, "Updated the variable using its current value."
             if isinstance(node, ast.Assign):
@@ -376,7 +420,7 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
 
     if feature == "append_or_extend":
         name = target
-        for node in ast.walk(tree):
+        for node in nodes:
             if isinstance(node, ast.AugAssign) and _assigned_name(node.target) == name:
                 return True, "Grew the list."
             if (
@@ -397,8 +441,64 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
             f"Add an item to {name} with append, extend, or +=."
         )
 
+    if feature == "append_call":
+        name = target
+        if _has_method_call(nodes, "append", name):
+            return True, "Used append()."
+        return False, custom or (
+            f"Call {(name + '.') if name else ''}append(...) to add one item."
+        )
+
+    if feature == "remove_call":
+        name = target
+        if _has_method_call(nodes, "remove", name):
+            return True, "Used remove()."
+        return False, custom or (
+            f"Call {(name + '.') if name else ''}remove(...) to delete a matching value."
+        )
+
+    if feature == "pop_call":
+        name = target
+        if _has_method_call(nodes, "pop", name):
+            return True, "Used pop()."
+        return False, custom or (
+            f"Call {(name + '.') if name else ''}pop() to remove and return an item."
+        )
+
+    if feature == "len_call":
+        for node in nodes:
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Name)
+                and node.func.id == "len"
+            ):
+                if not required:
+                    return True, "Used len()."
+                used = {child.id for child in ast.walk(node) if isinstance(child, ast.Name)}
+                if set(required) <= used:
+                    return True, "Used len()."
+        return False, custom or "Use len() to measure the collection or string."
+
+    if feature == "boolean_and":
+        for node in nodes:
+            if isinstance(node, ast.BoolOp) and isinstance(node.op, ast.And):
+                return True, "Used Boolean and."
+        return False, custom or "Combine the requirements with and."
+
+    if feature == "boolean_or":
+        for node in nodes:
+            if isinstance(node, ast.BoolOp) and isinstance(node.op, ast.Or):
+                return True, "Used Boolean or."
+        return False, custom or "Combine the alternatives with or."
+
+    if feature == "unary_not":
+        for node in nodes:
+            if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not):
+                return True, "Used Boolean not."
+        return False, custom or "Use not to reverse a Boolean value."
+
     if feature == "subscript":
-        for node in ast.walk(tree):
+        for node in nodes:
             if not isinstance(node, ast.Subscript):
                 continue
             if not target:
@@ -408,22 +508,50 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
         return False, custom or "Use square-bracket indexing, such as party[0]."
 
     if feature == "if_statement":
-        for node in ast.walk(tree):
+        for node in nodes:
             if isinstance(node, ast.If):
                 return True, "Used an if statement."
         return False, custom or "Use if and else to choose what to print."
 
     if feature == "for_loop":
-        for node in ast.walk(tree):
+        for node in nodes:
             if isinstance(node, ast.For):
                 return True, "Used a for loop."
         return False, custom or "Use a for loop to visit each item in the list."
 
     if feature == "elif_branch":
-        for node in ast.walk(tree):
-            if isinstance(node, ast.If) and node.orelse:
-                # elif is compiled as a nested If inside orelse.
-                if len(node.orelse) == 1 and isinstance(node.orelse[0], ast.If):
+        # Prefer a real elif token so an indented else: if does not count.
+        if in_function:
+            for node in ast.walk(tree):
+                if (
+                    isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    and node.name == in_function
+                ):
+                    try:
+                        segment = ast.get_source_segment(source, node) or ""
+                    except Exception:  # noqa: BLE001
+                        segment = source
+                    if _source_has_elif_token(segment):
+                        # Also require the nested-If shape inside this function.
+                        for child in ast.walk(node):
+                            if (
+                                isinstance(child, ast.If)
+                                and child.orelse
+                                and len(child.orelse) == 1
+                                and isinstance(child.orelse[0], ast.If)
+                                and child.col_offset == child.orelse[0].col_offset
+                            ):
+                                return True, "Used elif in a decision chain."
+                    break
+        elif _source_has_elif_token(source):
+            for node in nodes:
+                if (
+                    isinstance(node, ast.If)
+                    and node.orelse
+                    and len(node.orelse) == 1
+                    and isinstance(node.orelse[0], ast.If)
+                    and node.col_offset == node.orelse[0].col_offset
+                ):
                     return True, "Used elif in a decision chain."
         return False, custom or (
             "Use elif so the chain can test another condition after if fails."
@@ -433,16 +561,36 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
         want = target or (required[0] if required else "")
         if not want:
             return False, custom or "Call the required function."
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-                if node.func.id == want:
-                    return True, f"Called {want}()."
+
+        def _is_wanted_call(node: ast.AST) -> bool:
+            return (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Name)
+                and node.func.id == want
+            )
+
+        if inside == "for_loop":
+            for node in nodes:
+                if not isinstance(node, ast.For):
+                    continue
+                for stmt in list(node.body) + list(node.orelse):
+                    for child in ast.walk(stmt):
+                        if _is_wanted_call(child):
+                            return True, f"Called {want}() inside the loop."
+            return False, custom or (
+                f"Call {want}() from inside the for loop body "
+                "(a call elsewhere is not enough)."
+            )
+
+        for node in nodes:
+            if _is_wanted_call(node):
+                return True, f"Called {want}()."
         return False, custom or f"Call {want}() so you reuse the function you defined."
 
     if feature == "print_names":
         want = set(required)
         printed: set[str] = set()
-        for node in ast.walk(tree):
+        for node in nodes:
             if not (
                 isinstance(node, ast.Call)
                 and isinstance(node.func, ast.Name)
@@ -463,7 +611,7 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
         minimum = int(test.get("expected") or test.get("count") or 3)
         count = 0
         multi_arg = 0
-        for node in ast.walk(tree):
+        for node in nodes:
             if (
                 isinstance(node, ast.Call)
                 and isinstance(node.func, ast.Name)
@@ -484,25 +632,35 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
         return True, "Used enough print() calls."
 
     if feature == "range_call":
-        for node in ast.walk(tree):
+        # Objective is range as the for-loop iterable (dummy range elsewhere must fail).
+        for node in nodes:
+            if not isinstance(node, ast.For):
+                continue
+            iter_node = node.iter
             if (
-                isinstance(node, ast.Call)
-                and isinstance(node.func, ast.Name)
-                and node.func.id == "range"
+                isinstance(iter_node, ast.Call)
+                and isinstance(iter_node.func, ast.Name)
+                and iter_node.func.id == "range"
             ):
-                return True, "Used range()."
-        return False, custom or "Use range() to generate the positions or numbers."
+                return True, "Used range() to drive a for loop."
+        return False, custom or (
+            "Use range(...) as the sequence in your for loop header."
+        )
 
     if feature == "compares_names":
         want = set(required)
-        for node in ast.walk(tree):
+        op_names = set(ops_wanted)
+        for node in nodes:
             if not isinstance(node, ast.Compare):
                 continue
             used = {child.id for child in ast.walk(node) if isinstance(child, ast.Name)}
-            if want and want <= used:
-                return True, "Compared the required names."
-            if not want:
-                return True, "Used a comparison."
+            if want and not want <= used:
+                continue
+            if op_names:
+                found = {type(op).__name__ for op in node.ops}
+                if not op_names <= found:
+                    continue
+            return True, "Compared the required names."
         return False, custom or (
             "Write a real comparison that uses the required variable names."
         )

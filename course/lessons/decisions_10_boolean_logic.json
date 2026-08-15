@@ -85,6 +85,12 @@
       ],
       "tests": [
         {
+          "kind": "source_uses",
+          "feature": "boolean_and",
+          "in_function": "can_depart",
+          "message": "Inside can_depart, combine the requirements with and (not or)."
+        },
+        {
           "kind": "function",
           "function": "can_depart",
           "args": [
@@ -138,6 +144,18 @@
         "Combine has_guide, supplies >= 10, and not warning_active."
       ],
       "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "boolean_and",
+          "in_function": "can_depart",
+          "message": "Inside can_depart, combine the safety requirements with and."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "unary_not",
+          "in_function": "can_depart",
+          "message": "Inside can_depart, use not so an active warning blocks departure."
+        },
         {
           "kind": "function",
           "function": "can_depart",
@@ -236,6 +254,12 @@
         "Return north_open or south_open."
       ],
       "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "boolean_or",
+          "in_function": "has_escape_route",
+          "message": "Inside has_escape_route, combine the routes with or."
+        },
         {
           "kind": "function",
           "function": "has_escape_route",

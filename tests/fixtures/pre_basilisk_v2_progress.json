@@ -1,0 +1,48 @@
+{
+  "completed_lessons": [
+    "fundamentals_01_print",
+    "fundamentals_02_variables",
+    "fundamentals_03_fstrings",
+    "decisions_01_conditionals"
+  ],
+  "current_lesson_id": "collections_01_lists",
+  "exercises": {
+    "fundamentals_01_ex1": {
+      "completed": true,
+      "attempts": 1,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": "Hello"
+    },
+    "fundamentals_01_ex3": {
+      "completed": true,
+      "attempts": 2,
+      "hints_used": 1,
+      "draft_code": "print('old dispatch')\n",
+      "last_answer": ""
+    },
+    "decisions_01_ex4": {
+      "completed": true,
+      "attempts": 3,
+      "hints_used": 2,
+      "draft_code": "gold = 8\nif gold >= 10:\n    print('enough')\n",
+      "last_answer": ""
+    },
+    "collections_01_ex1": {
+      "completed": false,
+      "attempts": 1,
+      "hints_used": 0,
+      "draft_code": "# mid-lesson draft\n",
+      "last_answer": ""
+    }
+  },
+  "mastery": {
+    "print": 0.45,
+    "variables": 0.3,
+    "conditionals": 0.2
+  },
+  "mistake_topics": {
+    "conditionals": 2,
+    "print": 1
+  }
+}

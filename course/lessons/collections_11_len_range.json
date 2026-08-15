@@ -87,6 +87,11 @@
       "tests": [
         {
           "kind": "source_uses",
+          "feature": "range_call",
+          "message": "Keep range(...) as the sequence driving the for loop."
+        },
+        {
+          "kind": "source_uses",
           "feature": "for_loop",
           "message": "Keep the for loop that walks indexes."
         },
@@ -116,12 +121,14 @@
         {
           "kind": "source_uses",
           "feature": "range_call",
-          "message": "Use range() to generate the roster numbers or indexes."
+          "message": "Inside numbered_roster, use range(...) as the for-loop sequence.",
+          "in_function": "numbered_roster"
         },
         {
           "kind": "source_uses",
           "feature": "for_loop",
-          "message": "Use a for loop with range to build the roster lines."
+          "message": "Use a for loop with range to build the roster lines.",
+          "in_function": "numbered_roster"
         },
         {
           "kind": "source_uses",
@@ -193,6 +200,15 @@
         "Return len(name) >= 8."
       ],
       "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "len_call",
+          "names": [
+            "name"
+          ],
+          "in_function": "is_long_name",
+          "message": "Inside is_long_name, measure the name with len(name)."
+        },
         {
           "kind": "function",
           "function": "is_long_name",

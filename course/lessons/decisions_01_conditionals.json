@@ -119,16 +119,16 @@
       "id": "decisions_01_ex4",
       "type": "mini_project",
       "title": "Encounter: The Abandoned Camp",
-      "prompt": "Encounter: The Abandoned Camp\n\nWrite camp_report(expedition, registered, bedrolls) that returns:\n  Expedition <n>: INVESTIGATE  when bedrolls are fewer than registered\n  Expedition <n>: CLEAR        otherwise\n\nUse if/else, an f-string, and the expedition parameter in the returned sentence (do not hardcode 17). Return the text; you may also print it if you like, but the function return is what is graded.",
-      "starter_code": "def camp_report(expedition, registered, bedrolls):\n    # Return INVESTIGATE or CLEAR using if/else and an f-string\n    pass\n",
+      "prompt": "Encounter: The Abandoned Camp\n\nVariables are already set for the expedition number, how many adventurers were registered, and how many bedrolls you found.\n\nIf bedrolls are fewer than registered, print:\n  Expedition <n>: INVESTIGATE\nOtherwise print:\n  Expedition <n>: CLEAR\n\nUse if/else, a fewer-than comparison, an f-string that includes the expedition variable (do not hardcode only the number 17 in the printed text), and print(). Do not define a function \u2014 write script-level code with the variables already provided.",
+      "starter_code": "expedition = 17\nregistered = 4\nbedrolls = 3\n# Print INVESTIGATE or CLEAR using if/else and an f-string\n",
       "topics": [
         "conditionals",
         "strings"
       ],
       "hints": [
-        "Compare bedrolls with registered to decide which message to build.",
-        "Both return paths should use an f-string that includes expedition.",
-        "if bedrolls < registered: return f\"Expedition {expedition}: INVESTIGATE\" else return the CLEAR line."
+        "Compare bedrolls with registered using < to decide which message to print.",
+        "Both branches should use an f-string that includes expedition.",
+        "if bedrolls < registered: print(f\"Expedition {expedition}: INVESTIGATE\") else print the CLEAR line."
       ],
       "tests": [
         {
@@ -143,7 +143,10 @@
             "bedrolls",
             "registered"
           ],
-          "message": "Compare bedrolls and registered so the branch depends on those values."
+          "ops": [
+            "Lt"
+          ],
+          "message": "Compare bedrolls < registered (a fewer-than check). Do not substitute !=."
         },
         {
           "kind": "source_uses",
@@ -151,50 +154,29 @@
           "names": [
             "expedition"
           ],
-          "message": "Build the returned sentence with an f-string that includes expedition."
+          "message": "Build the printed sentence with an f-string that includes expedition."
         },
         {
-          "kind": "function",
-          "function": "camp_report",
-          "args": [
-            17,
-            4,
-            3
-          ],
-          "expected": "Expedition 17: INVESTIGATE"
+          "kind": "globals",
+          "name": "expedition",
+          "expected": 17
         },
         {
-          "kind": "function",
-          "function": "camp_report",
-          "args": [
-            17,
-            4,
-            4
-          ],
-          "expected": "Expedition 17: CLEAR"
+          "kind": "globals",
+          "name": "registered",
+          "expected": 4
         },
         {
-          "kind": "function",
-          "function": "camp_report",
-          "args": [
-            9,
-            2,
-            1
-          ],
-          "expected": "Expedition 9: INVESTIGATE"
+          "kind": "globals",
+          "name": "bedrolls",
+          "expected": 3
         },
         {
-          "kind": "function",
-          "function": "camp_report",
-          "args": [
-            9,
-            2,
-            5
-          ],
-          "expected": "Expedition 9: CLEAR"
+          "kind": "stdout_equals",
+          "expected": "Expedition 17: INVESTIGATE\n"
         }
       ],
-      "success_message": "You handled both the missing-bedroll case and a clear camp \u2014 variables, comparison, and an f-string working together."
+      "success_message": "You handled the missing-bedroll case \u2014 variables, comparison, and an f-string working together."
     }
   ]
 }

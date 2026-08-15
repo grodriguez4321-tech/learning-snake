@@ -19,13 +19,18 @@ from engine.exercise_checker import ExerciseChecker
 from engine.progress import ProgressStore
 
 
-def build_controller(root: Path | None = None) -> tuple[CourseController, CodeRunner, UiPrefsStore]:
+def build_controller(
+    root: Path | None = None,
+    *,
+    data_dir: Path | None = None,
+) -> tuple[CourseController, CodeRunner, UiPrefsStore]:
     base = Path(root) if root is not None else ROOT
     catalog = CourseCatalog(base / "course" / "lessons")
     catalog.load()
-    progress = ProgressStore(base / "data" / "progress.json")
+    runtime = Path(data_dir) if data_dir is not None else base / "data"
+    progress = ProgressStore(runtime / "progress.json")
     progress.load()
-    prefs = UiPrefsStore(base / "data" / "ui_prefs.json")
+    prefs = UiPrefsStore(runtime / "ui_prefs.json")
     prefs.load()
     runner = CodeRunner()
     checker = ExerciseChecker(runner)

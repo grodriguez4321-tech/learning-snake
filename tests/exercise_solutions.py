@@ -79,11 +79,13 @@ SOLUTIONS: dict[str, dict[str, str]] = {
     },
     "decisions_01_ex4": {
         "code": (
-            "def camp_report(expedition, registered, bedrolls):\n"
-            "    if bedrolls < registered:\n"
-            '        return f"Expedition {expedition}: INVESTIGATE"\n'
-            "    else:\n"
-            '        return f"Expedition {expedition}: CLEAR"\n'
+            "expedition = 17\n"
+            "registered = 4\n"
+            "bedrolls = 3\n"
+            "if bedrolls < registered:\n"
+            '    print(f"Expedition {expedition}: INVESTIGATE")\n'
+            "else:\n"
+            '    print(f"Expedition {expedition}: CLEAR")\n'
         )
     },
     # --- collections_01_lists ---
@@ -274,8 +276,7 @@ SOLUTIONS: dict[str, dict[str, str]] = {
     "collections_12_ex5": {
         "code": (
             "def use_last_supply(supplies):\n"
-            "    used_item = supplies.pop()\n"
-            "    return [used_item, supplies]\n"
+            "    return supplies.pop()\n"
         )
     },
     "collections_12_ex6": {

@@ -5,6 +5,21 @@ the app restores completed lessons, drafts, hint usage, and mastery scores.
 
 Corrupt or malformed files must never crash startup: they are quarantined and
 replaced with a fresh ProgressData, with a warning retained for the UI.
+
+Curriculum versioning
+---------------------
+``curriculum_version`` marks which curriculum a progress file matches.
+
+Basilisk Curriculum V2 (version 2) reuses Phase 1 exercise IDs while changing
+their meaning. Loading an older (or unversioned) file therefore:
+
+* preserves mastery scores and mistake topic counts
+* archives the raw file beside the progress path
+* clears Phase 1 lesson completions and Phase 1 exercise records (including
+  drafts), so old code never appears inside an unrelated new exercise
+* requires Phase 1 to be retaken; later lesson IDs (9+) are left intact when
+  present
+* stamps the saved file with the current curriculum version
 """
 
 from __future__ import annotations
@@ -15,6 +30,34 @@ from copy import deepcopy
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Optional
+
+
+CURRENT_CURRICULUM_VERSION = 2
+
+# Lesson IDs rewritten in Basilisk Curriculum V2 (same IDs, new exercises).
+PHASE1_REWRITTEN_LESSON_IDS = frozenset(
+    {
+        "fundamentals_01_print",
+        "fundamentals_02_variables",
+        "fundamentals_03_fstrings",
+        "decisions_01_conditionals",
+        "collections_01_lists",
+        "collections_02_append",
+        "collections_03_loops",
+        "functions_01_basics",
+    }
+)
+
+PHASE1_EXERCISE_PREFIXES = (
+    "fundamentals_01_",
+    "fundamentals_02_",
+    "fundamentals_03_",
+    "decisions_01_",
+    "collections_01_",
+    "collections_02_",
+    "collections_03_",
+    "functions_01_",
+)
 
 
 DEFAULT_MASTERY_TOPICS = [
@@ -30,6 +73,10 @@ DEFAULT_MASTERY_TOPICS = [
     "inheritance",
     "debugging",
 ]
+
+
+def is_phase1_rewritten_exercise(exercise_id: str) -> bool:
+    return any(str(exercise_id).startswith(prefix) for prefix in PHASE1_EXERCISE_PREFIXES)
 
 
 @dataclass
@@ -48,6 +95,7 @@ class ProgressData:
     exercises: dict[str, ExerciseProgress] = field(default_factory=dict)
     mastery: dict[str, float] = field(default_factory=dict)
     mistake_topics: dict[str, int] = field(default_factory=dict)
+    curriculum_version: int = CURRENT_CURRICULUM_VERSION
 
     def ensure_mastery_defaults(self) -> None:
         for topic in DEFAULT_MASTERY_TOPICS:
@@ -61,10 +109,12 @@ class ProgressStore:
         self.data.ensure_mastery_defaults()
         self.load_warning: Optional[str] = None
         self.recovered_from_corrupt: bool = False
+        self.migrated_from_legacy: bool = False
 
     def load(self) -> ProgressData:
         self.load_warning = None
         self.recovered_from_corrupt = False
+        self.migrated_from_legacy = False
 
         if not self.path.exists():
             self.data = ProgressData()
@@ -98,6 +148,12 @@ class ProgressStore:
             return self.data
 
         self.data.ensure_mastery_defaults()
+        if self.migrated_from_legacy:
+            # Persist the migrated shape so drafts do not reappear after quit.
+            try:
+                self.save()
+            except OSError:
+                pass
         return self.data
 
     def _parse(self, raw: dict[str, Any]) -> ProgressData:
@@ -152,13 +208,73 @@ class ProgressStore:
         if current is not None:
             current = str(current)
 
-        return ProgressData(
+        try:
+            version = int(raw.get("curriculum_version") or 0)
+        except (TypeError, ValueError):
+            version = 0
+
+        data = ProgressData(
             completed_lessons=[str(item) for item in completed_raw],
             current_lesson_id=current,
             exercises=exercises,
             mastery=mastery,
             mistake_topics=mistakes,
+            curriculum_version=version if version > 0 else 0,
         )
+
+        if data.curriculum_version < CURRENT_CURRICULUM_VERSION:
+            self._migrate_to_current(data, raw)
+        else:
+            data.curriculum_version = CURRENT_CURRICULUM_VERSION
+
+        return data
+
+    def _migrate_to_current(self, data: ProgressData, raw: dict[str, Any]) -> None:
+        """Upgrade pre-V2 progress without silently mixing old drafts into new exercises."""
+        archive = self._archive_legacy_file(raw)
+        cleared_exercises = [
+            exercise_id
+            for exercise_id in list(data.exercises)
+            if is_phase1_rewritten_exercise(exercise_id)
+        ]
+        for exercise_id in cleared_exercises:
+            del data.exercises[exercise_id]
+
+        data.completed_lessons = [
+            lesson_id
+            for lesson_id in data.completed_lessons
+            if lesson_id not in PHASE1_REWRITTEN_LESSON_IDS
+        ]
+
+        if (
+            data.current_lesson_id is not None
+            and data.current_lesson_id in PHASE1_REWRITTEN_LESSON_IDS
+        ):
+            data.current_lesson_id = None
+
+        data.curriculum_version = CURRENT_CURRICULUM_VERSION
+        self.migrated_from_legacy = True
+
+        archive_note = f" A backup was saved as {archive.name}." if archive else ""
+        self.load_warning = (
+            "Basilisk Curriculum V2 changed Phase 1 exercises while keeping the "
+            "same exercise IDs. Prior Phase 1 completions and drafts were cleared "
+            "so old solutions are not shown inside the new exercises. Mastery "
+            "scores were kept. Please retake Lessons 1–8."
+            f"{archive_note}"
+        )
+
+    def _archive_legacy_file(self, raw: dict[str, Any]) -> Optional[Path]:
+        stamp = time.strftime("%Y%m%d-%H%M%S")
+        backup = self.path.with_name(f"{self.path.name}.pre-basilisk-v2-{stamp}")
+        try:
+            backup.write_text(
+                json.dumps(raw, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            return backup
+        except OSError:
+            return None
 
     def _quarantine_and_recover(self, reason: str) -> None:
         backup = self._quarantine_corrupt_file()
@@ -193,7 +309,9 @@ class ProgressStore:
 
     def save(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.data.curriculum_version = CURRENT_CURRICULUM_VERSION
         payload = {
+            "curriculum_version": self.data.curriculum_version,
             "completed_lessons": self.data.completed_lessons,
             "current_lesson_id": self.data.current_lesson_id,
             "exercises": {
@@ -214,6 +332,7 @@ class ProgressStore:
         self.data.ensure_mastery_defaults()
         self.load_warning = None
         self.recovered_from_corrupt = False
+        self.migrated_from_legacy = False
         self.save()
 
     def exercise(self, exercise_id: str) -> ExerciseProgress:
@@ -286,6 +405,7 @@ class ProgressStore:
     def snapshot(self) -> dict[str, Any]:
         return deepcopy(
             {
+                "curriculum_version": self.data.curriculum_version,
                 "completed_lessons": self.data.completed_lessons,
                 "current_lesson_id": self.data.current_lesson_id,
                 "exercises": {
