@@ -33,7 +33,7 @@ Agents: Architecture (1), Phase 1 curriculum (2), Intake curriculum (3), Beginne
 | **Downstream effects** | SOLUTIONS + grading regressions updated |
 | **Decision** | **Accepted** — script-level mini-project with `ops: ["Lt"]` so `!=` cannot fake fewer-than |
 | **Tests added** | `test_abandoned_camp_is_script_level` |
-| **Verification result** | Pending suite run |
+| **Verification result** | Unit suite OK; construct bypass regressions OK |
 
 ### C2 — Lesson 12 contradictory hint
 
@@ -48,7 +48,7 @@ Agents: Architecture (1), Phase 1 curriculum (2), Intake curriculum (3), Beginne
 | **Downstream effects** | None |
 | **Decision** | **Accepted** |
 | **Tests added** | `test_quartermaster_hints_match_starter_and_expected` |
-| **Verification result** | Pending suite run |
+| **Verification result** | Unit suite OK; construct bypass regressions OK |
 
 ### C3 — Narrow construct checks (append / remove / pop / Boolean / len / range / scoped calls)
 
@@ -63,7 +63,7 @@ Agents: Architecture (1), Phase 1 curriculum (2), Intake curriculum (3), Beginne
 | **Downstream effects** | Lessons 6, 8, 10–13 JSON; `course/lessons/README.md` |
 | **Decision** | **Accepted** (stronger than original “keep append_or_extend” for append lessons) |
 | **Tests added** | append bypasses, Boolean nested-if bypass, range dummy, inspect_clue outside loop, else:if rejection |
-| **Verification result** | Pending suite run |
+| **Verification result** | Unit suite OK; construct bypass regressions OK |
 
 ### C4 — List-method assessment (L12)
 
@@ -78,7 +78,7 @@ Agents: Architecture (1), Phase 1 curriculum (2), Intake curriculum (3), Beginne
 | **Downstream effects** | SOLUTIONS for ex5 |
 | **Decision** | **Accepted** |
 | **Tests added** | `test_prepare_supplies_rejects_replacement_list`; updated `test_use_last_supply_rejects_list_copy` |
-| **Verification result** | Pending suite run |
+| **Verification result** | Unit suite OK; construct bypass regressions OK |
 
 ### C5 — Saved-progress migration
 
@@ -93,7 +93,7 @@ Agents: Architecture (1), Phase 1 curriculum (2), Intake curriculum (3), Beginne
 | **Downstream effects** | `engine/progress.py` save payload; README Progress section |
 | **Decision** | **Accepted — retake Phase 1**; do not preserve Phase 1 completions |
 | **Tests added** | `test_pre_basilisk_progress_migration` + fixture |
-| **Verification result** | Pending suite run |
+| **Verification result** | Unit suite OK; construct bypass regressions OK |
 
 ### C6 — E2E must not delete production progress
 
@@ -108,7 +108,7 @@ Agents: Architecture (1), Phase 1 curriculum (2), Intake curriculum (3), Beginne
 | **Downstream effects** | `main.build_controller` optional `data_dir` |
 | **Decision** | **Accepted** |
 | **Tests added** | `test_e2e_harness_refuses_production_data_dir` |
-| **Verification result** | Pending suite run |
+| **Verification result** | Unit suite OK; construct bypass regressions OK |
 
 ### C7 — README restoration
 
