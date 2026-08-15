@@ -1104,6 +1104,7 @@ Train mental execution with increasing complexity:
 
 ## Related documents
 
+- `docs/basilisk-master-curriculum-roadmap.md` — master course arc through data/ML literacy and the capstone
 - `docs/phase2-curriculum-plan.md` — Lesson 9–28 specifications
 - `course/lessons/README.md` — JSON authoring checklist
 - `.cursor/rules/pedagogy.mdc` — Teaching principles
