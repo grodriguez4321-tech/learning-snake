@@ -198,12 +198,17 @@ def main() -> int:
 
     # 10. correct alternative solution (single quotes / variant)
     try:
-        write_ex = next(ex for ex in first.exercises if ex.id == "fundamentals_01_ex1")
+        write_ex = next(ex for ex in first.exercises if ex.id == "fundamentals_01_ex3")
         idx = first.exercises.index(write_ex)
         course._show_lesson(first, idx)
         qt.processEvents()
         # Alternative to recorded double-quote solution
-        course.editor.set_code("print('Hello, Adventurer!')\n")
+        course.editor.set_code(
+            "# Dispatch\n"
+            "print('SEARCH DISPATCH')\n"
+            "print('Expedition:', 17)\n"
+            "print('Status: OVERDUE')\n"
+        )
         course._check_answer()
         wait_until(qt, course)
         ok = controller.progress.is_exercise_complete(write_ex.id)

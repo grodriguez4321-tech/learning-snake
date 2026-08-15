@@ -4,7 +4,7 @@
 
 **Scope:** Continue immediately after Phase 1 (`functions_01_basics`) through **basic classes and introductory has-a composition**, stopping before Phase 3 (inheritance, `try`/`except`, advanced debugging, comprehensions).
 
-**Size:** **20 new lessons** (28 total with Phase 1’s 8).
+**Size:** **8 Phase 1 lessons (28 exercises) + Lessons 9–13 Intake batch implemented**; remaining Phase 2 lessons (14+) still planned — see map below.
 
 **Difficulty arc:** Phase 1 averages ~2; Phase 2 ramps **2 → 4–5** (capstone).
 
