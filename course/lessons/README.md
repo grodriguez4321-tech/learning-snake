@@ -32,8 +32,10 @@ Exercise checks use `tests` with kinds such as:
   - optional `inside` (e.g. `"for_loop"` / `"while_loop"` for `calls_name` or `rebind_self`; `"for_iter"` for `method_call`) so a dummy construct elsewhere cannot pass
   - `method_call`: required `method`; optional `name` (receiver), `min_args`, `arg_equals`, `contributes` (`true`/`result`/`return`), `body_calls_name` / `body_method` (with `inside: "for_iter"`), `in_function`
   - `function_signature`: required `name` and ordered `parameters`; optional `defaults` map of literal values
-  - `while_loop`: detects `ast.While`; honors `in_function`; optional `nonconstant` rejects `while False` / other constant tests
-  - `forbidden_call`: reject calls to a named function (for example `sum`) inside an optional `in_function`
+  - `while_loop`: detects `ast.While`; honors `in_function`; optional `nonconstant` rejects constant tests and comparisons that are false under known prior bindings
+  - `forbidden_call`: reject direct/indirect calls to a named function (for example `sum`, `__builtins__["sum"]`)
+  - `no_for_loop` / `no_literal_assign`: reject substitute loops or post-loop literal overwrites when those are the learning objective
+  - `method_call` body work counts only reachable statements (not code after `break`); `contributes: "return"` / `"branching_append"` require live result use
 
 Prefer behavior checks over comparing source text. Use `source_uses` only when a hardcoded result would otherwise pass.
 

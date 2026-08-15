@@ -59,6 +59,8 @@ class TestCase:
     body_method: Optional[str] = None
     # source_uses while_loop: reject constant tests such as while False
     nonconstant: bool = False
+    # source_uses no_literal_assign: only flag assigns after a while
+    after_while: bool = False
     # source_uses function_signature: ordered parameter names and literal defaults
     parameters: list[str] = field(default_factory=list)
     defaults: dict[str, Any] = field(default_factory=dict)
@@ -148,6 +150,7 @@ def test_case_from_dict(data: dict[str, Any]) -> TestCase:
         body_calls_name=data.get("body_calls_name"),
         body_method=data.get("body_method"),
         nonconstant=bool(data.get("nonconstant")),
+        after_while=bool(data.get("after_while")),
         parameters=list(data.get("parameters", [])),
         defaults=dict(data.get("defaults", {})),
         arg_after=(

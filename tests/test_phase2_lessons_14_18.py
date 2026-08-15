@@ -67,7 +67,12 @@ class SourceUsesFeatureTests(unittest.TestCase):
             "while False:\n    pass\n",
         )
         self.assertFalse(bad)
-        self.assertIn("constant", message.lower())
+        never, message2 = apply_source_uses(
+            {"feature": "while_loop", "nonconstant": True},
+            "n = 3\nwhile n < 0:\n    n -= 1\n",
+        )
+        self.assertFalse(never)
+        self.assertTrue(message.strip() and message2.strip())
 
     def test_forbidden_call_rejects_sum(self) -> None:
         ok, _ = apply_source_uses(
@@ -81,6 +86,11 @@ class SourceUsesFeatureTests(unittest.TestCase):
         )
         self.assertFalse(bad)
         self.assertIn("sum", message.lower())
+        indirect, _ = apply_source_uses(
+            {"feature": "forbidden_call", "name": "sum", "in_function": "trail_total"},
+            'def trail_total(distances):\n    return __builtins__["sum"](distances)\n',
+        )
+        self.assertFalse(indirect)
 
     def test_method_call_items_must_drive_for_iter(self) -> None:
         ok, _ = apply_source_uses(
@@ -411,6 +421,118 @@ class Lessons1418GradingTests(unittest.TestCase):
             self.assertTrue(result.message.strip(), exercise_id)
             lowered = result.message.lower()
             self.assertNotIn("lambda", lowered, exercise_id)
+
+    def test_issue22_live_path_bypass_variants_fail(self) -> None:
+        """Variants that coexist with related AST nodes but never do live work."""
+        cases = [
+            (
+                "collections_14_dict_iteration",
+                "collections_14_ex2",
+                (
+                    'stock = {"rope": 2, "torch": 1}\n'
+                    "for item, count in stock.items():\n"
+                    "    break\n"
+                    '    print(f"{item}: {count}")\n'
+                    'print("rope: 2")\n'
+                    'print("torch: 1")\n'
+                ),
+            ),
+            (
+                "collections_14_dict_iteration",
+                "collections_14_ex4",
+                (
+                    "def antidote_count(stock):\n"
+                    '    return stock.get("antidote", 0) if False else (\n'
+                    '        stock["antidote"] if "antidote" in stock else 0\n'
+                    "    )\n"
+                ),
+            ),
+            (
+                "collections_14_dict_iteration",
+                "collections_14_ex5",
+                (
+                    "def field_ledger(stock):\n"
+                    "    lines = []\n"
+                    "    for item, count in stock.items():\n"
+                    "        break\n"
+                    '        lines.append(f"{item}: {count}")\n'
+                    "    for item in stock:\n"
+                    '        lines.append(f"{item}: {stock[item]}")\n'
+                    '    if stock.get("antidote", 0) < -1:\n'
+                    "        pass\n"
+                    '    if "antidote" in stock and stock["antidote"] > 0:\n'
+                    '        lines.append("Antidote ready")\n'
+                    "    else:\n"
+                    '        lines.append("Antidote missing")\n'
+                    "    return lines\n"
+                ),
+            ),
+            (
+                "collections_15_while",
+                "collections_15_ex2",
+                (
+                    "steps = 0\n"
+                    "distance = 3\n"
+                    "while distance < 0:\n"
+                    "    steps += 1\n"
+                    "    distance -= 1\n"
+                    "steps = 3\n"
+                    "print(steps)\n"
+                ),
+            ),
+            (
+                "collections_15_while",
+                "collections_15_ex3",
+                (
+                    "signal = 3\n"
+                    "while signal < 0:\n"
+                    "    print(signal)\n"
+                    "    signal -= 1\n"
+                    "print(3)\n"
+                    "print(2)\n"
+                    "print(1)\n"
+                    'print("clear")\n'
+                ),
+            ),
+            (
+                "collections_15_while",
+                "collections_15_ex5",
+                (
+                    "def trail_total(distances):\n"
+                    "    index = 0\n"
+                    "    total = 0\n"
+                    "    while index < 0:\n"
+                    "        total += distances[index]\n"
+                    "        index += 1\n"
+                    "    len(distances)\n"
+                    "    for value in distances:\n"
+                    "        total += value\n"
+                    "    return total\n"
+                ),
+            ),
+            (
+                "collections_15_while",
+                "collections_15_ex5",
+                (
+                    "def trail_total(distances):\n"
+                    "    index = 0\n"
+                    "    total = 0\n"
+                    "    while index < 0:\n"
+                    "        total += distances[index]\n"
+                    "        index += 1\n"
+                    "    len(distances)\n"
+                    '    return __builtins__["sum"](distances)\n'
+                ),
+            ),
+        ]
+        for lesson_id, exercise_id, code in cases:
+            exercise = self._exercise(lesson_id, exercise_id)
+            result = self.checker.check(exercise, code=code)
+            self.assertFalse(
+                result.passed,
+                f"{exercise_id} unexpectedly passed: {result.message}",
+            )
+            self.assertTrue(result.message.strip(), exercise_id)
 
     def test_dispatch_status_accepts_loop_counting_without_len(self) -> None:
         exercise = self._exercise("functions_16_parameters", "functions_16_ex5")

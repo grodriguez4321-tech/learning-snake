@@ -68,7 +68,7 @@
         {
           "kind": "source_uses",
           "feature": "while_loop",
-          "message": "Keep a real while loop whose condition can change — not while False.",
+          "message": "Keep a real while loop whose condition can actually run and then change — not while False or a comparison that never runs.",
           "nonconstant": true
         },
         {
@@ -85,6 +85,13 @@
             "steps"
           ],
           "message": "Print the steps variable — do not hardcode the number of steps."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "no_literal_assign",
+          "name": "steps",
+          "after_while": true,
+          "message": "Do not assign a fixed number to steps after the while loop — print the value the loop computed."
         },
         {
           "kind": "stdout_equals",
@@ -112,7 +119,7 @@
         {
           "kind": "source_uses",
           "feature": "while_loop",
-          "message": "Keep a real while loop whose condition can change — not while False.",
+          "message": "Keep a real while loop whose condition can actually run and then change — not while False or a comparison that never runs.",
           "nonconstant": true
         },
         {
@@ -178,7 +185,7 @@
           "kind": "source_uses",
           "feature": "while_loop",
           "in_function": "trail_total",
-          "message": "Inside trail_total, use a while loop with a condition that can change.",
+          "message": "Inside trail_total, use a while loop whose condition can actually run and then change — not a comparison that never runs.",
           "nonconstant": true
         },
         {
@@ -187,6 +194,12 @@
           "name": "sum",
           "in_function": "trail_total",
           "message": "Do not call sum() — accumulate the total with your while loop."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "no_for_loop",
+          "in_function": "trail_total",
+          "message": "Use while to total the distances — do not replace the while work with a for loop."
         },
         {
           "kind": "source_uses",

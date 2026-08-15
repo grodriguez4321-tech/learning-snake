@@ -349,51 +349,223 @@ def _is_constant_ast(node: ast.AST) -> bool:
     return False
 
 
+def _scope_statements(tree: ast.AST, in_function: str = "") -> list[ast.stmt]:
+    if in_function:
+        for node in ast.walk(tree):
+            if (
+                isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and node.name == in_function
+            ):
+                return list(node.body)
+        return []
+    if isinstance(tree, ast.Module):
+        return list(tree.body)
+    return []
+
+
+def _reachable_statements(body: list[ast.stmt]) -> list[ast.stmt]:
+    """Statements that can run before an unconditional terminator."""
+    reachable: list[ast.stmt] = []
+    for stmt in body:
+        reachable.append(stmt)
+        if isinstance(stmt, (ast.Break, ast.Continue, ast.Return, ast.Raise)):
+            break
+    return reachable
+
+
+def _walk_reachable(body: list[ast.stmt]) -> list[ast.AST]:
+    nodes: list[ast.AST] = []
+    for stmt in _reachable_statements(body):
+        nodes.extend(ast.walk(stmt))
+    return nodes
+
+
+def _update_constant_bindings(bindings: dict[str, Any], stmt: ast.stmt) -> None:
+    if not isinstance(stmt, ast.Assign) or len(stmt.targets) != 1:
+        return
+    target = stmt.targets[0]
+    if not isinstance(target, ast.Name):
+        return
+    if isinstance(stmt.value, ast.Constant):
+        bindings[target.id] = stmt.value.value
+    else:
+        bindings.pop(target.id, None)
+
+
+def _eval_simple(node: ast.AST, bindings: dict[str, Any]) -> Any:
+    """Return a concrete value, or ``_UNKNOWN`` when not statically known."""
+    if isinstance(node, ast.Constant):
+        return node.value
+    if isinstance(node, ast.Name) and node.id in bindings:
+        return bindings[node.id]
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub):
+        value = _eval_simple(node.operand, bindings)
+        if value is not _UNKNOWN and isinstance(value, (int, float)):
+            return -value
+    return _UNKNOWN
+
+
+_UNKNOWN = object()
+
+
+def _compare_values(left: Any, op: ast.cmpop, right: Any) -> bool | None:
+    try:
+        if isinstance(op, ast.Lt):
+            return left < right
+        if isinstance(op, ast.LtE):
+            return left <= right
+        if isinstance(op, ast.Gt):
+            return left > right
+        if isinstance(op, ast.GtE):
+            return left >= right
+        if isinstance(op, ast.Eq):
+            return left == right
+        if isinstance(op, ast.NotEq):
+            return left != right
+    except TypeError:
+        return None
+    return None
+
+
+def _condition_provably_false(test: ast.AST, bindings: dict[str, Any]) -> bool:
+    """True when a simple comparison is false under known constant bindings."""
+    if _is_constant_ast(test):
+        value = _eval_simple(test, bindings)
+        return value is not _UNKNOWN and not bool(value)
+    if not isinstance(test, ast.Compare) or len(test.ops) != 1 or len(test.comparators) != 1:
+        return False
+    left = _eval_simple(test.left, bindings)
+    right = _eval_simple(test.comparators[0], bindings)
+    if left is _UNKNOWN or right is _UNKNOWN:
+        return False
+    result = _compare_values(left, test.ops[0], right)
+    return result is False
+
+
+def _is_forbidden_named_call(node: ast.AST, banned: str) -> bool:
+    """Detect direct and indirect calls such as sum(...), builtins.sum, __builtins__['sum']."""
+    if not isinstance(node, ast.Call):
+        return False
+    func = node.func
+    if isinstance(func, ast.Name) and func.id == banned:
+        return True
+    if isinstance(func, ast.Attribute) and func.attr == banned:
+        return True
+    if isinstance(func, ast.Subscript):
+        slice_node = func.slice
+        if isinstance(slice_node, ast.Constant) and slice_node.value == banned:
+            return True
+    # getattr(ns, "sum")(...)
+    if (
+        isinstance(func, ast.Call)
+        and isinstance(func.func, ast.Name)
+        and func.func.id == "getattr"
+        and len(func.args) >= 2
+        and isinstance(func.args[1], ast.Constant)
+        and func.args[1].value == banned
+    ):
+        return True
+    return False
+
+
+def _segment_has_method(nodes: list[ast.AST], method: str) -> bool:
+    return any(
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == method
+        for node in nodes
+    )
+
+
 def _method_call_contributes(
     nodes: list[ast.AST],
     match: Any,
     *,
     mode: str = "result",
+    stmts: list[ast.stmt] | None = None,
 ) -> bool:
-    """Require a matching method call to feed a return value or decision.
+    """Require a matching method call to feed live return/decision work.
 
     ``mode``:
-    - ``True`` / ``\"result\"``: call appears in return/if/while test, or is
-      assigned to a name used in those places
-    - ``\"return\"``: call feeds a return value (directly or via assignment)
+    - ``\"return\"``: returned value is the call itself, or a name assigned from it
+    - ``\"result\"`` / ``True``: same as return, or a live if-test using the call
+    - ``\"branching_append\"``: a live if-test using the call whose if/else both append
     """
-
-    def _direct_in(node: ast.AST | None) -> bool:
-        if node is None:
-            return False
-        return any(match(child) for child in ast.walk(node))
 
     bound: set[str] = set()
     for node in nodes:
         if not isinstance(node, ast.Assign) or len(node.targets) != 1:
             continue
         target_node = node.targets[0]
+        # Exact assignment only — rejects get buried in a dead ternary branch.
         if isinstance(target_node, ast.Name) and match(node.value):
             bound.add(target_node.id)
 
-    def _uses_bound(node: ast.AST | None) -> bool:
-        if node is None or not bound:
-            return False
-        names = {child.id for child in ast.walk(node) if isinstance(child, ast.Name)}
+    def _test_uses_call_or_bound(test: ast.AST) -> bool:
+        if any(match(child) for child in ast.walk(test)):
+            # Reject get buried only inside a dead IfExp branch inside the test.
+            if isinstance(test, ast.IfExp) and _is_constant_ast(test.test):
+                flag = bool(_eval_simple(test.test, {}))
+                live = test.body if flag else test.orelse
+                return any(match(child) for child in ast.walk(live)) or (
+                    isinstance(live, ast.Name) and live.id in bound
+                )
+            return True
+        names = {child.id for child in ast.walk(test) if isinstance(child, ast.Name)}
         return bool(bound & names)
 
-    for node in nodes:
-        if isinstance(node, ast.Return) and (
-            _direct_in(node.value) or _uses_bound(node.value)
-        ):
-            return True
-
-    if mode in {"True", "true", "result", "1"}:
+    if mode == "return":
         for node in nodes:
-            if isinstance(node, (ast.If, ast.While)) and (
-                _direct_in(node.test) or _uses_bound(node.test)
+            if not isinstance(node, ast.Return) or node.value is None:
+                continue
+            value = node.value
+            if match(value):
+                return True
+            if isinstance(value, ast.Name) and value.id in bound:
+                return True
+        return False
+
+    if mode in {"branching_append"}:
+        bindings: dict[str, Any] = {}
+        ordered = stmts or []
+        for stmt in ordered:
+            _update_constant_bindings(bindings, stmt)
+            if not isinstance(stmt, ast.If):
+                continue
+            if _condition_provably_false(stmt.test, bindings):
+                continue
+            if not _test_uses_call_or_bound(stmt.test):
+                continue
+            body_nodes = _walk_reachable(stmt.body)
+            else_nodes = _walk_reachable(stmt.orelse)
+            if _segment_has_method(body_nodes, "append") and _segment_has_method(
+                else_nodes, "append"
             ):
                 return True
+        return False
+
+    # result / True: return feed or live if-test using the call/bound name.
+    if mode in {"True", "true", "result", "1"}:
+        for node in nodes:
+            if isinstance(node, ast.Return) and node.value is not None:
+                value = node.value
+                if match(value) or (
+                    isinstance(value, ast.Name) and value.id in bound
+                ):
+                    return True
+                # Reject IfExp / dead-branch wrappers around the call.
+                if isinstance(value, ast.IfExp):
+                    continue
+        bindings = {}
+        for stmt in stmts or []:
+            _update_constant_bindings(bindings, stmt)
+            if isinstance(stmt, ast.If):
+                if _condition_provably_false(stmt.test, bindings):
+                    continue
+                if _test_uses_call_or_bound(stmt.test):
+                    return True
+        return False
+
     return False
 
 
@@ -475,13 +647,19 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
             return False
 
         if inside == "while_loop":
-            for node in nodes:
-                if not isinstance(node, ast.While):
-                    continue
-                for stmt in node.body:
-                    for child in ast.walk(stmt):
+            stmts = _scope_statements(tree, in_function)
+            bindings: dict[str, Any] = {}
+            for stmt in stmts:
+                if isinstance(stmt, ast.While):
+                    if _is_constant_ast(stmt.test) or _condition_provably_false(
+                        stmt.test, bindings
+                    ):
+                        continue
+                    for child in _walk_reachable(stmt.body):
                         if _is_rebind(child):
                             return True, "Updated the variable inside the while loop."
+                else:
+                    _update_constant_bindings(bindings, stmt)
             return False, custom or (
                 f"Update {name} inside the while loop body so the condition can become false."
             )
@@ -596,16 +774,29 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
 
     if feature == "while_loop":
         require_nonconstant = bool(test.get("nonconstant"))
-        for node in nodes:
-            if not isinstance(node, ast.While):
-                continue
-            if require_nonconstant and _is_constant_ast(node.test):
-                continue
-            return True, "Used a while loop."
+        stmts = _scope_statements(tree, in_function)
+        bindings: dict[str, Any] = {}
+        for stmt in stmts:
+            if isinstance(stmt, ast.While):
+                if require_nonconstant and (
+                    _is_constant_ast(stmt.test)
+                    or _condition_provably_false(stmt.test, bindings)
+                ):
+                    continue
+                return True, "Used a while loop."
+            _update_constant_bindings(bindings, stmt)
+        # Fall back for legacy unscoped walks when no ordered stmts exist.
+        if not stmts:
+            for node in nodes:
+                if not isinstance(node, ast.While):
+                    continue
+                if require_nonconstant and _is_constant_ast(node.test):
+                    continue
+                return True, "Used a while loop."
         if require_nonconstant:
             return False, custom or (
-                "Use a while loop whose condition can change — not while False "
-                "or another constant test."
+                "Use a while loop whose condition can actually become true and then "
+                "change — not while False or a comparison that never runs."
             )
         return False, custom or (
             "Use a while loop that repeats until its condition becomes false."
@@ -616,15 +807,43 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
         if not banned:
             return False, custom or "Forbidden call check is misconfigured."
         for node in nodes:
-            if (
-                isinstance(node, ast.Call)
-                and isinstance(node.func, ast.Name)
-                and node.func.id == banned
-            ):
+            if _is_forbidden_named_call(node, banned):
                 return False, custom or (
                     f"Do not call {banned}() for this exercise — write the loop logic yourself."
                 )
         return True, f"Did not call {banned}()."
+
+    if feature == "no_literal_assign":
+        name = target or (required[0] if required else "")
+        if not name:
+            return False, custom or "Literal-assign check is misconfigured."
+        after_while = bool(test.get("after_while"))
+        stmts = _scope_statements(tree, in_function)
+        seen_while = False
+        for stmt in stmts:
+            if isinstance(stmt, ast.While):
+                seen_while = True
+                continue
+            if after_while and not seen_while:
+                continue
+            if not isinstance(stmt, ast.Assign):
+                continue
+            assigned = [_assigned_name(item) for item in stmt.targets]
+            if name in assigned and isinstance(stmt.value, ast.Constant):
+                return False, custom or (
+                    f"Do not assign a fixed literal to {name} "
+                    f"{'after the while loop' if after_while else ''} — "
+                    f"let the loop compute {name}."
+                ).replace("  ", " ")
+        return True, f"No literal assign to {name}."
+
+    if feature == "no_for_loop":
+        for node in nodes:
+            if isinstance(node, ast.For):
+                return False, custom or (
+                    "Use a while loop for this exercise — do not total the list with for."
+                )
+        return True, "Did not use a for loop."
 
     if feature == "method_call":
         method = str(test.get("method") or "")
@@ -641,6 +860,7 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
         contributes = test.get("contributes")
         body_calls_name = str(test.get("body_calls_name") or "")
         body_method = str(test.get("body_method") or "")
+        scope_stmts = _scope_statements(tree, in_function)
 
         def _args_match(node: ast.Call) -> bool:
             if min_args_n is not None and len(node.args) < min_args_n:
@@ -674,9 +894,7 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
         def _for_body_has_required_work(for_node: ast.For) -> bool:
             if not body_calls_name and not body_method:
                 return True
-            body_nodes: list[ast.AST] = []
-            for stmt in for_node.body:
-                body_nodes.extend(ast.walk(stmt))
+            body_nodes = _walk_reachable(for_node.body)
             if body_calls_name:
                 found = any(
                     isinstance(child, ast.Call)
@@ -716,7 +934,8 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
                 work = body_calls_name or f".{body_method}()"
                 return False, custom or (
                     f"Use {receiver}{method}() as the for-loop sequence, and "
-                    f"do the real work ({work}) inside that same loop body."
+                    f"do the real work ({work}) inside that same loop body "
+                    "(not after break, and not in a different loop)."
                 )
             return False, custom or (
                 f"Use {receiver}{method}() as the sequence in your for loop header."
@@ -729,23 +948,24 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
             and _matching_method_call(node)
             and id(node) not in discarded
         ]
-        if contributes in {True, "result", "return"}:
-            if not _method_call_contributes(nodes, _matching_method_call, mode=str(contributes)):
+        if contributes in {True, "result", "return", "branching_append"}:
+            if not _method_call_contributes(
+                nodes,
+                _matching_method_call,
+                mode=str(contributes),
+                stmts=scope_stmts,
+            ):
                 receiver = f"{target}." if target else ""
                 return False, custom or (
-                    f"Use the value from {receiver}{method}(...) in your return "
-                    "value or decision — a discarded call is not enough."
+                    f"Use the value from {receiver}{method}(...) in your live return "
+                    "value or decision — a discarded or unreachable call is not enough."
                 )
             return True, f"Used .{method}()."
 
         if matching_calls:
             return True, f"Used .{method}()."
-        # Fall back: allow matching even if only discarded when contributes unset,
-        # but prefer reporting the usual missing-call message.
         for node in nodes:
             if _matching_method_call(node):
-                # Exists only as a discarded expression when contributes is unset —
-                # still count as present for backward compatibility.
                 return True, f"Used .{method}()."
         receiver = f"{target}." if target else ""
         extra = ""
@@ -867,25 +1087,30 @@ def apply_source_uses(test: dict[str, Any], source: str) -> tuple[bool, str]:
             for node in nodes:
                 if not isinstance(node, ast.For):
                     continue
-                # Only the loop body counts — for ... else runs once after
-                # iteration and must not satisfy a per-item call requirement.
-                for stmt in node.body:
-                    for child in ast.walk(stmt):
-                        if _is_wanted_call(child):
-                            return True, f"Called {want}() inside the loop."
+                # Only reachable loop-body statements count — work after break
+                # must not satisfy a per-item call requirement.
+                for child in _walk_reachable(node.body):
+                    if _is_wanted_call(child):
+                        return True, f"Called {want}() inside the loop."
             return False, custom or (
                 f"Call {want}() from inside the for loop body "
                 "(a call elsewhere is not enough)."
             )
 
         if inside == "while_loop":
-            for node in nodes:
-                if not isinstance(node, ast.While):
-                    continue
-                for stmt in node.body:
-                    for child in ast.walk(stmt):
+            stmts = _scope_statements(tree, in_function)
+            bindings: dict[str, Any] = {}
+            for stmt in stmts:
+                if isinstance(stmt, ast.While):
+                    if _is_constant_ast(stmt.test) or _condition_provably_false(
+                        stmt.test, bindings
+                    ):
+                        continue
+                    for child in _walk_reachable(stmt.body):
                         if _is_wanted_call(child):
                             return True, f"Called {want}() inside the while loop."
+                else:
+                    _update_constant_bindings(bindings, stmt)
             return False, custom or (
                 f"Call {want}() from inside the while loop body "
                 "(a call elsewhere is not enough)."

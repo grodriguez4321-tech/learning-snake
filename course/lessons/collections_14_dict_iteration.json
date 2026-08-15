@@ -226,11 +226,11 @@
           "name": "stock",
           "min_args": 2,
           "in_function": "field_ledger",
-          "message": "Use stock.get(\"antidote\", 0) in the ready/missing decision — a discarded .get call is not enough.",
+          "message": "Use stock.get(\"antidote\", 0) in the if/else that appends \"Antidote ready\" or \"Antidote missing\".",
           "arg_equals": {
             "0": "antidote"
           },
-          "contributes": "result"
+          "contributes": "branching_append"
         },
         {
           "kind": "source_uses",
