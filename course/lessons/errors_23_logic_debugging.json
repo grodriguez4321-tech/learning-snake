@@ -1,0 +1,216 @@
+{
+  "id": "errors_23_logic_debugging",
+  "section": "Realistic Data and Debugging",
+  "section_order": 9,
+  "order": 5,
+  "title": "When the Program Runs but Is Wrong",
+  "topics": ["debugging"],
+  "content": "What problem does this solve?\nMany bugs do not crash — they produce the wrong result. Logical errors require a small, disciplined routine: state an expected result; run and record the actual result; trace the few values that control the wrong result; identify where the values first diverge; change one cause and rerun both the failing and a boundary case. print can be used temporarily as a tracer, but finished functions should return the requested result.\n\nPreviously in your program\nYou read tracebacks and fixed syntax/name/type/index/key failures. Now you will repair programs that run successfully but produce an incorrect value.",
+  "concepts": [
+    "Logical errors do not crash — they produce the wrong output",
+    "Trace the values that drive the wrong result",
+    "Identify the first point of divergence and change one cause",
+    "Verify both the failing and a boundary case after a fix"
+  ],
+  "examples": [
+    {
+      "title": "Boundary before general case",
+      "code": "def tier(score):\n    if score >= 80:\n        return \"Elite\"\n    elif score >= 50:\n        return \"Ready\"\n    return \"Hold\"",
+      "explanation": "Order matters — test the more specific Elite boundary before the general Ready case."
+    }
+  ],
+  "common_mistakes": [
+    "Reordering elif branches so the general case blocks a specific case",
+    "Updating a loop variable before recording the current value",
+    "Using the wrong dictionary key in a nested record"
+  ],
+  "exercises": [
+    {
+      "id": "errors_23_ex1",
+      "type": "architecture",
+      "title": "Runs without crashing",
+      "prompt": "A program finishes normally but labels an 80-point signal as \"Ready\" instead of \"Elite\". What kind of problem is this?",
+      "choices": ["Syntax error", "Runtime error", "Logic error"],
+      "expected_answer": "3",
+      "topics": ["debugging"],
+      "success_message": "Correct — the program ran, but its logic produced the wrong result.",
+      "failure_message": "Successful execution can still be wrong. Here the behavior is incorrect without a traceback.",
+      "hints": [
+        "Syntax stops parsing before the program runs.",
+        "Runtime errors produce a traceback during execution.",
+        "Logic errors run and print the wrong result."
+      ]
+    },
+    {
+      "id": "errors_23_ex2",
+      "type": "predict_output",
+      "title": "Trace the chosen branch",
+      "prompt": "What does this print?",
+      "code_to_predict": "health = 40\n\nif health < 20:\n    label = \"critical\"\nelif health < 50:\n    label = \"wounded\"\nelse:\n    label = \"steady\"\n\nhealth += 10\nprint(label)",
+      "expected_answer": "wounded",
+      "topics": ["debugging"],
+      "hints": [
+        "Decisions use the value at the moment the branch runs.",
+        "At 40, health < 50 is true after the first test fails.",
+        "The later +10 does not change which branch already ran."
+      ]
+    },
+    {
+      "id": "errors_23_ex3",
+      "type": "debug",
+      "title": "Put the specific branch first",
+      "prompt": "Repair the branch order so a score of 80 is Elite.",
+      "starter_code": "def signal_level(score):\n    if score >= 50:\n        return \"Ready\"\n    elif score >= 80:\n        return \"Elite\"\n    return \"Hold\"\n",
+      "topics": ["debugging"],
+      "hints": [
+        "A more specific boundary (>= 80) must be tested before the general (>= 50).",
+        "Reorder the conditions; do not change the labels.",
+        "Leave the Hold case as the final default."
+      ],
+      "tests": [
+        {
+          "kind": "function",
+          "function": "signal_level",
+          "args": [20],
+          "expected": "Hold",
+          "message": "20 should be Hold."
+        },
+        {
+          "kind": "function",
+          "function": "signal_level",
+          "args": [50],
+          "expected": "Ready",
+          "message": "50 should be Ready."
+        },
+        {
+          "kind": "function",
+          "function": "signal_level",
+          "args": [79],
+          "expected": "Ready",
+          "message": "79 should be Ready."
+        },
+        {
+          "kind": "function",
+          "function": "signal_level",
+          "args": [80],
+          "expected": "Elite",
+          "message": "80 should be Elite."
+        },
+        {
+          "kind": "function",
+          "function": "signal_level",
+          "args": [100],
+          "expected": "Elite",
+          "message": "100 should be Elite."
+        }
+      ]
+    },
+    {
+      "id": "errors_23_ex4",
+      "type": "debug",
+      "title": "Remove the off-by-one result",
+      "prompt": "Fix countdown so it returns [start, ..., 1] (no 0). Keep a while loop you can trace.",
+      "starter_code": "def countdown(start):\n    values = []\n    while start > 0:\n        start -= 1\n        values.append(start)\n    return values\n",
+      "topics": ["debugging"],
+      "hints": [
+        "Decide whether to append before or after the decrement.",
+        "Return values from start down to 1, not including 0.",
+        "Keep a real function-scoped while loop; do not switch to for."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "while_loop",
+          "in_function": "countdown",
+          "nonconstant": true,
+          "message": "Use a while loop whose condition can become true and change inside countdown."
+        },
+        {
+          "kind": "function",
+          "function": "countdown",
+          "args": [0],
+          "expected": [],
+          "message": "countdown(0) should return an empty list."
+        },
+        {
+          "kind": "function",
+          "function": "countdown",
+          "args": [1],
+          "expected": [1],
+          "message": "countdown(1) should return [1]."
+        },
+        {
+          "kind": "function",
+          "function": "countdown",
+          "args": [3],
+          "expected": [3, 2, 1],
+          "message": "countdown(3) should return [3, 2, 1]."
+        },
+        {
+          "kind": "function",
+          "function": "countdown",
+          "args": [5],
+          "expected": [5, 4, 3, 2, 1],
+          "message": "countdown(5) should return [5, 4, 3, 2, 1]."
+        }
+      ]
+    },
+    {
+      "id": "errors_23_ex5",
+      "type": "mini_project",
+      "title": "Repair the expedition report",
+      "prompt": "Fix the accumulator and condition so total_health is the sum of every member's health, and needs_rest is True when any member has health below 5. Health exactly 5 does not require rest. Return exactly the three requested keys.",
+      "starter_code": "def expedition_report(party):\n    total_health = 0\n    needs_rest = False\n\n    for member in party:\n        total_health = member[\"health\"]\n        if member[\"health\"] > 5:\n            needs_rest = True\n\n    return {\n        \"member_count\": len(party),\n        \"total_health\": total_health,\n        \"needs_rest\": needs_rest,\n    }\n",
+      "topics": ["debugging", "collections", "functions"],
+      "hints": [
+        "Accumulate by adding each member's health to the running total.",
+        "needs_rest becomes True when any member's health is below 5.",
+        "Return member_count, total_health, and needs_rest only."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "in_function": "expedition_report",
+          "message": "Keep a for loop in expedition_report and compute totals there."
+        },
+        {
+          "kind": "function",
+          "function": "expedition_report",
+          "args": [[]],
+          "expected": {"member_count": 0, "total_health": 0, "needs_rest": false},
+          "message": "Empty party → count 0, total 0, rest False."
+        },
+        {
+          "kind": "function",
+          "function": "expedition_report",
+          "args": [[{"name": "Mira", "health": 8}]],
+          "expected": {"member_count": 1, "total_health": 8, "needs_rest": false},
+          "message": "One member at 8 → count 1, total 8, rest False."
+        },
+        {
+          "kind": "function",
+          "function": "expedition_report",
+          "args": [[{"name": "A", "health": 8}, {"name": "B", "health": 3}]],
+          "expected": {"member_count": 2, "total_health": 11, "needs_rest": true},
+          "message": "Any member below 5 requires rest."
+        },
+        {
+          "kind": "function",
+          "function": "expedition_report",
+          "args": [[{"name": "A", "health": 2}, {"name": "B", "health": 9}, {"name": "C", "health": 4}]],
+          "expected": {"member_count": 3, "total_health": 15, "needs_rest": true},
+          "message": "Sum every member's health and set needs_rest correctly."
+        },
+        {
+          "kind": "function",
+          "function": "expedition_report",
+          "args": [[{"name": "Solo", "health": 5}]],
+          "expected": {"member_count": 1, "total_health": 5, "needs_rest": false},
+          "message": "At the boundary 5, rest is not required."
+        }
+      ]
+    }
+  ]
+}
+
