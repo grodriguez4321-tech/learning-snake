@@ -602,8 +602,10 @@ SOLUTIONS: dict[str, dict[str, str]] = {
     "strings_21_ex5": {
         "code": (
             "def parse_log_line(line):\n"
-            '    name, status = [part.strip() for part in line.split("|")]\n'
-            "    return {\"name\": name, \"status\": status.lower()}\n"
+            '    parts = line.split("|")\n'
+            "    name = parts[0].strip()\n"
+            "    status = parts[1].strip().lower()\n"
+            "    return {\"name\": name, \"status\": status}\n"
         )
     },
     # --- errors_22_tracebacks ---

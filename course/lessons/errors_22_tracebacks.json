@@ -30,7 +30,7 @@
       "id": "errors_22_ex1",
       "type": "architecture",
       "title": "Where do you start?",
-      "prompt": "A short traceback ends in TypeError from combining a string and an integer. What is the best first step?",
+      "prompt": "You run a script and see:\n\nTraceback (most recent call last):\n  File \"<student>\", line 3, in <module>\n    label = item + \": \" + count\nTypeError: can only concatenate str (not \"int\") to str\n\nWhat is the best first step?",
       "choices": [
         "Read the final line for the error type/message, then inspect the referenced learner line.",
         "Start at the first traceback line and rewrite every function shown.",

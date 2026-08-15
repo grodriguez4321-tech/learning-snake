@@ -57,7 +57,7 @@
       "hints": [
         "The outer dictionary has keys like destination and party.",
         "party holds a list with one member dictionary at index 0.",
-        "Read dispatch[\"party\"][0][\"name\"]."
+        "Index the party list, then read the name key from that member."
       ],
       "tests": [
         {

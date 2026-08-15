@@ -68,8 +68,8 @@
       "topics": ["strings", "debugging"],
       "hints": [
         "String methods return new strings; they do not change the old one.",
-        "Either reassign command to command.strip().lower() …",
-        "… or chain the calls and save once, then print the saved value."
+        "Reassign a variable to the cleaned result before printing.",
+        "You may chain calls or do them in two steps."
       ],
       "tests": [
         {
@@ -151,11 +151,32 @@
       "tests": [
         {
           "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "parse_log_line",
+          "parameters": ["line"],
+          "message": "Define parse_log_line(line) with one parameter."
+        },
+        {
+          "kind": "source_uses",
           "feature": "method_call",
           "method": "split",
           "in_function": "parse_log_line",
           "message": "Split the input line inside parse_log_line so both fields are available.",
           "arg_equals": {"0": "|"}
+        },
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "strip",
+          "in_function": "parse_log_line",
+          "message": "Strip surrounding spaces from the pieces inside parse_log_line."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "lower",
+          "in_function": "parse_log_line",
+          "message": "Lowercase the status text inside parse_log_line."
         },
         {
           "kind": "function",
