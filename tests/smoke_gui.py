@@ -86,6 +86,21 @@ def main() -> None:
     course.close()
     print("GUI smoke OK", flush=True)
 
+    # Developer Preview constructor smoke (Issue #28)
+    print("developer preview building", flush=True)
+    dev_controller, dev_runner = build_controller(
+        ROOT, developer_mode=True, initial_lesson_id="collections_19_nested_data"
+    )[:2]
+    dev_controller.progress.load_warning = None
+    dev_controller.progress.recovered_from_corrupt = False
+    print("qt (reuse)", flush=True)
+    course_dev = CourseApp(dev_controller, dev_runner)
+    assert "Developer Preview" in course_dev.windowTitle()
+    assert course_dev.lesson_view.lesson is not None
+    print("dev lesson", course_dev.lesson_view.lesson.id, flush=True)
+    course_dev.close()
+    print("Developer Preview GUI smoke OK", flush=True)
+
 
 if __name__ == "__main__":
     main()

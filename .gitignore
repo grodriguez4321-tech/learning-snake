@@ -7,6 +7,7 @@ data/progress.json
 data/progress.tmp
 data/ui_prefs.json
 data/developer_progress.json
+data/developer_progress.tmp
 data/*.corrupt-*
 .pytest_cache/
 .mypy_cache/

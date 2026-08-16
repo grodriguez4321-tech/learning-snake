@@ -29,17 +29,22 @@ def build_controller(
     catalog = CourseCatalog(base / "course" / "lessons")
     catalog.load()
     runtime = Path(data_dir) if data_dir is not None else base / "data"
-    progress_path = runtime / ("developer_progress.json" if developer_mode else "progress.json")
+    # Reject lesson selection before touching normal learner progress files.
+    if initial_lesson_id and not developer_mode:
+        raise ValueError("--lesson requires --developer mode")
+    progress_path = runtime / (
+        "developer_progress.json" if developer_mode else "progress.json"
+    )
     progress = ProgressStore(progress_path)
     progress.load()
     prefs = UiPrefsStore(runtime / "ui_prefs.json")
     prefs.load()
     runner = CodeRunner()
     checker = ExerciseChecker(runner)
-    controller = CourseController(catalog, progress, checker, developer_mode=developer_mode)
-    # Select initial lesson id when provided (developer mode only).
-    if initial_lesson_id and not developer_mode:
-        raise ValueError("--lesson requires --developer mode")
+    controller = CourseController(
+        catalog, progress, checker, developer_mode=developer_mode
+    )
+    # Select initial lesson id when provided (developer mode only and after validation).
     if initial_lesson_id:
         selected = catalog.get(initial_lesson_id)
         if selected is None:
@@ -54,8 +59,6 @@ def build_controller(
 
 def main() -> None:
     import argparse
-    from app.course_app import launch_app
-
     parser = argparse.ArgumentParser(description="Basilisk — interactive Python learning")
     parser.add_argument("--developer", "--dev", action="store_true", dest="developer_mode", help="Enable Developer Preview Mode")
     parser.add_argument("--lesson", dest="initial_lesson_id", help="Open a specific lesson id (requires --developer)")
@@ -68,6 +71,8 @@ def main() -> None:
     except ValueError as exc:
         sys.stderr.write(f"{exc}\n")
         sys.exit(2)
+    # Import GUI after controller setup so CLI errors don't require Qt libs.
+    from app.course_app import launch_app
     launch_app(controller, runner, prefs_store=prefs)
 
 
