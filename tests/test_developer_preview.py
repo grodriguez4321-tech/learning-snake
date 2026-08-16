@@ -260,10 +260,10 @@ class DeveloperPreviewTests(unittest.TestCase):
             finally:
                 proc.terminate()
                 try:
-                    proc.wait(timeout=5)
+                    proc.communicate(timeout=5)
                 except Exception:
                     proc.kill()
-                    proc.wait(timeout=5)
+                    proc.communicate(timeout=5)
 
     def test_action_and_restart_isolation(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -317,6 +317,12 @@ class DeveloperPreviewTests(unittest.TestCase):
             dev_path = data_dir / "developer_progress.json"
             text = dev_path.read_text(encoding="utf-8")
             self.assertIn('"current_lesson_id": "collections_19_nested_data"', text)
+            # Verify post-reset state persisted and normal bytes unchanged
+            reloaded = ctrl_d2.progress.exercise(ex.id)
+            self.assertEqual(reloaded.draft_code, "# after reset")
+            self.assertEqual(reloaded.hints_used, 1)
+            self.assertEqual(reloaded.attempts, 0)
+            self.assertEqual(base_bytes, normal.read_bytes())
 
     def test_whole_catalog_fresh_preview_state(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
