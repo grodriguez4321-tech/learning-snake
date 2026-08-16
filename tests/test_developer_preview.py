@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 import tempfile
 import subprocess
+import shutil
+import time
 import sys
 import unittest
 from pathlib import Path
@@ -145,6 +147,24 @@ class DeveloperPreviewTests(unittest.TestCase):
                 self.assertTrue(found)
             finally:
                 win.close()
+        # Normal mode negative case
+        with tempfile.TemporaryDirectory() as tmp2:
+            ctrl2, runner2, prefs2 = build_controller(ROOT, data_dir=Path(tmp2), developer_mode=False)
+            win2 = CourseApp(ctrl2, runner2, prefs_store=prefs2)
+            try:
+                self.assertNotIn("Developer Preview", win2.windowTitle())
+                win2._on_nav("settings")
+                any_preview = False
+                for child in win2.settings_page.findChildren(type(win2.dashboard_page._summary)):
+                    try:
+                        if "Developer Preview is active" in child.text():
+                            any_preview = True
+                            break
+                    except Exception:
+                        continue
+                self.assertFalse(any_preview)
+            finally:
+                win2.close()
 
     def test_sidebar_enabled_states_normal_vs_preview(self) -> None:
         try:
@@ -199,23 +219,119 @@ class DeveloperPreviewTests(unittest.TestCase):
         self.assertIn("Unknown lesson id: does_not_exist", err2)
 
     def test_cli_subprocess_valid_preview_starts(self) -> None:
-        # Launch preview and ensure it stays alive briefly (indicating startup), then terminate.
-        proc = subprocess.Popen(
-            [sys.executable, str(ROOT / "main.py"), "--developer", "--lesson", "collections_19_nested_data"],
-            cwd=str(ROOT),
-            env={**os.environ, "QT_QPA_PLATFORM": "offscreen"},
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        # Isolated runtime copy; confirm process remains alive and only developer progress is written.
         try:
-            self.assertIsNone(proc.poll())
-        finally:
-            proc.terminate()
+            from PySide6 import QtWidgets as _  # type: ignore
+        except Exception:
+            self.skipTest("Qt platform not available in this environment")
+            return
+        with tempfile.TemporaryDirectory() as tmp:
+            run_root = Path(tmp) / "copy"
+            shutil.copytree(
+                ROOT, run_root, ignore=shutil.ignore_patterns(".git", "__pycache__", "*.pyc", "data")
+            )
+            env = {**os.environ, "QT_QPA_PLATFORM": "offscreen"}
+            proc = subprocess.Popen(
+                [sys.executable, str(run_root / "main.py"), "--developer", "--lesson", "collections_19_nested_data"],
+                cwd=str(run_root),
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
             try:
-                proc.wait(timeout=5)
-            except Exception:
-                proc.kill()
-                proc.wait(timeout=5)
+                deadline = time.time() + 1.5
+                while time.time() < deadline:
+                    if proc.poll() is not None:
+                        out, err = proc.communicate(timeout=1)
+                        self.fail(f"preview exited early: rc={proc.returncode}\nSTDERR:\n{err}\nSTDOUT:\n{out}")
+                    time.sleep(0.05)
+                self.assertIsNone(proc.poll())
+                dev = run_root / "data" / "developer_progress.json"
+                norm = run_root / "data" / "progress.json"
+                waited = 0.0
+                while not dev.exists() and waited < 1.0:
+                    time.sleep(0.05)
+                    waited += 0.05
+                self.assertTrue(dev.exists())
+                self.assertFalse(norm.exists())
+                text = dev.read_text(encoding="utf-8")
+                self.assertIn('"current_lesson_id": "collections_19_nested_data"', text)
+            finally:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=5)
+                except Exception:
+                    proc.kill()
+                    proc.wait(timeout=5)
+
+    def test_action_and_restart_isolation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            data_dir = Path(tmp)
+            normal = data_dir / "progress.json"
+            ctrl_n, _, _ = build_controller(ROOT, data_dir=data_dir, developer_mode=False)
+            ctrl_n.progress.save()
+            base_bytes = normal.read_bytes()
+
+            ctrl_d, runner_d, _ = build_controller(
+                ROOT, data_dir=data_dir, developer_mode=True, initial_lesson_id="collections_19_nested_data"
+            )
+            lesson = ctrl_d.catalog.get("collections_19_nested_data")
+            assert lesson is not None
+            ex = lesson.exercises[0]
+
+            # Navigate
+            ctrl_d.set_current_lesson(lesson.id)
+            _ = ctrl_d.go_next()
+            _ = ctrl_d.go_previous()
+            self.assertEqual(base_bytes, normal.read_bytes())
+
+            # Draft + save
+            ctrl_d.progress.save_draft(ex.id, "# draft code")
+            ctrl_d.progress.save()
+            self.assertEqual(base_bytes, normal.read_bytes())
+
+            # Hint
+            ctrl_d.request_hint(ex)
+            ctrl_d.progress.save()
+            self.assertEqual(base_bytes, normal.read_bytes())
+
+            # Failing submission
+            res = ctrl_d.submit_exercise(lesson, ex, code="", answer="")
+            self.assertFalse(res.passed)
+            ctrl_d.progress.save()
+            self.assertEqual(base_bytes, normal.read_bytes())
+
+            # Reset then post-reset actions
+            ctrl_d.progress.reset()
+            ctrl_d.progress.save_draft(ex.id, "# after reset")
+            ctrl_d.request_hint(ex)
+            ctrl_d.progress.save()
+            self.assertEqual(base_bytes, normal.read_bytes())
+
+            # Restart preview and confirm persistence
+            ctrl_d2, _, _ = build_controller(
+                ROOT, data_dir=data_dir, developer_mode=True, initial_lesson_id="collections_19_nested_data"
+            )
+            self.assertEqual(ctrl_d2.current_lesson().id, "collections_19_nested_data")  # type: ignore[union-attr]
+            dev_path = data_dir / "developer_progress.json"
+            text = dev_path.read_text(encoding="utf-8")
+            self.assertIn('"current_lesson_id": "collections_19_nested_data"', text)
+
+    def test_whole_catalog_fresh_preview_state(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            ctrl, _, _ = build_controller(
+                ROOT, data_dir=Path(tmp), developer_mode=True, initial_lesson_id="collections_19_nested_data"
+            )
+            for lesson in ctrl.catalog.lessons:
+                for ex in lesson.exercises:
+                    rec = ctrl.progress.exercise(ex.id)
+                    self.assertFalse(rec.completed, ex.id)
+                    self.assertEqual(rec.attempts, 0, ex.id)
+                    self.assertEqual(rec.hints_used, 0, ex.id)
+            snap = ctrl.progress.snapshot()
+            self.assertEqual(snap["mistake_topics"], {})
+            self.assertTrue(all(v == 0.0 for v in snap["mastery"].values()))
 
 
 if __name__ == "__main__":

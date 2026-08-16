@@ -7,6 +7,7 @@ import os
 import sys
 import time
 from pathlib import Path
+import tempfile
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
@@ -30,76 +31,78 @@ def wait_until(app_qt: QApplication, course: CourseApp, timeout: float = 8.0) ->
 
 
 def main() -> None:
-    print("building", flush=True)
-    controller, runner = build_controller(ROOT)[:2]
-    controller.progress.load_warning = None
-    controller.progress.recovered_from_corrupt = False
+    with tempfile.TemporaryDirectory() as tmp:
+        data_dir = Path(tmp)
+        print("building", flush=True)
+        controller, runner = build_controller(ROOT, data_dir=data_dir)[:2]
+        controller.progress.load_warning = None
+        controller.progress.recovered_from_corrupt = False
 
-    print("qt", flush=True)
-    qt = QApplication.instance() or QApplication(sys.argv)
-    print("app", flush=True)
-    course = CourseApp(controller, runner)
-    course.controller.progress.load_warning = None
-    assert course.lesson_view.lesson is not None
-    print("lesson", course.lesson_view.lesson.id, flush=True)
+        print("qt", flush=True)
+        qt = QApplication.instance() or QApplication(sys.argv)
+        print("app", flush=True)
+        course = CourseApp(controller, runner)
+        course.controller.progress.load_warning = None
+        assert course.lesson_view.lesson is not None
+        print("lesson", course.lesson_view.lesson.id, flush=True)
 
-    print("toggle panels", flush=True)
-    course.hide_sidebar()
-    qt.processEvents()
-    course.hide_editor()
-    qt.processEvents()
-    course.show_sidebar()
-    qt.processEvents()
-    course.show_editor()
-    qt.processEvents()
-    course.toggle_theme()
-    qt.processEvents()
-    course.toggle_theme()
-    qt.processEvents()
+        print("toggle panels", flush=True)
+        course.hide_sidebar()
+        qt.processEvents()
+        course.hide_editor()
+        qt.processEvents()
+        course.show_sidebar()
+        qt.processEvents()
+        course.show_editor()
+        qt.processEvents()
+        course.toggle_theme()
+        qt.processEvents()
+        course.toggle_theme()
+        qt.processEvents()
 
-    course.editor.set_code('print("Hello, Adventurer!")')
-    print("run valid", flush=True)
-    course._run_code()
-    wait_until(qt, course)
+        course.editor.set_code('print("Hello, Adventurer!")')
+        print("run valid", flush=True)
+        course._run_code()
+        wait_until(qt, course)
 
-    print("check", flush=True)
-    course._check_answer()
-    wait_until(qt, course)
+        print("check", flush=True)
+        course._check_answer()
+        wait_until(qt, course)
 
-    print("syntax", flush=True)
-    course.editor.set_code("if True\n    print(1)")
-    course._run_code()
-    wait_until(qt, course)
+        print("syntax", flush=True)
+        course.editor.set_code("if True\n    print(1)")
+        course._run_code()
+        wait_until(qt, course)
 
-    print("runtime", flush=True)
-    course.editor.set_code("print(missing)")
-    course._run_code()
-    wait_until(qt, course)
+        print("runtime", flush=True)
+        course.editor.set_code("print(missing)")
+        course._run_code()
+        wait_until(qt, course)
 
-    print("timeout begin", flush=True)
-    course.runner.timeout = 0.5
-    course.editor.set_code("while True:\n    pass\n")
-    course._run_code()
-    wait_until(qt, course, timeout=10.0)
-    print("timeout done", flush=True)
+        print("timeout begin", flush=True)
+        course.runner.timeout = 0.5
+        course.editor.set_code("while True:\n    pass\n")
+        course._run_code()
+        wait_until(qt, course, timeout=10.0)
+        print("timeout done", flush=True)
 
-    course.close()
-    print("GUI smoke OK", flush=True)
+        course.close()
+        print("GUI smoke OK", flush=True)
 
-    # Developer Preview constructor smoke (Issue #28)
-    print("developer preview building", flush=True)
-    dev_controller, dev_runner = build_controller(
-        ROOT, developer_mode=True, initial_lesson_id="collections_19_nested_data"
-    )[:2]
-    dev_controller.progress.load_warning = None
-    dev_controller.progress.recovered_from_corrupt = False
-    print("qt (reuse)", flush=True)
-    course_dev = CourseApp(dev_controller, dev_runner)
-    assert "Developer Preview" in course_dev.windowTitle()
-    assert course_dev.lesson_view.lesson is not None
-    print("dev lesson", course_dev.lesson_view.lesson.id, flush=True)
-    course_dev.close()
-    print("Developer Preview GUI smoke OK", flush=True)
+        # Developer Preview constructor smoke (Issue #28)
+        print("developer preview building", flush=True)
+        dev_controller, dev_runner = build_controller(
+            ROOT, data_dir=data_dir, developer_mode=True, initial_lesson_id="collections_19_nested_data"
+        )[:2]
+        dev_controller.progress.load_warning = None
+        dev_controller.progress.recovered_from_corrupt = False
+        print("qt (reuse)", flush=True)
+        course_dev = CourseApp(dev_controller, dev_runner)
+        assert "Developer Preview" in course_dev.windowTitle()
+        assert course_dev.lesson_view.lesson is not None
+        print("dev lesson", course_dev.lesson_view.lesson.id, flush=True)
+        course_dev.close()
+        print("Developer Preview GUI smoke OK", flush=True)
 
 
 if __name__ == "__main__":
