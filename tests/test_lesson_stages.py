@@ -70,6 +70,17 @@ class LessonStagesTests(unittest.TestCase):
         self.assertTrue(content._exercise.isVisible())
         course.close()
 
+    def test_back_and_forth_through_all_stages(self) -> None:
+        course = self._new_course()
+        content = course.lessons_page.content
+        for stage in ("learn", "examples", "practice", "examples", "learn"):
+            content.set_stage(stage)
+            self.app.processEvents()
+        # back on learn, ide still hidden but pref unchanged
+        self.assertFalse(course.lessons_page.ide.isVisible())
+        self.assertEqual(course.prefs_store.prefs.editor_visible, course._editor_visible)
+        course.close()
+
     def test_learn_examples_do_not_change_editor_preference(self) -> None:
         course = self._new_course()
         before = course.prefs_store.prefs.editor_visible
@@ -92,6 +103,43 @@ class LessonStagesTests(unittest.TestCase):
         # Should still be in Examples
         self.assertFalse(course.lessons_page.ide.isVisible())
         self.assertTrue(course.lessons_page.content._examples.isVisible())
+        course.close()
+
+    def test_active_exercise_persists_in_session(self) -> None:
+        course = self._new_course()
+        lesson = course.controller.current_lesson()
+        assert lesson is not None
+        # move to last exercise
+        last_index = len(lesson.exercises) - 1
+        course._show_lesson(lesson, last_index)
+        self.app.processEvents()
+        # navigate away and back; still on last exercise
+        course._on_nav("dashboard")
+        self.app.processEvents()
+        course._on_nav("lessons")
+        self.app.processEvents()
+        # Check exercise meta shows last index (1-based)
+        label = course.lessons_page.content._exercise._ex_meta.text()
+        self.assertIn(f"{last_index + 1}", label)
+        course.close()
+
+    def test_view_menu_editor_state_reflects_prefs_on_reading_stage(self) -> None:
+        course = self._new_course()
+        content = course.lessons_page.content
+        # Ensure pref is True
+        course.prefs_store.update(editor_visible=True)
+        course._editor_visible = True
+        content.set_stage("learn")
+        self.app.processEvents()
+        # Action disabled but check reflects pref
+        act = course.findChild(QAction, "actionViewEditor")
+        self.assertIsNotNone(act)
+        assert act is not None
+        self.assertFalse(act.isEnabled())
+        self.assertTrue(act.isChecked())
+        # Toolbar reflects pref while IDE is hidden
+        # IDE hidden:
+        self.assertFalse(course.lessons_page.ide.isVisible())
         course.close()
 
 

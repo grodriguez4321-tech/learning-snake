@@ -73,6 +73,7 @@ class CourseApp(QMainWindow):
         self._editor_visible = self.prefs_store.prefs.editor_visible
         self._jobs = AsyncJobHost(self)
         self._lesson_stage: dict[str, str] = {}
+        self._lesson_ex_index: dict[str, int] = {}
 
         self.setWindowTitle(WINDOW_TITLE)
         self.resize(1400, 900)
@@ -259,6 +260,13 @@ class CourseApp(QMainWindow):
         self.actionViewSidebar.setChecked(self._sidebar_visible)
         self.actionViewEditor.setChecked(self._editor_visible)
         self._update_edit_actions_enabled()
+        # Track focus changes globally to keep Edit actions current
+        app = QApplication.instance()
+        if app is not None:
+            try:
+                app.focusChanged.connect(lambda *_: self._update_edit_actions_enabled())
+            except Exception:
+                pass
 
     # --- theme / panels -----------------------------------------------------
 
@@ -386,13 +394,16 @@ class CourseApp(QMainWindow):
         self._show_lesson(lesson)
         self._on_nav("lessons")
 
-    def _show_lesson(self, lesson: Lesson, exercise_index: int = 0) -> None:
+    def _show_lesson(self, lesson: Lesson, exercise_index: int | None = None) -> None:
         self._persist_current_draft()
         self._current_lesson = lesson
         self.lessons_page.lesson = lesson  # smoke compat
         self.controller.progress.data.current_lesson_id = lesson.id
         self.controller.progress.save()
+        if exercise_index is None:
+            exercise_index = self._lesson_ex_index.get(lesson.id, 0)
         self._exercise_index = max(0, min(exercise_index, max(0, len(lesson.exercises) - 1)))
+        self._lesson_ex_index[lesson.id] = self._exercise_index
         exercise = lesson.exercises[self._exercise_index] if lesson.exercises else None
 
         prev_ok = self.controller.catalog.previous(lesson.id) is not None
@@ -741,11 +752,20 @@ class CourseApp(QMainWindow):
         # Hide IDE temporarily without overwriting preference
         if is_reading:
             self.lessons_page.set_editor_visible(False)
-            self.top_bar.set_editor_visible(False)
+            # Keep UI controls reflecting the saved preference while disabled
+            self.top_bar.set_editor_visible(self._editor_visible)
+            if hasattr(self, "actionViewEditor"):
+                self.actionViewEditor.blockSignals(True)
+                self.actionViewEditor.setChecked(self._editor_visible)
+                self.actionViewEditor.blockSignals(False)
         else:
             # Restore preference-based visibility
             self.lessons_page.set_editor_visible(self._editor_visible)
             self.top_bar.set_editor_visible(self._editor_visible)
+            if hasattr(self, "actionViewEditor"):
+                self.actionViewEditor.blockSignals(True)
+                self.actionViewEditor.setChecked(self._editor_visible)
+                self.actionViewEditor.blockSignals(False)
 
     # --- Edit menu routing ---------------------------------------------------
     def _focused_text_widget(self):
@@ -770,13 +790,45 @@ class CourseApp(QMainWindow):
             return not self._is_read_only(w) and hasattr(w, "paste")
 
     def _update_edit_actions_enabled(self) -> None:
+        from PySide6.QtWidgets import QPlainTextEdit, QTextEdit, QLineEdit
         w = self._focused_text_widget()
-        undo_ok = hasattr(w, "undo")
-        redo_ok = hasattr(w, "redo")
-        cut_ok = hasattr(w, "cut") and not self._is_read_only(w) and self._has_selection(w)
-        copy_ok = hasattr(w, "copy") and (self._has_selection(w) or getattr(w, "isReadOnly", lambda: False)())
-        paste_ok = hasattr(w, "paste") and not self._is_read_only(w) and self._can_paste(w)
-        select_all_ok = hasattr(w, "selectAll")
+        undo_ok = redo_ok = cut_ok = copy_ok = paste_ok = select_all_ok = False
+        if isinstance(w, (QPlainTextEdit, QTextEdit)):
+            is_ro = w.isReadOnly()
+            try:
+                doc = w.document()
+                undo_ok = bool(doc.isUndoAvailable())
+                redo_ok = bool(doc.isRedoAvailable())
+            except Exception:
+                undo_ok = redo_ok = not is_ro
+            try:
+                has_sel = w.textCursor().hasSelection()
+            except Exception:
+                has_sel = self._has_selection(w)
+            cut_ok = (not is_ro) and has_sel
+            copy_ok = has_sel or is_ro
+            from PySide6.QtGui import QGuiApplication
+            cb = QGuiApplication.clipboard()
+            paste_ok = (not is_ro) and bool(getattr(cb, "text")())
+            select_all_ok = True
+        elif isinstance(w, QLineEdit):
+            is_ro = w.isReadOnly()
+            has_sel = w.hasSelectedText()
+            undo_ok = not is_ro
+            redo_ok = not is_ro
+            cut_ok = (not is_ro) and has_sel
+            copy_ok = has_sel or is_ro
+            from PySide6.QtGui import QGuiApplication
+            cb = QGuiApplication.clipboard()
+            paste_ok = (not is_ro) and bool(getattr(cb, "text")())
+            select_all_ok = True
+        else:
+            undo_ok = hasattr(w, "undo")
+            redo_ok = hasattr(w, "redo")
+            cut_ok = hasattr(w, "cut") and not self._is_read_only(w) and self._has_selection(w)
+            copy_ok = hasattr(w, "copy") and (self._has_selection(w) or getattr(w, "isReadOnly", lambda: False)())
+            paste_ok = hasattr(w, "paste") and not self._is_read_only(w) and self._can_paste(w)
+            select_all_ok = hasattr(w, "selectAll")
         for action, ok in (
             (getattr(self, "actionEditUndo", None), undo_ok),
             (getattr(self, "actionEditRedo", None), redo_ok),

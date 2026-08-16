@@ -96,6 +96,10 @@ class ConceptCard(QFrame):
         )
         self._body.setText(f"<ul style='margin:0; padding-left:18px;'>{lines}</ul>")
 
+    def set_reading_flat(self, flat: bool) -> None:
+        # Remove heavy card chrome for reading surfaces
+        self.setObjectName("PanelSection" if flat else "ConceptCard")
+
 
 class ExplanationCard(QFrame):
     def __init__(self, parent: QWidget | None = None) -> None:
@@ -145,6 +149,9 @@ class ExplanationCard(QFrame):
             inner.addWidget(body)
             self._host.addWidget(block)
 
+    def set_reading_flat(self, flat: bool) -> None:
+        self.setObjectName("PanelSection" if flat else "Card")
+
 
 class MistakesCard(QFrame):
     def __init__(self, parent: QWidget | None = None) -> None:
@@ -173,6 +180,9 @@ class MistakesCard(QFrame):
             f"<li style='margin:5px 0;'>{_escape(item)}</li>" for item in mistakes
         )
         self._body.setText(f"<ul style='margin:0; padding-left:18px;'>{lines}</ul>")
+
+    def set_reading_flat(self, flat: bool) -> None:
+        self.setObjectName("PanelSection" if flat else "MistakesCard")
 
 
 class ExampleBlock(QFrame):
@@ -250,6 +260,9 @@ class ExampleSection(QFrame):
 
         for ex in examples:
             self._host.addWidget(ExampleBlock(ex, theme))
+
+    def set_reading_flat(self, flat: bool) -> None:
+        self.setObjectName("PanelSection" if flat else "Card")
 
 
 class ExerciseCard(QFrame):
@@ -451,17 +464,29 @@ class LessonContent(QWidget):
         self._intro.setObjectName("LeadText")
         learn_l.addWidget(self._intro)
         self._explanation = ExplanationCard()
+        self._explanation.set_reading_flat(True)
         learn_l.addWidget(self._explanation)
         self._concepts = ConceptCard()
+        self._concepts.set_reading_flat(True)
         learn_l.addWidget(self._concepts)
         # primary action
         lr_nav = QHBoxLayout()
+        self._prev_lesson_lrn = QPushButton("‹ Previous lesson")
+        self._prev_lesson_lrn.setObjectName("GhostButton")
+        self._prev_lesson_lrn.setFixedHeight(32)
+        self._prev_lesson_lrn.clicked.connect(self.prevLesson.emit)
+        lr_nav.addWidget(self._prev_lesson_lrn)
         lr_nav.addStretch(1)
         self._to_examples = QPushButton("Next: Examples →")
         self._to_examples.setObjectName("PrimaryButton")
         self._to_examples.setFixedHeight(36)
         self._to_examples.clicked.connect(lambda: self.set_stage("examples"))
         lr_nav.addWidget(self._to_examples)
+        self._next_lesson_lrn = QPushButton("Next lesson ›")
+        self._next_lesson_lrn.setObjectName("GhostButton")
+        self._next_lesson_lrn.setFixedHeight(32)
+        self._next_lesson_lrn.clicked.connect(self.nextLesson.emit)
+        lr_nav.addWidget(self._next_lesson_lrn)
         learn_l.addLayout(lr_nav)
         learn_l.addStretch(1)
         self._learn_scroll.setWidget(learn_body)
@@ -477,8 +502,10 @@ class LessonContent(QWidget):
         ex_l.setContentsMargins(28, 22, 20, 20)
         ex_l.setSpacing(18)
         self._examples = ExampleSection()
+        self._examples.set_reading_flat(True)
         ex_l.addWidget(self._examples)
         self._mistakes = MistakesCard()
+        self._mistakes.set_reading_flat(True)
         ex_l.addWidget(self._mistakes)
         ex_nav = QHBoxLayout()
         self._back_to_learn = QPushButton("← Back")
@@ -492,6 +519,11 @@ class LessonContent(QWidget):
         self._start_practice.setFixedHeight(36)
         self._start_practice.clicked.connect(lambda: self.set_stage("practice"))
         ex_nav.addWidget(self._start_practice)
+        self._next_lesson_ex = QPushButton("Next lesson ›")
+        self._next_lesson_ex.setObjectName("GhostButton")
+        self._next_lesson_ex.setFixedHeight(32)
+        self._next_lesson_ex.clicked.connect(self.nextLesson.emit)
+        ex_nav.addWidget(self._next_lesson_ex)
         ex_l.addLayout(ex_nav)
         ex_l.addStretch(1)
         self._examples_scroll.setWidget(ex_body)
@@ -510,6 +542,19 @@ class LessonContent(QWidget):
         self._exercise.prevExercise.connect(self.prevExercise.emit)
         self._exercise.nextExercise.connect(self.nextExercise.emit)
         pr_l.addWidget(self._exercise)
+        pr_nav = QHBoxLayout()
+        self._prev_lesson_pr = QPushButton("‹ Previous lesson")
+        self._prev_lesson_pr.setObjectName("GhostButton")
+        self._prev_lesson_pr.setFixedHeight(32)
+        self._prev_lesson_pr.clicked.connect(self.prevLesson.emit)
+        pr_nav.addWidget(self._prev_lesson_pr)
+        pr_nav.addStretch(1)
+        self._next_lesson_pr = QPushButton("Next lesson ›")
+        self._next_lesson_pr.setObjectName("GhostButton")
+        self._next_lesson_pr.setFixedHeight(32)
+        self._next_lesson_pr.clicked.connect(self.nextLesson.emit)
+        pr_nav.addWidget(self._next_lesson_pr)
+        pr_l.addLayout(pr_nav)
         pr_l.addStretch(1)
         self._practice_scroll.setWidget(pr_body)
         self._stack.addWidget(self._practice_scroll)
@@ -542,7 +587,12 @@ class LessonContent(QWidget):
         self._mistakes.set_mistakes(list(lesson.common_mistakes))
         total = len(lesson.exercises)
         self._exercise.set_exercise(exercise, index=exercise_index, total=total)
-        # stage-specific nav buttons are updated by set_stage()
+        # prev/next lesson enabled state
+        self._prev_lesson_lrn.setEnabled(prev_ok)
+        self._next_lesson_lrn.setEnabled(next_ok)
+        self._next_lesson_ex.setEnabled(next_ok)
+        self._prev_lesson_pr.setEnabled(prev_ok)
+        self._next_lesson_pr.setEnabled(next_ok)
 
     # --- stages ---------------------------------------------------------------
     def set_stage(self, stage: str) -> None:
