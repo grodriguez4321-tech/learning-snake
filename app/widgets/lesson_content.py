@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QScrollArea,
     QSizePolicy,
+    QStackedWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -384,73 +385,137 @@ class LessonContent(QWidget):
     nextLesson = Signal()
     prevExercise = Signal()
     nextExercise = Signal()
+    stageChanged = Signal(str)  # "learn" | "examples" | "practice"
 
     def __init__(self, theme: Theme, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.lesson: Lesson | None = None
         self._theme = theme
+        self._stage: str = "learn"
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
         outer.setSpacing(0)
 
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.Shape.NoFrame)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        # --- Stage navigation -------------------------------------------------
+        stage_bar = QFrame()
+        stage_bar.setObjectName("StageBar")
+        sb = QHBoxLayout(stage_bar)
+        sb.setContentsMargins(20, 8, 20, 8)
+        sb.setSpacing(12)
+        self._learn_btn = QPushButton("Learn")
+        self._learn_btn.setObjectName("StageButton")
+        self._learn_btn.setCheckable(True)
+        self._examples_btn = QPushButton("Examples")
+        self._examples_btn.setObjectName("StageButton")
+        self._examples_btn.setCheckable(True)
+        self._practice_btn = QPushButton("Practice")
+        self._practice_btn.setObjectName("StageButton")
+        self._practice_btn.setCheckable(True)
+        for b in (self._learn_btn, self._examples_btn, self._practice_btn):
+            b.setFixedHeight(28)
+        self._learn_btn.clicked.connect(lambda: self.set_stage("learn"))
+        self._examples_btn.clicked.connect(lambda: self.set_stage("examples"))
+        self._practice_btn.clicked.connect(lambda: self.set_stage("practice"))
+        sb.addWidget(self._learn_btn)
+        dot = QLabel("·")
+        dot.setObjectName("MutedLabel")
+        sb.addWidget(dot)
+        sb.addWidget(self._examples_btn)
+        dot2 = QLabel("·")
+        dot2.setObjectName("MutedLabel")
+        sb.addWidget(dot2)
+        sb.addWidget(self._practice_btn)
+        sb.addStretch(1)
+        outer.addWidget(stage_bar)
 
-        body = QWidget()
-        layout = QVBoxLayout(body)
-        layout.setContentsMargins(28, 22, 20, 20)
-        layout.setSpacing(18)
+        # --- Stage pages ------------------------------------------------------
+        self._stack = QStackedWidget()
+        outer.addWidget(self._stack, stretch=1)
 
+        # Learn
+        self._learn_scroll = QScrollArea()
+        self._learn_scroll.setWidgetResizable(True)
+        self._learn_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self._learn_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        learn_body = QWidget()
+        learn_l = QVBoxLayout(learn_body)
+        learn_l.setContentsMargins(28, 22, 20, 20)
+        learn_l.setSpacing(18)
         self._title = QLabel()
         self._title.setObjectName("LessonTitle")
         self._title.setWordWrap(True)
-        layout.addWidget(self._title)
-
+        learn_l.addWidget(self._title)
         self._intro = QLabel()
         self._intro.setWordWrap(True)
         self._intro.setObjectName("LeadText")
-        layout.addWidget(self._intro)
-
+        learn_l.addWidget(self._intro)
         self._explanation = ExplanationCard()
-        layout.addWidget(self._explanation)
-
+        learn_l.addWidget(self._explanation)
         self._concepts = ConceptCard()
-        layout.addWidget(self._concepts)
+        learn_l.addWidget(self._concepts)
+        # primary action
+        lr_nav = QHBoxLayout()
+        lr_nav.addStretch(1)
+        self._to_examples = QPushButton("Next: Examples →")
+        self._to_examples.setObjectName("PrimaryButton")
+        self._to_examples.setFixedHeight(36)
+        self._to_examples.clicked.connect(lambda: self.set_stage("examples"))
+        lr_nav.addWidget(self._to_examples)
+        learn_l.addLayout(lr_nav)
+        learn_l.addStretch(1)
+        self._learn_scroll.setWidget(learn_body)
+        self._stack.addWidget(self._learn_scroll)
 
+        # Examples
+        self._examples_scroll = QScrollArea()
+        self._examples_scroll.setWidgetResizable(True)
+        self._examples_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self._examples_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        ex_body = QWidget()
+        ex_l = QVBoxLayout(ex_body)
+        ex_l.setContentsMargins(28, 22, 20, 20)
+        ex_l.setSpacing(18)
         self._examples = ExampleSection()
-        layout.addWidget(self._examples)
-
+        ex_l.addWidget(self._examples)
         self._mistakes = MistakesCard()
-        layout.addWidget(self._mistakes)
+        ex_l.addWidget(self._mistakes)
+        ex_nav = QHBoxLayout()
+        self._back_to_learn = QPushButton("← Back")
+        self._back_to_learn.setObjectName("GhostButton")
+        self._back_to_learn.setFixedHeight(36)
+        self._back_to_learn.clicked.connect(lambda: self.set_stage("learn"))
+        ex_nav.addWidget(self._back_to_learn)
+        ex_nav.addStretch(1)
+        self._start_practice = QPushButton("Start practice")
+        self._start_practice.setObjectName("PrimaryButton")
+        self._start_practice.setFixedHeight(36)
+        self._start_practice.clicked.connect(lambda: self.set_stage("practice"))
+        ex_nav.addWidget(self._start_practice)
+        ex_l.addLayout(ex_nav)
+        ex_l.addStretch(1)
+        self._examples_scroll.setWidget(ex_body)
+        self._stack.addWidget(self._examples_scroll)
 
+        # Practice (left-side learning surface only; IDE is separate panel)
+        self._practice_scroll = QScrollArea()
+        self._practice_scroll.setWidgetResizable(True)
+        self._practice_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self._practice_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        pr_body = QWidget()
+        pr_l = QVBoxLayout(pr_body)
+        pr_l.setContentsMargins(28, 22, 20, 20)
+        pr_l.setSpacing(18)
         self._exercise = ExerciseCard()
         self._exercise.prevExercise.connect(self.prevExercise.emit)
         self._exercise.nextExercise.connect(self.nextExercise.emit)
-        layout.addWidget(self._exercise)
+        pr_l.addWidget(self._exercise)
+        pr_l.addStretch(1)
+        self._practice_scroll.setWidget(pr_body)
+        self._stack.addWidget(self._practice_scroll)
 
-        layout.addStretch(1)
-
-        nav = QHBoxLayout()
-        nav.setSpacing(12)
-        nav.setContentsMargins(0, 8, 0, 0)
-        self._prev = QPushButton("← Previous")
-        self._prev.setObjectName("GhostButton")
-        self._prev.setFixedHeight(36)
-        self._prev.clicked.connect(self.prevLesson.emit)
-        self._next = QPushButton("Next →")
-        self._next.setObjectName("PrimaryButton")
-        self._next.setFixedHeight(36)
-        self._next.clicked.connect(self.nextLesson.emit)
-        nav.addWidget(self._prev)
-        nav.addStretch(1)
-        nav.addWidget(self._next)
-        layout.addLayout(nav)
-
-        scroll.setWidget(body)
-        outer.addWidget(scroll)
+        # default stage
+        self.set_stage("learn")
 
     def apply_theme(self, theme: Theme) -> None:
         self._theme = theme
@@ -477,5 +542,30 @@ class LessonContent(QWidget):
         self._mistakes.set_mistakes(list(lesson.common_mistakes))
         total = len(lesson.exercises)
         self._exercise.set_exercise(exercise, index=exercise_index, total=total)
-        self._prev.setEnabled(prev_ok)
-        self._next.setEnabled(True)
+        # stage-specific nav buttons are updated by set_stage()
+
+    # --- stages ---------------------------------------------------------------
+    def set_stage(self, stage: str) -> None:
+        if stage not in {"learn", "examples", "practice"}:
+            return
+        self._stage = stage
+        # Select button state
+        self._learn_btn.blockSignals(True)
+        self._examples_btn.blockSignals(True)
+        self._practice_btn.blockSignals(True)
+        self._learn_btn.setChecked(stage == "learn")
+        self._examples_btn.setChecked(stage == "examples")
+        self._practice_btn.setChecked(stage == "practice")
+        self._learn_btn.blockSignals(False)
+        self._examples_btn.blockSignals(False)
+        self._practice_btn.blockSignals(False)
+        # Switch page and reset scroll
+        index = {"learn": 0, "examples": 1, "practice": 2}[stage]
+        self._stack.setCurrentIndex(index)
+        if stage == "learn":
+            self._learn_scroll.verticalScrollBar().setValue(0)
+        elif stage == "examples":
+            self._examples_scroll.verticalScrollBar().setValue(0)
+        else:
+            self._practice_scroll.verticalScrollBar().setValue(0)
+        self.stageChanged.emit(stage)

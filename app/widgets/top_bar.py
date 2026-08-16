@@ -128,6 +128,9 @@ class TopBar(QFrame):
         self._editor_btn.setChecked(visible)
         self._editor_btn.blockSignals(False)
 
+    def set_editor_enabled(self, enabled: bool) -> None:
+        self._editor_btn.setEnabled(enabled)
+
     def flash_saved(self) -> None:
         self._save_btn.setText("Saved")
         from PySide6.QtCore import QTimer

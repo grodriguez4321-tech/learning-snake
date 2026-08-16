@@ -224,6 +224,10 @@ class ArchitectureExerciseIntegrationTests(unittest.TestCase):
             course._show_lesson(lesson, idx)
             self.app.processEvents()
 
+            # Practice stage shows the IDE with choice inputs
+            course.lessons_page.content.set_stage("practice")
+            self.app.processEvents()
+
             ide = course.lessons_page.ide
             self.assertTrue(ide._choice_host.isVisible())
             self.assertEqual(len(ide._choice_buttons), 2)
@@ -257,6 +261,9 @@ class OutputPanelLayoutTests(unittest.TestCase):
             for w, h in ((1920, 1080), (1440, 900), (1200, 700)):
                 course.resize(QSize(w, h))
                 self.app.processEvents()
+            # Ensure we are on Practice where editor visibility is meaningful
+            course.lessons_page.content.set_stage("practice")
+            self.app.processEvents()
             self.assertTrue(course.lessons_page.ide.isVisible())
             course.close()
 

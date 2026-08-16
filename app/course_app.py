@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Callable, Optional, TypeVar
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -72,13 +72,14 @@ class CourseApp(QMainWindow):
         self._sidebar_visible = self.prefs_store.prefs.sidebar_visible
         self._editor_visible = self.prefs_store.prefs.editor_visible
         self._jobs = AsyncJobHost(self)
+        self._lesson_stage: dict[str, str] = {}
 
         self.setWindowTitle(WINDOW_TITLE)
         self.resize(1400, 900)
         self.setMinimumSize(1100, 700)
 
         self._build_ui()
-        self._bind_shortcuts()
+        self._build_menus()
         self.apply_theme(self._theme)
         self._sync_panel_visibility()
         self._load_initial_lesson()
@@ -136,6 +137,7 @@ class CourseApp(QMainWindow):
         content.nextLesson.connect(self._next_lesson)
         content.prevExercise.connect(self._prev_exercise)
         content.nextExercise.connect(self._next_exercise)
+        content.stageChanged.connect(self._on_stage_changed)
         ide = self.lessons_page.ide
         ide.runClicked.connect(self._run_code)
         ide.checkClicked.connect(self._check_answer)
@@ -170,12 +172,93 @@ class CourseApp(QMainWindow):
         right_l.addWidget(self.stack, stretch=1)
         root.addWidget(right, stretch=1)
 
-    def _bind_shortcuts(self) -> None:
-        QShortcut(QKeySequence("Ctrl+B"), self, self.toggle_sidebar)
-        QShortcut(QKeySequence("Ctrl+J"), self, self.toggle_editor)
-        QShortcut(QKeySequence("Ctrl+Shift+D"), self, self.toggle_theme)
-        QShortcut(QKeySequence("Ctrl+S"), self, self._save_progress)
-        QShortcut(QKeySequence("Ctrl+Q"), self, self.close)
+    # --- menu bar -------------------------------------------------------------
+    def _build_menus(self) -> None:
+        menubar = self.menuBar()
+        # File
+        file_menu = menubar.addMenu("&File")
+        self.actionFileSaveProgress = QAction("Save Progress", self)
+        self.actionFileSaveProgress.setObjectName("actionFileSaveProgress")
+        self.actionFileSaveProgress.setShortcut(QKeySequence("Ctrl+S"))
+        self.actionFileSaveProgress.triggered.connect(self._save_progress)
+        file_menu.addAction(self.actionFileSaveProgress)
+        file_menu.addSeparator()
+        self.actionFileExit = QAction("Exit", self)
+        self.actionFileExit.setObjectName("actionFileExit")
+        self.actionFileExit.setShortcut(QKeySequence("Ctrl+Q"))
+        self.actionFileExit.triggered.connect(self.close)
+        file_menu.addAction(self.actionFileExit)
+
+        # Edit
+        edit_menu = menubar.addMenu("&Edit")
+        self.actionEditUndo = QAction("Undo", self)
+        self.actionEditUndo.setObjectName("actionEditUndo")
+        self.actionEditUndo.setShortcuts(QKeySequence.StandardKey.Undo)
+        self.actionEditUndo.triggered.connect(self._edit_undo)
+        edit_menu.addAction(self.actionEditUndo)
+        self.actionEditRedo = QAction("Redo", self)
+        self.actionEditRedo.setObjectName("actionEditRedo")
+        self.actionEditRedo.setShortcuts(QKeySequence.StandardKey.Redo)
+        self.actionEditRedo.triggered.connect(self._edit_redo)
+        edit_menu.addAction(self.actionEditRedo)
+        edit_menu.addSeparator()
+        self.actionEditCut = QAction("Cut", self)
+        self.actionEditCut.setObjectName("actionEditCut")
+        self.actionEditCut.setShortcuts(QKeySequence.StandardKey.Cut)
+        self.actionEditCut.triggered.connect(self._edit_cut)
+        edit_menu.addAction(self.actionEditCut)
+        self.actionEditCopy = QAction("Copy", self)
+        self.actionEditCopy.setObjectName("actionEditCopy")
+        self.actionEditCopy.setShortcuts(QKeySequence.StandardKey.Copy)
+        self.actionEditCopy.triggered.connect(self._edit_copy)
+        edit_menu.addAction(self.actionEditCopy)
+        self.actionEditPaste = QAction("Paste", self)
+        self.actionEditPaste.setObjectName("actionEditPaste")
+        self.actionEditPaste.setShortcuts(QKeySequence.StandardKey.Paste)
+        self.actionEditPaste.triggered.connect(self._edit_paste)
+        edit_menu.addAction(self.actionEditPaste)
+        self.actionEditSelectAll = QAction("Select All", self)
+        self.actionEditSelectAll.setObjectName("actionEditSelectAll")
+        self.actionEditSelectAll.setShortcuts(QKeySequence.StandardKey.SelectAll)
+        self.actionEditSelectAll.triggered.connect(self._edit_select_all)
+        edit_menu.addAction(self.actionEditSelectAll)
+
+        # View
+        view_menu = menubar.addMenu("&View")
+        self.actionViewSidebar = QAction("Sidebar", self)
+        self.actionViewSidebar.setObjectName("actionViewSidebar")
+        self.actionViewSidebar.setCheckable(True)
+        self.actionViewSidebar.setShortcut(QKeySequence("Ctrl+B"))
+        self.actionViewSidebar.toggled.connect(lambda on: self.show_sidebar() if on else self.hide_sidebar())
+        view_menu.addAction(self.actionViewSidebar)
+        self.actionViewEditor = QAction("Editor", self)
+        self.actionViewEditor.setObjectName("actionViewEditor")
+        self.actionViewEditor.setCheckable(True)
+        self.actionViewEditor.setShortcut(QKeySequence("Ctrl+J"))
+        self.actionViewEditor.toggled.connect(lambda on: self.show_editor() if on else self.hide_editor())
+        view_menu.addAction(self.actionViewEditor)
+        view_menu.addSeparator()
+        self.actionViewToggleTheme = QAction("Toggle Dark/Light Theme", self)
+        self.actionViewToggleTheme.setObjectName("actionViewToggleTheme")
+        self.actionViewToggleTheme.setShortcut(QKeySequence("Ctrl+Shift+D"))
+        self.actionViewToggleTheme.triggered.connect(self.toggle_theme)
+        view_menu.addAction(self.actionViewToggleTheme)
+
+        # Help
+        help_menu = menubar.addMenu("&Help")
+        self.actionHelpShortcuts = QAction("Keyboard Shortcuts", self)
+        self.actionHelpShortcuts.setObjectName("actionHelpShortcuts")
+        self.actionHelpShortcuts.triggered.connect(self._show_keyboard_shortcuts)
+        help_menu.addAction(self.actionHelpShortcuts)
+        self.actionHelpAbout = QAction("About Basilisk", self)
+        self.actionHelpAbout.setObjectName("actionHelpAbout")
+        self.actionHelpAbout.triggered.connect(self._show_about)
+        help_menu.addAction(self.actionHelpAbout)
+
+        # Initialize check states
+        self.actionViewSidebar.setChecked(self._sidebar_visible)
+        self.actionViewEditor.setChecked(self._editor_visible)
+        self._update_edit_actions_enabled()
 
     # --- theme / panels -----------------------------------------------------
 
@@ -209,12 +292,20 @@ class CourseApp(QMainWindow):
         self._sidebar_visible = True
         self.sidebar.setVisible(True)
         self.top_bar.set_sidebar_visible(True)
+        if hasattr(self, "actionViewSidebar"):
+            self.actionViewSidebar.blockSignals(True)
+            self.actionViewSidebar.setChecked(True)
+            self.actionViewSidebar.blockSignals(False)
         self.prefs_store.update(sidebar_visible=True)
 
     def hide_sidebar(self) -> None:
         self._sidebar_visible = False
         self.sidebar.setVisible(False)
         self.top_bar.set_sidebar_visible(False)
+        if hasattr(self, "actionViewSidebar"):
+            self.actionViewSidebar.blockSignals(True)
+            self.actionViewSidebar.setChecked(False)
+            self.actionViewSidebar.blockSignals(False)
         self.prefs_store.update(sidebar_visible=False)
 
     def toggle_editor(self) -> None:
@@ -227,6 +318,10 @@ class CourseApp(QMainWindow):
         self._editor_visible = True
         self.lessons_page.set_editor_visible(True)
         self.top_bar.set_editor_visible(True)
+        if hasattr(self, "actionViewEditor"):
+            self.actionViewEditor.blockSignals(True)
+            self.actionViewEditor.setChecked(True)
+            self.actionViewEditor.blockSignals(False)
         self.prefs_store.update(editor_visible=True)
         self.lessons_page.ide.focus_editor()
 
@@ -234,6 +329,10 @@ class CourseApp(QMainWindow):
         self._editor_visible = False
         self.lessons_page.set_editor_visible(False)
         self.top_bar.set_editor_visible(False)
+        if hasattr(self, "actionViewEditor"):
+            self.actionViewEditor.blockSignals(True)
+            self.actionViewEditor.setChecked(False)
+            self.actionViewEditor.blockSignals(False)
         self.prefs_store.update(editor_visible=False)
 
     def _sync_panel_visibility(self) -> None:
@@ -307,6 +406,11 @@ class CourseApp(QMainWindow):
             prev_ok=prev_ok,
             next_ok=next_ok,
         )
+        # Restore in-session stage (default to learn)
+        stage = self._lesson_stage.get(lesson.id, "learn")
+        self.lessons_page.content.set_stage(stage)
+        # Apply IDE visibility policy for chosen stage
+        self._apply_stage_ide_visibility(stage)
         self.sidebar.refresh_lessons(selected_lesson_id=lesson.id)
         self.top_bar.set_breadcrumb(f"📖  {lesson.section}  ›  {lesson.title}")
         self._refresh_progress_pill()
@@ -620,6 +724,137 @@ class CourseApp(QMainWindow):
         self.controller.progress.save()
         self.prefs_store.save()
         super().closeEvent(event)
+
+    # --- stage handling ------------------------------------------------------
+    def _on_stage_changed(self, stage: str) -> None:
+        # Remember stage per lesson for this session
+        if self._current_lesson is not None:
+            self._lesson_stage[self._current_lesson.id] = stage
+        self._apply_stage_ide_visibility(stage)
+
+    def _apply_stage_ide_visibility(self, stage: str) -> None:
+        is_reading = stage in {"learn", "examples"}
+        # Disable Editor toggle during reading
+        self.top_bar.set_editor_enabled(not is_reading)
+        if hasattr(self, "actionViewEditor"):
+            self.actionViewEditor.setEnabled(not is_reading)
+        # Hide IDE temporarily without overwriting preference
+        if is_reading:
+            self.lessons_page.set_editor_visible(False)
+            self.top_bar.set_editor_visible(False)
+        else:
+            # Restore preference-based visibility
+            self.lessons_page.set_editor_visible(self._editor_visible)
+            self.top_bar.set_editor_visible(self._editor_visible)
+
+    # --- Edit menu routing ---------------------------------------------------
+    def _focused_text_widget(self):
+        return QApplication.focusWidget()
+
+    def _is_read_only(self, w) -> bool:
+        try:
+            return bool(getattr(w, "isReadOnly")())
+        except Exception:
+            return False
+
+    def _has_selection(self, w) -> bool:
+        try:
+            return bool(getattr(w, "hasSelectedText")())
+        except Exception:
+            return False
+
+    def _can_paste(self, w) -> bool:
+        try:
+            return bool(getattr(w, "canPaste")())
+        except Exception:
+            return not self._is_read_only(w) and hasattr(w, "paste")
+
+    def _update_edit_actions_enabled(self) -> None:
+        w = self._focused_text_widget()
+        undo_ok = hasattr(w, "undo")
+        redo_ok = hasattr(w, "redo")
+        cut_ok = hasattr(w, "cut") and not self._is_read_only(w) and self._has_selection(w)
+        copy_ok = hasattr(w, "copy") and (self._has_selection(w) or getattr(w, "isReadOnly", lambda: False)())
+        paste_ok = hasattr(w, "paste") and not self._is_read_only(w) and self._can_paste(w)
+        select_all_ok = hasattr(w, "selectAll")
+        for action, ok in (
+            (getattr(self, "actionEditUndo", None), undo_ok),
+            (getattr(self, "actionEditRedo", None), redo_ok),
+            (getattr(self, "actionEditCut", None), cut_ok),
+            (getattr(self, "actionEditCopy", None), copy_ok),
+            (getattr(self, "actionEditPaste", None), paste_ok),
+            (getattr(self, "actionEditSelectAll", None), select_all_ok),
+        ):
+            if action is not None:
+                action.setEnabled(ok)
+
+    def event(self, evt):  # noqa: N802
+        # Track focus and selection changes to keep Edit menu enabled state in sync
+        result = super().event(evt)
+        from PySide6.QtCore import QEvent
+
+        if evt.type() in (
+            QEvent.Type.FocusIn,
+            QEvent.Type.FocusOut,
+            QEvent.Type.ShortcutOverride,
+            QEvent.Type.KeyPress,
+            QEvent.Type.KeyRelease,
+            QEvent.Type.MouseButtonRelease,
+            QEvent.Type.InputMethod,
+            QEvent.Type.Wheel,
+        ):
+            self._update_edit_actions_enabled()
+        return result
+
+    def _edit_undo(self) -> None:
+        w = self._focused_text_widget()
+        if hasattr(w, "undo"):
+            w.undo()  # type: ignore[attr-defined]
+
+    def _edit_redo(self) -> None:
+        w = self._focused_text_widget()
+        if hasattr(w, "redo"):
+            w.redo()  # type: ignore[attr-defined]
+
+    def _edit_cut(self) -> None:
+        w = self._focused_text_widget()
+        if hasattr(w, "cut") and not self._is_read_only(w):
+            w.cut()  # type: ignore[attr-defined]
+
+    def _edit_copy(self) -> None:
+        w = self._focused_text_widget()
+        if hasattr(w, "copy"):
+            w.copy()  # type: ignore[attr-defined]
+
+    def _edit_paste(self) -> None:
+        w = self._focused_text_widget()
+        if hasattr(w, "paste") and not self._is_read_only(w):
+            w.paste()  # type: ignore[attr-defined]
+
+    def _edit_select_all(self) -> None:
+        w = self._focused_text_widget()
+        if hasattr(w, "selectAll"):
+            w.selectAll()  # type: ignore[attr-defined]
+
+    # --- Help menu -----------------------------------------------------------
+    def _show_keyboard_shortcuts(self) -> None:
+        text = (
+            "<b>Keyboard Shortcuts</b><br>"
+            "Ctrl+B — toggle sidebar<br>"
+            "Ctrl+J — toggle editor column<br>"
+            "Ctrl+Shift+D — toggle dark/light theme<br>"
+            "Ctrl+Enter — run code<br>"
+            "Ctrl+S — save progress<br>"
+            "Ctrl+Q — quit"
+        )
+        QMessageBox.information(self, "Keyboard Shortcuts", text)
+
+    def _show_about(self) -> None:
+        QMessageBox.information(
+            self,
+            "About Basilisk",
+            "Basilisk — A Python learning IDE.\nLearn, try examples, and practice with exercises.",
+        )
 
 
 def launch_app(
