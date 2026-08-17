@@ -762,7 +762,9 @@ class CourseApp(QMainWindow):
             self.top_bar.set_editor_visible(False)
             if hasattr(self, "actionViewEditor"):
                 self.actionViewEditor.blockSignals(True)
-                self.actionViewEditor.setChecked(False)
+                # While disabled on reading stages, reflect the saved preference
+                # in the View > Editor action's check state.
+                self.actionViewEditor.setChecked(self._editor_visible)
                 self.actionViewEditor.blockSignals(False)
         else:
             # Restore preference-based visibility according to saved pref
