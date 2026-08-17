@@ -459,7 +459,8 @@ class LessonContent(QWidget):
         learn_col = QWidget()
         learn_col.setObjectName("ContentColumn")
         learn_col.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
-        learn_col.setMaximumWidth(940)
+        # Use a comfortable desktop reading width at larger sizes
+        learn_col.setMaximumWidth(1200)
         learn_l = QVBoxLayout(learn_col)
         learn_l.setContentsMargins(0, 0, 0, 0)
         learn_l.setSpacing(18)
@@ -513,7 +514,8 @@ class LessonContent(QWidget):
         ex_col = QWidget()
         ex_col.setObjectName("ContentColumn")
         ex_col.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
-        ex_col.setMaximumWidth(940)
+        # Match Learn width for Examples on desktop
+        ex_col.setMaximumWidth(1200)
         ex_l = QVBoxLayout(ex_col)
         ex_l.setContentsMargins(0, 0, 0, 0)
         ex_l.setSpacing(18)
