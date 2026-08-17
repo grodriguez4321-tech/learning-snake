@@ -612,11 +612,11 @@ class LessonContent(QWidget):
         self._mistakes.set_mistakes(list(lesson.common_mistakes))
         total = len(lesson.exercises)
         self._exercise.set_exercise(exercise, index=exercise_index, total=total)
-        # prev/next lesson visibility state (hide when unavailable)
+        # prev/next lesson visibility: hide unavailable to avoid inert controls
         self._prev_lesson_lrn.setVisible(prev_ok)
+        self._prev_lesson_pr.setVisible(prev_ok)
         self._next_lesson_lrn.setVisible(next_ok)
         self._next_lesson_ex.setVisible(next_ok)
-        self._prev_lesson_pr.setVisible(prev_ok)
         self._next_lesson_pr.setVisible(next_ok)
 
     # --- stages ---------------------------------------------------------------
