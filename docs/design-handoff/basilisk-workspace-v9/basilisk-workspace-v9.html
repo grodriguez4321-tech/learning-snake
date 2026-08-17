@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --app-bg: #080B10;
+            --rail-bg: #0D1219;
+            --panel-bg: #111823;
+            --active-panel: #172131;
+            --input-bg: #0A0F16;
+            --border-subtle: rgba(148, 163, 184, 0.14);
+            --border-strong: rgba(148, 163, 184, 0.24);
+            --text-primary: #F1F5F9;
+            --text-secondary: #A7B2C2;
+            --text-muted: #6F7D90;
+            --primary-blue: #3B82F6;
+            --primary-blue-hover: #60A5FA;
+            --basil-green: #54D6A1;
+            --warm-accent: #F3C969;
+            --success: #4ADE80;
+            --error: #FB7185;
+            --focus-ring: rgba(59, 130, 246, 0.48);
+        }
+
+        body {
+            font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+            background-color: var(--app-bg);
+            color: var(--text-primary);
+            margin: 0;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--border-strong);
+            border-radius: 10px;
+        }
+
+        .radial-grid {
+            background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0);
+            background-size: 32px 32px;
+        }
+
+        .resize-handle-h {
+            cursor: col-resize;
+            transition: background-color 150ms;
+            width: 8px;
+            flex: 0 0 8px;
+            touch-action: none;
+            position: relative;
+            z-index: 10;
+            background-color: transparent;
+        }
+        .resize-handle-h:hover {
+            background-color: var(--primary-blue);
+        }
+
+        .resize-handle-v {
+            cursor: row-resize;
+            transition: background-color 150ms;
+            height: 8px;
+            flex: 0 0 8px;
+            touch-action: none;
+            position: relative;
+            z-index: 10;
+            background-color: transparent;
+            border-top: 1px solid var(--border-subtle);
+        }
+        .resize-handle-v:hover {
+            background-color: var(--primary-blue);
+        }
+
+        .nav-active {
+            background-color: var(--active-panel);
+            border-left: 2px solid var(--primary-blue);
+            color: var(--text-primary);
+        }
+
+        .segmented-btn-active {
+            background-color: var(--active-panel);
+            color: var(--text-primary);
+        }
+
+        button:focus-visible {
+            outline: 2px solid var(--focus-ring);
+            outline-offset: 2px;
+        }
+
+        [contenteditable="true"]:focus-visible {
+            outline: 2px solid var(--focus-ring);
+            outline-offset: -2px;
+        }
+
+        .curriculum-rail,
+        .prompt-pane,
+        .editor-pane,
+        .output-drawer {
+            transition: width 160ms ease, height 160ms ease;
+        }
+
+        .curriculum-rail.is-collapsed {
+            width: 64px !important;
+        }
+        .rail-brand-mark {
+            width: 56px;
+            height: 56px;
+            flex: 0 0 56px;
+        }
+        .rail-brand-mark img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            mix-blend-mode: lighten;
+        }
+        .curriculum-rail.is-collapsed .rail-brand {
+            padding-left: 6px;
+            padding-right: 6px;
+            justify-content: center;
+        }
+        .curriculum-rail.is-collapsed .rail-brand-mark {
+            width: 52px;
+            height: 52px;
+            flex-basis: 52px;
+        }
+        .curriculum-rail.is-collapsed .rail-label,
+        .curriculum-rail.is-collapsed .rail-detail {
+            display: none;
+        }
+        .curriculum-rail.is-collapsed nav a,
+        .curriculum-rail.is-collapsed #rail-toggle-btn {
+            justify-content: center;
+        }
+
+        .mobile-workspace-tabs {
+            display: none;
+        }
+
+        @media (max-width: 1179px) {
+            .curriculum-rail {
+                width: 64px !important;
+            }
+            .curriculum-rail .rail-brand {
+                padding-left: 6px;
+                padding-right: 6px;
+                justify-content: center;
+            }
+            .curriculum-rail .rail-brand-mark {
+                width: 52px;
+                height: 52px;
+                flex-basis: 52px;
+            }
+            .curriculum-rail .rail-label,
+            .curriculum-rail .rail-detail {
+                display: none;
+            }
+            .curriculum-rail nav a,
+            .curriculum-rail #rail-toggle-btn {
+                justify-content: center;
+            }
+            .prompt-pane {
+                width: 360px !important;
+            }
+        }
+
+        @media (max-width: 899px) {
+            .curriculum-rail,
+            .desktop-mode-tabs,
+            .pane-resize-handle {
+                display: none !important;
+            }
+            .mobile-workspace-tabs {
+                display: flex;
+            }
+            .workspace-content {
+                display: block !important;
+            }
+            .prompt-pane,
+            .editor-pane {
+                width: 100% !important;
+                min-width: 0 !important;
+                height: 100%;
+            }
+            .editor-pane.mobile-hidden,
+            .prompt-pane.mobile-hidden {
+                display: none !important;
+            }
+        }
+
+        @view-transition {
+            navigation: auto;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="flex h-screen w-screen overflow-hidden bg-[#080B10]">
+        <!-- Left Curriculum Rail (232-240px) -->
+        <aside id="curriculum-rail" class="curriculum-rail w-[232px] flex bg-[#0D1219] flex-shrink-0 flex-col border-r border-[rgba(148,163,184,0.14)] z-20">
+            <div class="rail-brand h-[68px] px-5 flex items-center gap-3">
+                <div class="rail-brand-mark" role="img" aria-label="Basilisk">
+                    <img src="assets/basilisk-app-mark-v2.png" alt="" />
+                </div>
+            </div>
+
+            <div class="rail-detail px-4 py-2 flex flex-col gap-1">
+                <div class="text-[11px] font-semibold text-[#6F7D90] uppercase tracking-wider mb-2">Course Progress</div>
+                <div class="flex items-center justify-between text-[13px] mb-1.5">
+                    <span class="text-[#A7B2C2]">0 of 18 lessons</span>
+                </div>
+                <div class="h-1 w-full bg-[rgba(148,163,184,0.14)] rounded-full overflow-hidden">
+                    <div class="h-full bg-[#3B82F6] w-0"></div>
+                </div>
+            </div>
+
+            <nav class="flex-1 overflow-y-auto mt-4 px-2 custom-scrollbar space-y-0.5">
+                <a id="nav-lesson-1" href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-[13px] text-[#A7B2C2] hover:bg-[#172131] transition-colors">
+                    <iconify-icon icon="lucide:circle" class="text-xs text-[#6F7D90]"></iconify-icon>
+                    <span class="rail-label truncate" title="Lesson 1: Starter">1. Starter Content</span>
+                </a>
+                <a id="nav-lesson-2" href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-[13px] text-[#A7B2C2] hover:bg-[#172131] transition-colors">
+                    <iconify-icon icon="lucide:circle" class="text-xs text-[#6F7D90]"></iconify-icon>
+                    <span class="rail-label truncate" title="Lesson 2: Variables">2. Variable Secrets</span>
+                </a>
+                <a id="nav-lesson-active" href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-[13px] nav-active font-medium">
+                    <iconify-icon icon="lucide:play-circle" class="text-xs text-[#3B82F6]"></iconify-icon>
+                    <span class="rail-label truncate" title="Lesson 3: Leave a Trace">3. Leave a Trace</span>
+                </a>
+                <!-- 15 more placeholder items for 18 total -->
+                <div class="opacity-40">
+                    <script>
+                        for(let i=4; i<=18; i++) {
+                            document.write(`
+                                <a id="nav-lesson-${i}" href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-[13px] text-[#6F7D90] hover:bg-[#172131] transition-colors">
+                                    <iconify-icon icon="lucide:lock" class="text-[10px]"></iconify-icon>
+                                    <span class="rail-label truncate" title="Lesson ${i}: Placeholder">${i}. Lesson Placeholder</span>
+                                </a>
+                            `);
+                        }
+                    </script>
+                </div>
+            </nav>
+
+            <div class="p-4 border-t border-[rgba(148,163,184,0.14)]">
+                <button id="rail-toggle-btn" aria-label="Collapse curriculum" title="Collapse curriculum" class="flex items-center gap-3 text-[#A7B2C2] text-[13px] hover:text-white transition-colors w-full min-h-11">
+                    <iconify-icon icon="lucide:panel-left-close" class="text-lg"></iconify-icon>
+                    <span class="rail-label">Collapse Rail</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="flex-1 flex flex-col bg-[#080B10] overflow-hidden">
+            <!-- Workspace Header -->
+            <header class="h-[68px] border-b border-[rgba(148,163,184,0.14)] flex items-center justify-between px-6 bg-[#080B10] z-30">
+                <div class="flex items-center gap-8">
+                    <div class="flex flex-col">
+                        <div class="flex items-center gap-1.5 text-[11px] font-semibold text-[#6F7D90] uppercase tracking-widest mb-0.5">
+                            <span>Python Fundamentals</span>
+                            <iconify-icon icon="lucide:chevron-right" class="text-[10px]"></iconify-icon>
+                            <span>Exercise 3 of 3</span>
+                        </div>
+                        <h1 class="text-[16px] font-semibold tracking-tight">Leave a Trace</h1>
+                    </div>
+
+                    <div class="desktop-mode-tabs flex bg-[#111823] p-1 rounded-lg border border-[rgba(148,163,184,0.14)]">
+                        <button id="tab-learn" class="px-3 py-1 text-xs font-medium rounded-md segmented-btn-active">Learn</button>
+                        <button id="tab-examples" class="px-3 py-1 text-xs font-medium text-[#A7B2C2] hover:text-white transition-colors">Examples</button>
+                        <button id="tab-practice" class="px-3 py-1 text-xs font-medium text-[#A7B2C2] hover:text-white transition-colors">Practice</button>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button id="header-settings-btn" aria-label="Workspace settings" title="Workspace settings" class="w-11 h-11 flex items-center justify-center rounded-lg border border-[rgba(148,163,184,0.14)] hover:bg-[#172131] transition-colors text-[#A7B2C2]">
+                        <iconify-icon icon="lucide:settings-2" class="text-lg"></iconify-icon>
+                    </button>
+                    <button id="header-view-btn" aria-label="Change layout" title="Change layout" class="w-11 h-11 flex items-center justify-center rounded-lg border border-[rgba(148,163,184,0.14)] hover:bg-[#172131] transition-colors text-[#A7B2C2]">
+                        <iconify-icon icon="lucide:layout" class="text-lg"></iconify-icon>
+                    </button>
+                </div>
+            </header>
+
+            <div class="mobile-workspace-tabs h-11 px-3 items-center gap-1 border-b border-[rgba(148,163,184,0.14)] bg-[#0D1219]" role="tablist" aria-label="Workspace panes">
+                <button id="mobile-prompt-tab" role="tab" aria-selected="true" class="h-8 px-4 rounded-md bg-[#172131] text-sm font-semibold">Prompt</button>
+                <button id="mobile-code-tab" role="tab" aria-selected="false" class="h-8 px-4 rounded-md text-[#A7B2C2] text-sm font-semibold">Code</button>
+            </div>
+
+            <!-- Content Area -->
+            <div class="workspace-content flex-1 flex overflow-hidden radial-grid">
+                <!-- Prompt Pane -->
+                <section id="prompt-pane" class="prompt-pane w-[400px] xl:w-[460px] flex flex-col border-r border-[rgba(148,163,184,0.14)] bg-[#080B10]/60">
+                    <div class="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-6">
+                        <div class="space-y-4">
+                            <h2 class="text-xl font-bold tracking-tight text-white">Create the dispatch</h2>
+                            <p class="text-[15px] leading-[23px] text-[#A7B2C2]">
+                                Inform the surface team of the expedition status. Combine the expedition ID and the current status string using the standard protocol format.
+                            </p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="text-[11px] font-bold text-[#6F7D90] uppercase tracking-widest">Expected Output</div>
+                            <div class="bg-[#0A0F16] border border-[rgba(148,163,184,0.24)] rounded-lg p-4 mono text-[13px] leading-relaxed text-[#F1F5F9]">
+                                SEARCH DISPATCH<br>
+                                Expedition: 17<br>
+                                Status: OVERDUE
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="text-[11px] font-bold text-[#6F7D90] uppercase tracking-widest flex items-center gap-2">
+                                <iconify-icon icon="lucide:list-todo"></iconify-icon>
+                                Requirements
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex items-start gap-3 p-3 rounded-lg bg-[#111823] border border-[rgba(148,163,184,0.08)]">
+                                    <iconify-icon id="req-prints-icon" icon="lucide:circle" class="mt-1 text-[#6F7D90]"></iconify-icon>
+                                    <span class="flex-1 text-[14px] text-[#A7B2C2]">Use three <code class="mono text-xs text-[#54D6A1]">print()</code> calls</span>
+                                    <span id="req-prints-status" class="text-[10px] font-semibold uppercase tracking-wide text-[#6F7D90]">Not started</span>
+                                </div>
+                                <div class="flex items-start gap-3 p-3 rounded-lg bg-[#111823] border border-[rgba(148,163,184,0.08)]">
+                                    <iconify-icon id="req-comment-icon" icon="lucide:circle" class="mt-1 text-[#6F7D90]"></iconify-icon>
+                                    <span class="flex-1 text-[14px] text-[#A7B2C2]">Include one real code comment</span>
+                                    <span id="req-comment-status" class="text-[10px] font-semibold uppercase tracking-wide text-[#6F7D90]">Not started</span>
+                                </div>
+                                <div class="flex items-start gap-3 p-3 rounded-lg bg-[#111823] border border-[rgba(148,163,184,0.08)]">
+                                    <iconify-icon id="req-args-icon" icon="lucide:circle" class="mt-1 text-[#6F7D90]"></iconify-icon>
+                                    <span class="flex-1 text-[14px] text-[#A7B2C2]">Use two arguments for the Expedition line</span>
+                                    <span id="req-args-status" class="text-[10px] font-semibold uppercase tracking-wide text-[#6F7D90]">Not started</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Keyboard Shortcut footer (Empty for now) -->
+                    <div class="h-12 flex items-center px-6 border-t border-[rgba(148,163,184,0.14)] text-[11px] text-[#6F7D90] font-medium tracking-wide">
+                        <span id="shortcut-footer"><kbd class="bg-[#111823] px-1 rounded border border-white/10">Ctrl</kbd> + <kbd class="bg-[#111823] px-1 rounded border border-white/10">Enter</kbd> to Run</span>
+                        <span id="next-concept-footer" class="hidden text-[#54D6A1]">Completed · Next concept is ready</span>
+                    </div>
+                </section>
+
+                <div id="pane-resize-handle" class="pane-resize-handle resize-handle-h" role="separator" aria-label="Resize exercise pane" tabindex="0"></div>
+
+                <!-- Editor Pane -->
+                <section id="editor-pane" class="editor-pane flex-1 flex flex-col min-w-[520px] bg-[#0A0F16]">
+                    <div class="h-10 flex items-center justify-between px-4 bg-[#0D1219] border-b border-[rgba(148,163,184,0.14)]">
+                        <div class="flex items-center gap-2">
+                            <iconify-icon icon="vscode-icons:file-type-python" class="text-sm"></iconify-icon>
+                            <span class="text-xs font-semibold text-[#A7B2C2]">main.py</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                             <button aria-label="Copy code" title="Copy code" class="w-11 h-11 flex items-center justify-center text-[#6F7D90] hover:text-white transition-colors">
+                                <iconify-icon icon="lucide:copy" class="text-sm"></iconify-icon>
+                            </button>
+                            <button aria-label="Full screen editor" title="Full screen editor" class="w-11 h-11 flex items-center justify-center text-[#6F7D90] hover:text-white transition-colors">
+                                <iconify-icon icon="lucide:maximize-2" class="text-sm"></iconify-icon>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 flex overflow-hidden">
+                        <div class="w-12 pt-4 flex flex-col items-center mono text-[13px] text-[#2F3E50] select-none border-r border-white/5 bg-[#080B10]">
+                            <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                        </div>
+                        <div id="code-editor" contenteditable="true" role="textbox" aria-label="Python code editor" aria-multiline="true" spellcheck="false" class="flex-1 p-4 mono text-[14px] leading-relaxed whitespace-pre-wrap overflow-auto custom-scrollbar"># Write the three-line dispatch
+</div>
+                    </div>
+
+                    <!-- Action Bar -->
+                    <div class="h-[72px] flex items-center justify-between px-6 bg-[#080B10] border-t border-[rgba(148,163,184,0.14)]">
+                        <div class="flex items-center gap-3">
+                            <button id="btn-run" title="Run code (Ctrl+Enter)" class="h-11 px-6 bg-[#3B82F6] hover:bg-[#60A5FA] text-white rounded-lg flex items-center gap-2.5 font-bold transition-all shadow-lg shadow-blue-500/10">
+                                <iconify-icon icon="lucide:play" class="text-[14px]"></iconify-icon>
+                                Run Code
+                            </button>
+                            <button id="btn-check" aria-disabled="true" title="Run your code before checking" class="h-11 px-6 border border-[rgba(148,163,184,0.24)] text-[#6F7D90] rounded-lg flex items-center gap-2.5 font-bold transition-all">
+                                <iconify-icon icon="lucide:check-circle-2" class="text-[14px]"></iconify-icon>
+                                Check Answer
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="btn-hint" aria-label="Get a hint, 3 remaining" title="Get a hint" class="h-11 px-4 border border-[rgba(148,163,184,0.2)] text-[#A7B2C2] hover:text-white rounded-lg flex items-center gap-2 text-sm transition-all">
+                                <iconify-icon icon="lucide:lightbulb"></iconify-icon>
+                                <span>Hint (3)</span>
+                            </button>
+                            <button id="btn-reset" aria-label="Reset code to starter state" title="Reset code to starter state" class="w-11 h-11 flex items-center justify-center border border-[rgba(148,163,184,0.2)] text-[#A7B2C2] hover:text-white rounded-lg transition-all">
+                                <iconify-icon icon="lucide:rotate-ccw"></iconify-icon>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Resizable Output Drawer -->
+                    <div id="output-drawer" class="output-drawer h-[140px] flex flex-col bg-[#0D1219] border-t border-[rgba(148,163,184,0.24)]">
+                        <div id="drawer-resize-handle" class="resize-handle-v" role="separator" aria-label="Resize output window" tabindex="0"></div>
+                        <div class="h-10 flex items-center justify-between px-4 border-b border-white/5">
+                            <div class="flex">
+                                <button id="output-tab" class="px-4 h-10 text-[11px] font-bold text-[#F1F5F9] border-b-2 border-[#3B82F6] flex items-center gap-2">
+                                    OUTPUT
+                                    <span id="output-status-dot" class="w-1.5 h-1.5 bg-[#6F7D90] rounded-full"></span>
+                                </button>
+                                <button id="feedback-tab" class="px-4 h-10 text-[11px] font-bold text-[#6F7D90] hover:text-white transition-colors">
+                                    FEEDBACK (<span id="feedback-count">0</span>)
+                                </button>
+                            </div>
+                            <button id="drawer-toggle" aria-label="Collapse output drawer" title="Collapse output drawer" class="w-11 h-10 text-[#6F7D90] hover:text-white flex items-center justify-center">
+                                <iconify-icon id="drawer-toggle-icon" icon="lucide:chevron-down"></iconify-icon>
+                            </button>
+                        </div>
+                        <div id="drawer-content" class="flex-1 p-5 mono text-[13px] text-[#A7B2C2] overflow-y-auto custom-scrollbar">
+                            <div class="flex flex-col items-center justify-center h-full opacity-30 text-center">
+                                <iconify-icon icon="lucide:terminal" class="text-3xl mb-3"></iconify-icon>
+                                <p>Ready to run your Python code</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script>
+        const byId = (id) => document.getElementById(id);
+        const editor = byId('code-editor');
+        const drawer = byId('output-drawer');
+        const drawerContent = byId('drawer-content');
+        const runButton = byId('btn-run');
+        const checkButton = byId('btn-check');
+        let activeDrawerTab = 'output';
+        let drawerCollapsed = false;
+        let readyToCheck = false;
+        let outputHtml = '<div class="flex flex-col items-center justify-center h-full opacity-40 text-center"><iconify-icon icon="lucide:terminal" class="text-3xl mb-3"></iconify-icon><p>Ready to run your Python code</p></div>';
+        let feedbackHtml = '<div class="flex flex-col items-center justify-center h-full opacity-40 text-center"><iconify-icon icon="lucide:message-square" class="text-3xl mb-3"></iconify-icon><p>Feedback appears after a run or check.</p></div>';
+
+        const requirementMeta = {
+            prints: { icon: 'req-prints-icon', status: 'req-prints-status' },
+            comment: { icon: 'req-comment-icon', status: 'req-comment-status' },
+            args: { icon: 'req-args-icon', status: 'req-args-status' }
+        };
+
+        function setRequirement(name, state) {
+            const meta = requirementMeta[name];
+            const icon = byId(meta.icon);
+            const status = byId(meta.status);
+            const states = {
+                empty: ['lucide:circle', '#6F7D90', 'Not started'],
+                progress: ['lucide:circle-dot', '#F3C969', 'Detected'],
+                pass: ['lucide:check-circle-2', '#54D6A1', 'Satisfied'],
+                error: ['lucide:alert-circle', '#FB7185', 'Needs attention']
+            };
+            const config = states[state];
+            icon.setAttribute('icon', config[0]);
+            icon.style.color = config[1];
+            status.style.color = config[1];
+            status.textContent = config[2];
+        }
+
+        function evaluateRequirements() {
+            const source = editor.innerText;
+            const printCount = (source.match(/print\s*\(/g) || []).length;
+            const starterComment = '# Write the three-line dispatch';
+            const meaningfulSource = source.split('\n').filter((line) => line.trim() !== starterComment).join('\n').trim();
+            const hasComment = meaningfulSource.split('\n').some((line) => line.trim().startsWith('#') && line.trim().length > 1);
+            const hasTwoArgs = /print\s*\(\s*['\"]Expedition:\s*['\"]\s*,/.test(source);
+            setRequirement('prints', printCount === 0 ? 'empty' : printCount >= 3 ? 'pass' : 'progress');
+            setRequirement('comment', hasComment ? 'pass' : meaningfulSource ? 'error' : 'empty');
+            setRequirement('args', hasTwoArgs ? 'pass' : printCount ? 'error' : 'empty');
+            return { printCount, hasComment, hasTwoArgs };
+        }
+
+        function expandDrawer(height = 240) {
+            drawerCollapsed = false;
+            drawer.style.height = `${height}px`;
+            byId('drawer-content').classList.remove('hidden');
+            byId('drawer-toggle-icon').setAttribute('icon', 'lucide:chevron-down');
+            byId('drawer-toggle').setAttribute('aria-label', 'Collapse output drawer');
+        }
+
+        function selectDrawerTab(tab) {
+            activeDrawerTab = tab;
+            const outputSelected = tab === 'output';
+            byId('output-tab').className = outputSelected ? 'px-4 h-10 text-[11px] font-bold text-[#F1F5F9] border-b-2 border-[#3B82F6] flex items-center gap-2' : 'px-4 h-10 text-[11px] font-bold text-[#6F7D90] flex items-center gap-2';
+            byId('feedback-tab').className = outputSelected ? 'px-4 h-10 text-[11px] font-bold text-[#6F7D90]' : 'px-4 h-10 text-[11px] font-bold text-[#F1F5F9] border-b-2 border-[#3B82F6]';
+            drawerContent.innerHTML = outputSelected ? outputHtml : feedbackHtml;
+        }
+
+        function showOutput(html, statusColor = '#6F7D90') {
+            outputHtml = html;
+            byId('output-status-dot').style.backgroundColor = statusColor;
+            selectDrawerTab('output');
+        }
+
+        function showFeedback(html, count = 1) {
+            feedbackHtml = html;
+            byId('feedback-count').textContent = String(count);
+            selectDrawerTab('feedback');
+        }
+
+        function promoteCheck() {
+            readyToCheck = true;
+            checkButton.setAttribute('aria-disabled', 'false');
+            checkButton.title = 'Check answer — recommended next step';
+            checkButton.className = 'h-11 px-6 bg-[#3B82F6] hover:bg-[#60A5FA] text-white rounded-lg flex items-center gap-2.5 font-bold transition-all shadow-lg shadow-blue-500/10';
+            checkButton.innerHTML = '<iconify-icon icon="lucide:check-circle-2" class="text-[14px]"></iconify-icon>Check Answer · Next';
+        }
+
+        editor.addEventListener('input', evaluateRequirements);
+
+        runButton.addEventListener('click', () => {
+            runButton.disabled = true;
+            runButton.innerHTML = '<iconify-icon icon="lucide:loader-circle" class="animate-spin"></iconify-icon>Running…';
+            expandDrawer(240);
+            showOutput('<div class="flex items-center gap-2 text-[#A7B2C2]"><iconify-icon icon="lucide:loader-circle" class="animate-spin"></iconify-icon>Executing main.py…</div>', '#3B82F6');
+            window.setTimeout(() => {
+                const result = evaluateRequirements();
+                const source = editor.innerText;
+                const openParens = (source.match(/\(/g) || []).length;
+                const closeParens = (source.match(/\)/g) || []).length;
+                runButton.disabled = false;
+                runButton.innerHTML = '<iconify-icon icon="lucide:play" class="text-[14px]"></iconify-icon>Run Again';
+                if (openParens !== closeParens) {
+                    readyToCheck = false;
+                    showOutput('<div class="text-[#FB7185] mb-2">SyntaxError: unmatched parenthesis</div><div class="text-[#A7B2C2]">Check the highlighted line and run again.</div>', '#FB7185');
+                    return;
+                }
+                if (result.printCount >= 3 && result.hasComment && result.hasTwoArgs) {
+                    showOutput('<div class="text-[#F1F5F9] leading-6">SEARCH DISPATCH<br>Expedition: 17<br>Status: OVERDUE</div><div class="mt-3 text-[#54D6A1] flex items-center gap-2"><iconify-icon icon="lucide:circle-check"></iconify-icon>Output matches the expected structure.</div>', '#54D6A1');
+                    promoteCheck();
+                } else {
+                    readyToCheck = false;
+                    showOutput('<div class="text-[#F3C969] mb-2">Output does not match yet.</div><div class="text-[#A7B2C2]">Review the requirement states beside the prompt, then run again.</div>', '#F3C969');
+                }
+            }, 700);
+        });
+
+        checkButton.addEventListener('click', () => {
+            expandDrawer(240);
+            if (!readyToCheck) {
+                showFeedback('<div class="flex gap-3"><iconify-icon icon="lucide:info" class="text-[#F3C969] text-lg"></iconify-icon><div><div class="text-[#F1F5F9] font-semibold mb-1">Run the code first</div><div class="text-[#A7B2C2]">Checking becomes available after the output matches the expected structure.</div></div></div>');
+                return;
+            }
+            showFeedback('<div class="flex gap-3"><iconify-icon icon="lucide:badge-check" class="text-[#54D6A1] text-xl"></iconify-icon><div><div class="text-[#F1F5F9] font-semibold mb-1">Exercise complete</div><div class="text-[#A7B2C2]">Your dispatch matches every requirement. The next concept is now available.</div></div></div>');
+            byId('shortcut-footer').classList.add('hidden');
+            byId('next-concept-footer').classList.remove('hidden');
+            const activeIcon = byId('nav-lesson-active').querySelector('iconify-icon');
+            activeIcon.setAttribute('icon', 'lucide:check-circle-2');
+            activeIcon.style.color = '#54D6A1';
+        });
+
+        byId('btn-hint').addEventListener('click', () => {
+            expandDrawer(220);
+            showFeedback('<div class="flex gap-3"><iconify-icon icon="lucide:lightbulb" class="text-[#F3C969] text-lg"></iconify-icon><div><div class="text-[#F1F5F9] font-semibold mb-1">Hint 1 of 3</div><div class="text-[#A7B2C2]">Start with three print calls. The Expedition line should pass the label and number as separate arguments.</div></div></div>');
+        });
+
+        byId('btn-reset').addEventListener('click', () => {
+            editor.innerText = '# Write the three-line dispatch\n';
+            readyToCheck = false;
+            evaluateRequirements();
+            byId('feedback-count').textContent = '0';
+            byId('shortcut-footer').classList.remove('hidden');
+            byId('next-concept-footer').classList.add('hidden');
+            checkButton.setAttribute('aria-disabled', 'true');
+            checkButton.title = 'Run your code before checking';
+            checkButton.className = 'h-11 px-6 border border-[rgba(148,163,184,0.24)] text-[#6F7D90] rounded-lg flex items-center gap-2.5 font-bold transition-all';
+            checkButton.innerHTML = '<iconify-icon icon="lucide:check-circle-2" class="text-[14px]"></iconify-icon>Check Answer';
+            drawer.style.height = '140px';
+            showOutput('<div class="flex flex-col items-center justify-center h-full opacity-40 text-center"><iconify-icon icon="lucide:terminal" class="text-3xl mb-3"></iconify-icon><p>Ready to run your Python code</p></div>');
+        });
+
+        byId('output-tab').addEventListener('click', () => selectDrawerTab('output'));
+        byId('feedback-tab').addEventListener('click', () => selectDrawerTab('feedback'));
+        byId('drawer-toggle').addEventListener('click', () => {
+            drawerCollapsed = !drawerCollapsed;
+            drawer.style.height = drawerCollapsed ? '40px' : '140px';
+            byId('drawer-content').classList.toggle('hidden', drawerCollapsed);
+            byId('drawer-toggle-icon').setAttribute('icon', drawerCollapsed ? 'lucide:chevron-up' : 'lucide:chevron-down');
+            byId('drawer-toggle').setAttribute('aria-label', drawerCollapsed ? 'Expand output drawer' : 'Collapse output drawer');
+        });
+
+        byId('rail-toggle-btn').addEventListener('click', () => {
+            const rail = byId('curriculum-rail');
+            const collapsed = rail.classList.toggle('is-collapsed');
+            byId('rail-toggle-btn').setAttribute('aria-label', collapsed ? 'Expand curriculum' : 'Collapse curriculum');
+            byId('rail-toggle-btn').title = collapsed ? 'Expand curriculum' : 'Collapse curriculum';
+        });
+
+        function showMobilePane(pane) {
+            const showPrompt = pane === 'prompt';
+            byId('prompt-pane').classList.toggle('mobile-hidden', !showPrompt);
+            byId('editor-pane').classList.toggle('mobile-hidden', showPrompt);
+            byId('mobile-prompt-tab').setAttribute('aria-selected', String(showPrompt));
+            byId('mobile-code-tab').setAttribute('aria-selected', String(!showPrompt));
+            byId('mobile-prompt-tab').classList.toggle('bg-[#172131]', showPrompt);
+            byId('mobile-code-tab').classList.toggle('bg-[#172131]', !showPrompt);
+        }
+        byId('mobile-prompt-tab').addEventListener('click', () => showMobilePane('prompt'));
+        byId('mobile-code-tab').addEventListener('click', () => showMobilePane('code'));
+
+        const paneResizeHandle = byId('pane-resize-handle');
+        paneResizeHandle.addEventListener('pointerdown', (event) => {
+            if (window.innerWidth < 900) return;
+            event.preventDefault();
+            paneResizeHandle.setPointerCapture(event.pointerId);
+            const promptPane = byId('prompt-pane');
+            const startX = event.clientX;
+            const startWidth = promptPane.getBoundingClientRect().width;
+            const move = (moveEvent) => {
+                const maxWidth = Math.max(320, window.innerWidth - byId('curriculum-rail').getBoundingClientRect().width - 520);
+                promptPane.style.width = `${Math.min(maxWidth, Math.max(320, startWidth + moveEvent.clientX - startX))}px`;
+            };
+            const stop = () => {
+                paneResizeHandle.removeEventListener('pointermove', move);
+                paneResizeHandle.removeEventListener('pointerup', stop);
+                if (paneResizeHandle.hasPointerCapture(event.pointerId)) paneResizeHandle.releasePointerCapture(event.pointerId);
+            };
+            paneResizeHandle.addEventListener('pointermove', move);
+            paneResizeHandle.addEventListener('pointerup', stop);
+        });
+
+        paneResizeHandle.addEventListener('keydown', (event) => {
+            if (!['ArrowLeft', 'ArrowRight'].includes(event.key) || window.innerWidth < 900) return;
+            event.preventDefault();
+            const promptPane = byId('prompt-pane');
+            const currentWidth = promptPane.getBoundingClientRect().width;
+            const maxWidth = Math.max(320, window.innerWidth - byId('curriculum-rail').getBoundingClientRect().width - 520);
+            promptPane.style.width = `${Math.min(maxWidth, Math.max(320, currentWidth + (event.key === 'ArrowRight' ? 16 : -16)))}px`;
+        });
+
+        const drawerResizeHandle = byId('drawer-resize-handle');
+        drawerResizeHandle.addEventListener('pointerdown', (event) => {
+            event.preventDefault();
+            drawerResizeHandle.setPointerCapture(event.pointerId);
+            const startY = event.clientY;
+            const startHeight = drawer.getBoundingClientRect().height;
+            const move = (moveEvent) => {
+                drawerCollapsed = false;
+                drawer.style.height = `${Math.min(320, Math.max(40, startHeight + startY - moveEvent.clientY))}px`;
+                byId('drawer-content').classList.remove('hidden');
+            };
+            const stop = () => {
+                drawerResizeHandle.removeEventListener('pointermove', move);
+                drawerResizeHandle.removeEventListener('pointerup', stop);
+                if (drawerResizeHandle.hasPointerCapture(event.pointerId)) drawerResizeHandle.releasePointerCapture(event.pointerId);
+            };
+            drawerResizeHandle.addEventListener('pointermove', move);
+            drawerResizeHandle.addEventListener('pointerup', stop);
+        });
+
+        drawerResizeHandle.addEventListener('keydown', (event) => {
+            if (!['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+            event.preventDefault();
+            drawerCollapsed = false;
+            const currentHeight = drawer.getBoundingClientRect().height;
+            drawer.style.height = `${Math.min(320, Math.max(40, currentHeight + (event.key === 'ArrowUp' ? 16 : -16)))}px`;
+            byId('drawer-content').classList.remove('hidden');
+        });
+        document.addEventListener('keydown', (event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                event.preventDefault();
+                runButton.click();
+            }
+        });
+        evaluateRequirements();
+        showMobilePane('prompt');
+    </script>
+</body>
+</html>
