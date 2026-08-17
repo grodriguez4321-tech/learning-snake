@@ -443,6 +443,32 @@
     </div>
     <script>
         const byId = (id) => document.getElementById(id);
+        // URL param helpers for static-state screenshots and visual-only header modes
+        (function applyUrlParams() {
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const mode = (params.get('mode') || '').toLowerCase();
+                const tabs = ['learn', 'examples', 'practice'];
+                if (tabs.includes(mode)) {
+                    tabs.forEach((name) => {
+                        const el = byId(`tab-${name}`);
+                        if (!el) return;
+                        el.classList.toggle('segmented-btn-active', name === mode);
+                        if (name !== mode) {
+                            el.classList.add('text-[#A7B2C2]');
+                        } else {
+                            el.classList.remove('text-[#A7B2C2]');
+                        }
+                    });
+                }
+                if (params.has('collapsed')) {
+                    const rail = byId('curriculum-rail');
+                    if (rail) rail.classList.add('is-collapsed');
+                }
+            } catch (e) {
+                // ignore param parsing failures in the prototype
+            }
+        })();
         const editor = byId('code-editor');
         const drawer = byId('output-drawer');
         const drawerContent = byId('drawer-content');
