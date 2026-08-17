@@ -23,43 +23,46 @@ def ensure_dir(path: Path) -> None:
 
 
 def main() -> None:
-    controller, runner, prefs = build_controller(ROOT)
-    app = QApplication.instance() or QApplication(sys.argv)
-    course = CourseApp(controller, runner, prefs_store=prefs)
-    course.show()
-    app.processEvents()
-
-    lesson = controller.current_lesson()
-    if lesson:
-        course._show_lesson(lesson)
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        data_dir = Path(tmp)
+        controller, runner, prefs = build_controller(ROOT, data_dir=data_dir)
+        app = QApplication.instance() or QApplication(sys.argv)
+        course = CourseApp(controller, runner, prefs_store=prefs)
+        course.show()
         app.processEvents()
 
-    out_dir = ROOT / "docs" / "screenshots" / "three-stage-ui"
-    sizes = [(1100, 700), (1400, 900)]
-    for w, h in sizes:
-        course.resize(w, h)
-        app.processEvents()
-        # Learn
-        course.lessons_page.content.set_stage("learn")
-        app.processEvents()
-        p = course.grab()
-        path = out_dir / f"lesson-learn-{w}x{h}.png"
-        ensure_dir(path)
-        p.save(str(path))
-        # Examples
-        course.lessons_page.content.set_stage("examples")
-        app.processEvents()
-        p = course.grab()
-        path = out_dir / f"lesson-examples-{w}x{h}.png"
-        p.save(str(path))
-        # Practice
-        course.lessons_page.content.set_stage("practice")
-        app.processEvents()
-        p = course.grab()
-        path = out_dir / f"lesson-practice-{w}x{h}.png"
-        p.save(str(path))
+        lesson = controller.current_lesson()
+        if lesson:
+            course._show_lesson(lesson)
+            app.processEvents()
 
-    course.close()
+        out_dir = ROOT / "docs" / "screenshots" / "three-stage-ui"
+        sizes = [(1100, 700), (1400, 900)]
+        for w, h in sizes:
+            course.resize(w, h)
+            app.processEvents()
+            # Learn
+            course.lessons_page.content.set_stage("learn")
+            app.processEvents()
+            p = course.grab()
+            path = out_dir / f"lesson-learn-{w}x{h}.png"
+            ensure_dir(path)
+            p.save(str(path))
+            # Examples
+            course.lessons_page.content.set_stage("examples")
+            app.processEvents()
+            p = course.grab()
+            path = out_dir / f"lesson-examples-{w}x{h}.png"
+            p.save(str(path))
+            # Practice
+            course.lessons_page.content.set_stage("practice")
+            app.processEvents()
+            p = course.grab()
+            path = out_dir / f"lesson-practice-{w}x{h}.png"
+            p.save(str(path))
+
+        course.close()
 
 
 if __name__ == "__main__":

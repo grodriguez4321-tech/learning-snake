@@ -259,14 +259,21 @@ class CourseApp(QMainWindow):
         # Initialize check states
         self.actionViewSidebar.setChecked(self._sidebar_visible)
         self.actionViewEditor.setChecked(self._editor_visible)
-        self._update_edit_actions_enabled()
-        # Track focus changes globally to keep Edit actions current
+        # Clipboard changes can affect Paste availability
+        try:
+            from PySide6.QtGui import QGuiApplication
+            QGuiApplication.clipboard().dataChanged.connect(self._update_edit_actions_enabled)
+        except Exception:
+            pass
+        # Track focus changes and (re)bind signals from the focused editor/input
         app = QApplication.instance()
         if app is not None:
             try:
-                app.focusChanged.connect(lambda *_: self._update_edit_actions_enabled())
+                app.focusChanged.connect(self._on_focus_changed)  # type: ignore[arg-type]
             except Exception:
                 pass
+        self._edit_focus_widget = None  # type: ignore[attr-defined]
+        self._update_edit_actions_enabled()
 
     # --- theme / panels -----------------------------------------------------
 
@@ -745,21 +752,20 @@ class CourseApp(QMainWindow):
 
     def _apply_stage_ide_visibility(self, stage: str) -> None:
         is_reading = stage in {"learn", "examples"}
-        # Disable Editor toggle during reading
+        # Disable Editor toggle during reading; visually unchecked while disabled
         self.top_bar.set_editor_enabled(not is_reading)
         if hasattr(self, "actionViewEditor"):
             self.actionViewEditor.setEnabled(not is_reading)
-        # Hide IDE temporarily without overwriting preference
         if is_reading:
+            # Hide IDE temporarily without overwriting preference
             self.lessons_page.set_editor_visible(False)
-            # Keep UI controls reflecting the saved preference while disabled
-            self.top_bar.set_editor_visible(self._editor_visible)
+            self.top_bar.set_editor_visible(False)
             if hasattr(self, "actionViewEditor"):
                 self.actionViewEditor.blockSignals(True)
-                self.actionViewEditor.setChecked(self._editor_visible)
+                self.actionViewEditor.setChecked(False)
                 self.actionViewEditor.blockSignals(False)
         else:
-            # Restore preference-based visibility
+            # Restore preference-based visibility according to saved pref
             self.lessons_page.set_editor_visible(self._editor_visible)
             self.top_bar.set_editor_visible(self._editor_visible)
             if hasattr(self, "actionViewEditor"):
@@ -768,6 +774,66 @@ class CourseApp(QMainWindow):
                 self.actionViewEditor.blockSignals(False)
 
     # --- Edit menu routing ---------------------------------------------------
+    def _on_focus_changed(self, _old, new) -> None:
+        # Disconnect from previous widget signals
+        prev = getattr(self, "_edit_focus_widget", None)
+        if prev is not None:
+            try:
+                prev.copyAvailable.disconnect(self._update_edit_actions_enabled)  # type: ignore[attr-defined]
+            except Exception:
+                pass
+            try:
+                prev.selectionChanged.disconnect(self._update_edit_actions_enabled)  # type: ignore[attr-defined]
+            except Exception:
+                pass
+            try:
+                prev.textChanged.disconnect(self._update_edit_actions_enabled)  # type: ignore[attr-defined]
+            except Exception:
+                pass
+            # QPlainTextEdit/QTextEdit may emit from document for undo/redo
+            try:
+                doc = prev.document()  # type: ignore[attr-defined]
+            except Exception:
+                doc = None
+            if doc is not None:
+                try:
+                    doc.undoAvailable.disconnect(self._update_edit_actions_enabled)  # type: ignore[attr-defined]
+                except Exception:
+                    pass
+                try:
+                    doc.redoAvailable.disconnect(self._update_edit_actions_enabled)  # type: ignore[attr-defined]
+                except Exception:
+                    pass
+        # Bind to the new widget's signals where present
+        self._edit_focus_widget = new
+        w = new
+        if w is not None:
+            try:
+                w.copyAvailable.connect(self._update_edit_actions_enabled)  # type: ignore[attr-defined]
+            except Exception:
+                pass
+            try:
+                w.selectionChanged.connect(self._update_edit_actions_enabled)  # type: ignore[attr-defined]
+            except Exception:
+                pass
+            try:
+                w.textChanged.connect(self._update_edit_actions_enabled)  # type: ignore[attr-defined]
+            except Exception:
+                pass
+            try:
+                doc = w.document()  # type: ignore[attr-defined]
+            except Exception:
+                doc = None
+            if doc is not None:
+                try:
+                    doc.undoAvailable.connect(self._update_edit_actions_enabled)  # type: ignore[attr-defined]
+                except Exception:
+                    pass
+                try:
+                    doc.redoAvailable.connect(self._update_edit_actions_enabled)  # type: ignore[attr-defined]
+                except Exception:
+                    pass
+        self._update_edit_actions_enabled()
     def _focused_text_widget(self):
         return QApplication.focusWidget()
 
@@ -806,7 +872,7 @@ class CourseApp(QMainWindow):
             except Exception:
                 has_sel = self._has_selection(w)
             cut_ok = (not is_ro) and has_sel
-            copy_ok = has_sel or is_ro
+            copy_ok = has_sel
             from PySide6.QtGui import QGuiApplication
             cb = QGuiApplication.clipboard()
             paste_ok = (not is_ro) and bool(getattr(cb, "text")())
@@ -814,10 +880,14 @@ class CourseApp(QMainWindow):
         elif isinstance(w, QLineEdit):
             is_ro = w.isReadOnly()
             has_sel = w.hasSelectedText()
-            undo_ok = not is_ro
-            redo_ok = not is_ro
+            # Best-effort: enable when editable; fine-tune on availability if present
+            try:
+                undo_ok = bool(getattr(w, "isUndoAvailable")())  # type: ignore[call-arg]
+                redo_ok = bool(getattr(w, "isRedoAvailable")())  # type: ignore[call-arg]
+            except Exception:
+                undo_ok = redo_ok = not is_ro
             cut_ok = (not is_ro) and has_sel
-            copy_ok = has_sel or is_ro
+            copy_ok = has_sel
             from PySide6.QtGui import QGuiApplication
             cb = QGuiApplication.clipboard()
             paste_ok = (not is_ro) and bool(getattr(cb, "text")())
