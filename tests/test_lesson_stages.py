@@ -172,6 +172,56 @@ class LessonStagesTests(unittest.TestCase):
         self.assertLessEqual(col.width(), 960)
         course.close()
 
+    def test_edit_menu_state_tracks_selection_and_clipboard(self) -> None:
+        course = self._new_course()
+        content = course.lessons_page.content
+        # Go to practice so editor is allowed to show per pref
+        content.set_stage("practice")
+        self.app.processEvents()
+        editor = course.lessons_page.ide.editor
+        editor.set_text("abc")
+        editor.setFocus()
+        self.app.processEvents()
+        # Initially, no selection -> Copy/Cut disabled
+        copy_act: QAction | None = course.findChild(QAction, "actionEditCopy")
+        cut_act: QAction | None = course.findChild(QAction, "actionEditCut")
+        paste_act: QAction | None = course.findChild(QAction, "actionEditPaste")
+        sel_all_act: QAction | None = course.findChild(QAction, "actionEditSelectAll")
+        undo_act: QAction | None = course.findChild(QAction, "actionEditUndo")
+        redo_act: QAction | None = course.findChild(QAction, "actionEditRedo")
+        self.assertIsNotNone(copy_act) and self.assertIsNotNone(cut_act)
+        self.assertIsNotNone(paste_act) and self.assertIsNotNone(sel_all_act)
+        self.assertIsNotNone(undo_act) and self.assertIsNotNone(redo_act)
+        assert copy_act is not None and cut_act is not None
+        assert paste_act is not None and sel_all_act is not None
+        assert undo_act is not None and redo_act is not None
+        self.app.processEvents()
+        self.assertFalse(copy_act.isEnabled())
+        self.assertFalse(cut_act.isEnabled())
+        # Select all -> Copy/Cut enabled
+        sel_all_act.trigger()
+        self.app.processEvents()
+        self.assertTrue(copy_act.isEnabled())
+        self.assertTrue(cut_act.isEnabled())
+        # Copy places text on clipboard -> Paste enabled
+        copy_act.trigger()
+        self.app.processEvents()
+        self.assertTrue(paste_act.isEnabled())
+        # Cut removes text
+        cut_act.trigger()
+        self.app.processEvents()
+        self.assertEqual(editor.toPlainText(), "")
+        # Paste restores
+        paste_act.trigger()
+        self.app.processEvents()
+        self.assertEqual(editor.toPlainText(), "abc")
+        # Undo available and works once
+        self.assertTrue(undo_act.isEnabled())
+        undo_act.trigger()
+        self.app.processEvents()
+        self.assertNotEqual(editor.toPlainText(), "abc")
+        course.close()
+
 
 class MenuBarTests(unittest.TestCase):
     @classmethod
@@ -214,3 +264,34 @@ class MenuBarTests(unittest.TestCase):
         self.assertIsNotNone(about)
         course.close()
 
+
+class RepoStateIsolationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.app = _qt()
+
+    def test_tests_do_not_mutate_repo_state_files(self) -> None:
+        # Record initial state
+        progress_path = ROOT / "data" / "progress.json"
+        prefs_path = ROOT / "data" / "ui_prefs.json"
+        def _snapshot(p: Path) -> tuple[bool, bytes]:
+            try:
+                return p.exists(), p.read_bytes()
+            except FileNotFoundError:
+                return False, b""
+        p_exists, p_bytes = _snapshot(progress_path)
+        u_exists, u_bytes = _snapshot(prefs_path)
+        # Do a small UI cycle with isolated temp data
+        tmp = tempfile.TemporaryDirectory()
+        controller, runner, prefs = build_controller(ROOT, data_dir=Path(tmp.name))
+        course = CourseApp(controller, runner, prefs_store=prefs)
+        course.show()
+        self.app.processEvents()
+        course.lessons_page.content.set_stage("examples")
+        self.app.processEvents()
+        course.close()
+        # Verify repo files unchanged
+        p2_exists, p2_bytes = _snapshot(progress_path)
+        u2_exists, u2_bytes = _snapshot(prefs_path)
+        self.assertEqual((p_exists, p_bytes), (p2_exists, p2_bytes))
+        self.assertEqual((u_exists, u_bytes), (u2_exists, u2_bytes))
