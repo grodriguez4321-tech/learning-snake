@@ -44,21 +44,22 @@ class BrandAssetLoadTests(unittest.TestCase):
             controller.progress.load_warning = None
             controller.progress.recovered_from_corrupt = False
 
-            # Change working directory to a temp path to ensure no cwd-relative lookup is used
+            # Change working directory to a platform-native temp dir (Windows-safe)
             cwd_before = os.getcwd()
-            os.chdir("/tmp")
-            try:
-                course = CourseApp(controller, runner, prefs_store=prefs)
-                course.show()
-                self.app.processEvents()
-                # Access the sidebar brand logo pixmap; it should be non-null
-                pix = course.sidebar._brand_logo.pixmap()  # type: ignore[attr-defined]
-                self.assertIsNotNone(pix)
-                self.assertFalse(pix.isNull())
-                course.close()
-                self.app.processEvents()
-            finally:
-                os.chdir(cwd_before)
+            with tempfile.TemporaryDirectory() as td:
+                os.chdir(td)
+                try:
+                    course = CourseApp(controller, runner, prefs_store=prefs)
+                    course.show()
+                    self.app.processEvents()
+                    # Access the sidebar brand logo pixmap; it should be non-null
+                    pix = course.sidebar._brand_logo.pixmap()  # type: ignore[attr-defined]
+                    self.assertIsNotNone(pix)
+                    self.assertFalse(pix.isNull())
+                    course.close()
+                    self.app.processEvents()
+                finally:
+                    os.chdir(cwd_before)
 
 
 if __name__ == "__main__":
