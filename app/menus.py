@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Callable, Optional, cast
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QObject, QEvent
 from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
     QTextEdit,
     QWidget,
 )
+import shiboken6
 
 # Helpers ----------------------------------------------------------------------
 
@@ -208,10 +209,67 @@ def build_menubar(
     bar._act_editor = act_editor  # type: ignore[attr-defined]
     bar._act_sidebar = act_sidebar  # type: ignore[attr-defined]
 
-    # Keep Edit action enabled states fresh when focus changes
+    # Keep Edit action enabled states fresh:
+    # - on focus changes
+    # - while editing/selection changes via a lightweight app-level event filter
     app = QApplication.instance()
     if app is not None:
         app.focusChanged.connect(lambda _old, _new: _enable_edit_actions(edit_menu))
+
+        def _safe_refresh(*_args):
+            # Skip if menu destroyed
+            if not shiboken6.isValid(edit_menu):
+                return
+            _enable_edit_actions(edit_menu)
+
+        connected_ids: set[int] = set()
+
+        def _maybe_hook_editor_signals(w: QWidget | None) -> None:
+            if w is None:
+                return
+            if id(w) in connected_ids:
+                return
+            try:
+                if isinstance(w, (QPlainTextEdit, QTextEdit)):
+                    w.copyAvailable.connect(_safe_refresh)  # type: ignore[attr-defined]
+                    w.undoAvailable.connect(_safe_refresh)  # type: ignore[attr-defined]
+                    w.redoAvailable.connect(_safe_refresh)  # type: ignore[attr-defined]
+                    w.textChanged.connect(_safe_refresh)  # type: ignore[attr-defined]
+                elif isinstance(w, QLineEdit):
+                    w.selectionChanged.connect(_safe_refresh)  # type: ignore[attr-defined]
+                    w.textChanged.connect(_safe_refresh)  # type: ignore[attr-defined]
+            except Exception:
+                pass
+            connected_ids.add(id(w))
+
+        app.focusChanged.connect(lambda _o, n: _maybe_hook_editor_signals(n))  # type: ignore[arg-type]
+        _maybe_hook_editor_signals(QApplication.focusWidget())
+
+        class _EditMenuEventFilter(QObject):
+            def eventFilter(self, obj, event):  # type: ignore[override]
+                # If the menu has been destroyed, skip work
+                if not shiboken6.isValid(edit_menu):
+                    return False
+                if isinstance(obj, (QLineEdit, QPlainTextEdit, QTextEdit)):
+                    et = event.type()
+                    if et in (
+                        QEvent.KeyPress,
+                        QEvent.KeyRelease,
+                        QEvent.Shortcut,
+                        QEvent.MouseButtonPress,
+                        QEvent.MouseButtonRelease,
+                        QEvent.MouseMove,
+                        QEvent.InputMethod,
+                        QEvent.ShortcutOverride,
+                        QEvent.FocusIn,
+                        QEvent.FocusOut,
+                    ):
+                        _enable_edit_actions(edit_menu)
+                return False
+
+        # Keep a reference to avoid GC
+        bar._edit_menu_event_filter = _EditMenuEventFilter()  # type: ignore[attr-defined]
+        app.installEventFilter(bar._edit_menu_event_filter)  # type: ignore[attr-defined]
 
     return bar
 

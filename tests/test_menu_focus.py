@@ -121,15 +121,6 @@ class MenuFocusRoutingTests(unittest.TestCase):
             # Select All via action and verify operations work end-to-end
             select_all_action.trigger()
             self.app.processEvents()
-            # Refresh Edit menu state to reflect selection before triggering cut
-            edit_menu = None
-            for act in course._menubar.actions():  # type: ignore[attr-defined]
-                if act.text().lower().startswith("&edit"):
-                    edit_menu = act.menu()
-                    break
-            if edit_menu is not None:
-                edit_menu.aboutToShow.emit()
-                self.app.processEvents()
             cut_action.trigger()
             self.app.processEvents()
             self.assertEqual(editor.toPlainText(), "")
