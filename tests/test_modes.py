@@ -54,28 +54,28 @@ class ModeBehaviorTests(unittest.TestCase):
             self.assertTrue(lp.mode_bar is not None)
 
             # Learn mode: editor hidden
-            lp.set_mode("learn")
+            lp.mode_bar._learn.click()
             self.app.processEvents()
             self.assertFalse(lp.ide.isVisible())
 
             # Examples mode hides editor too
-            lp.set_mode("examples")
+            lp.mode_bar._examples.click()
             self.app.processEvents()
             self.assertFalse(lp.ide.isVisible())
 
             # Practice shows the editor when editor preference is on
-            lp.set_mode("practice")
+            lp.mode_bar._practice.click()
             course.show_editor()
             # Apply again to reconcile temporary Learn/Examples hiding logic
-            lp.set_mode("practice")
+            lp.mode_bar._practice.click()
             self.app.processEvents()
             self.assertTrue(lp.ide.isVisible())
 
             # Switching away must not flip the saved preference (only temporary)
-            lp.set_mode("learn")
+            lp.mode_bar._learn.click()
             self.app.processEvents()
             # Preference unchanged; turning Practice back on should show editor again
-            lp.set_mode("practice")
+            lp.mode_bar._practice.click()
             self.app.processEvents()
             self.assertTrue(lp.ide.isVisible())
 

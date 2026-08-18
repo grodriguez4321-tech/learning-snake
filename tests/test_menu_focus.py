@@ -8,7 +8,7 @@ from pathlib import Path
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from PySide6.QtWidgets import QApplication, QLineEdit
+from PySide6.QtWidgets import QApplication, QLineEdit, QPlainTextEdit
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -55,16 +55,72 @@ class MenuFocusRoutingTests(unittest.TestCase):
             line.setFocus()
             self.app.processEvents()
 
-            # Trigger Cut via menu action and verify it affected the focused widget
+            # Locate actions
             from PySide6.QtGui import QAction
-            # Actions are parented to the Edit menu; search from the window
             cut_action = course.findChild(QAction, "edit.cut")
-            self.assertIsNotNone(cut_action)
-            assert cut_action is not None
+            copy_action = course.findChild(QAction, "edit.copy")
+            paste_action = course.findChild(QAction, "edit.paste")
+            undo_action = course.findChild(QAction, "edit.undo")
+            redo_action = course.findChild(QAction, "edit.redo")
+            select_all_action = course.findChild(QAction, "edit.select_all")
+            for act in (cut_action, copy_action, paste_action, undo_action, redo_action, select_all_action):
+                self.assertIsNotNone(act)
+            assert cut_action and copy_action and paste_action and undo_action and redo_action and select_all_action
+
+            # Verify enable state reflects selection and read-only
             self.assertTrue(cut_action.isEnabled())
+            # No further assertions on copy in read-only state without selection
+            select_all_action.trigger()
+            self.app.processEvents()
             cut_action.trigger()
             self.app.processEvents()
             self.assertEqual(line.text(), "")
+
+            # Paste should work
+            line.setText("")
+            line.setFocus()
+            self.app.processEvents()
+            # Put text on clipboard via setText then paste (clipboard is shared; simulate by setting selection then copy)
+            line.setText("abc")
+            line.selectAll()
+            copy_action.trigger()
+            self.app.processEvents()
+            line.clear()
+            paste_action.trigger()
+            self.app.processEvents()
+            self.assertEqual(line.text(), "abc")
+
+            # Read-only should disable mutating actions
+            line.setReadOnly(True)
+            self.app.processEvents()
+            # Nudge focus to recompute enabled state and explicitly fire Edit menu hook
+            other = QLineEdit()
+            other.show()
+            other.setFocus()
+            self.app.processEvents()
+            line.setFocus()
+            self.app.processEvents()
+            # Trigger the aboutToShow hook to force recompute
+            edit_menu = None
+            for act in course._menubar.actions():  # type: ignore[attr-defined]
+                if act.text().lower().startswith("&edit"):
+                    edit_menu = act.menu()
+                    break
+            if edit_menu is not None:
+                edit_menu.aboutToShow.emit()
+                self.app.processEvents()
+            self.assertFalse(cut_action.isEnabled())
+            # Paste action should have no effect when target is read-only
+            line.setText("RO")
+            paste_action.trigger()
+            self.app.processEvents()
+            self.assertEqual(line.text(), "RO")
+            line.setReadOnly(False)
+            self.app.processEvents()
+
+            # Finish by ensuring actions are present
+            self.assertIsNotNone(cut_action)
+            self.assertIsNotNone(undo_action)
 
             course.close()
             self.app.processEvents()
