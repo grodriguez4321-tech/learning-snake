@@ -48,12 +48,15 @@ def _bool_attr(widget: QWidget, attr: str, default: bool = False) -> bool:
 def _enable_edit_actions(menu: QMenu) -> None:
     """Compute enabled state from the currently focused editable widget."""
     w = _focused_text_widget()
-    undo = cast(QAction, menu.findChild(QAction, "edit.undo"))
-    redo = cast(QAction, menu.findChild(QAction, "edit.redo"))
-    cut = cast(QAction, menu.findChild(QAction, "edit.cut"))
-    copy = cast(QAction, menu.findChild(QAction, "edit.copy"))
-    paste = cast(QAction, menu.findChild(QAction, "edit.paste"))
-    select_all = cast(QAction, menu.findChild(QAction, "edit.select_all"))
+    try:
+        undo = cast(QAction, menu.findChild(QAction, "edit.undo"))
+        redo = cast(QAction, menu.findChild(QAction, "edit.redo"))
+        cut = cast(QAction, menu.findChild(QAction, "edit.cut"))
+        copy = cast(QAction, menu.findChild(QAction, "edit.copy"))
+        paste = cast(QAction, menu.findChild(QAction, "edit.paste"))
+        select_all = cast(QAction, menu.findChild(QAction, "edit.select_all"))
+    except RuntimeError:
+        return
     if w is None:
         for act in (undo, redo, cut, copy, paste, select_all):
             act.setEnabled(False)
@@ -99,30 +102,30 @@ def build_menubar(
     # Edit (focus-routed)
     edit_menu = bar.addMenu("&Edit")
     edit_menu.aboutToShow.connect(lambda: _enable_edit_actions(edit_menu))
-    act_undo = QAction("Undo", window, objectName="edit.undo")
+    act_undo = QAction("Undo", edit_menu, objectName="edit.undo")
     act_undo.setShortcuts([QKeySequence.StandardKey.Undo])
     act_undo.triggered.connect(lambda: _safe_call(_focused_text_widget() or QWidget(), "undo"))
     edit_menu.addAction(act_undo)
-    act_redo = QAction("Redo", window, objectName="edit.redo")
+    act_redo = QAction("Redo", edit_menu, objectName="edit.redo")
     # Windows/Qt include Ctrl+Y and Shift+Ctrl+Z by default via StandardKey
     act_redo.setShortcuts([QKeySequence.StandardKey.Redo])
     act_redo.triggered.connect(lambda: _safe_call(_focused_text_widget() or QWidget(), "redo"))
     edit_menu.addAction(act_redo)
     edit_menu.addSeparator()
-    act_cut = QAction("Cut", window, objectName="edit.cut")
+    act_cut = QAction("Cut", edit_menu, objectName="edit.cut")
     act_cut.setShortcuts([QKeySequence.StandardKey.Cut])
     act_cut.triggered.connect(lambda: _safe_call(_focused_text_widget() or QWidget(), "cut"))
     edit_menu.addAction(act_cut)
-    act_copy = QAction("Copy", window, objectName="edit.copy")
+    act_copy = QAction("Copy", edit_menu, objectName="edit.copy")
     act_copy.setShortcuts([QKeySequence.StandardKey.Copy])
     act_copy.triggered.connect(lambda: _safe_call(_focused_text_widget() or QWidget(), "copy"))
     edit_menu.addAction(act_copy)
-    act_paste = QAction("Paste", window, objectName="edit.paste")
+    act_paste = QAction("Paste", edit_menu, objectName="edit.paste")
     act_paste.setShortcuts([QKeySequence.StandardKey.Paste])
     act_paste.triggered.connect(lambda: _safe_call(_focused_text_widget() or QWidget(), "paste"))
     edit_menu.addAction(act_paste)
     edit_menu.addSeparator()
-    act_select_all = QAction("Select All", window, objectName="edit.select_all")
+    act_select_all = QAction("Select All", edit_menu, objectName="edit.select_all")
     act_select_all.setShortcuts([QKeySequence.StandardKey.SelectAll])
     act_select_all.triggered.connect(
         lambda: _safe_call(_focused_text_widget() or QWidget(), "selectAll")
@@ -131,12 +134,12 @@ def build_menubar(
 
     # View
     view_menu = bar.addMenu("&View")
-    act_sidebar = QAction("Curriculum Rail", window, checkable=True)
+    act_sidebar = QAction("Curriculum Rail", window, checkable=True, objectName="view.sidebar")
     act_sidebar.setChecked(True)
     act_sidebar.setShortcut(QKeySequence("Ctrl+B"))
     act_sidebar.triggered.connect(on_toggle_sidebar)
     view_menu.addAction(act_sidebar)
-    act_editor = QAction("Editor", window, checkable=True)
+    act_editor = QAction("Editor", window, checkable=True, objectName="view.editor")
     act_editor.setChecked(True)
     act_editor.setShortcut(QKeySequence("Ctrl+J"))
     act_editor.triggered.connect(on_toggle_editor)
@@ -186,6 +189,15 @@ def build_menubar(
 
     # type: ignore[attr-defined]
     bar.sync_view_menu = sync_view_menu  # small helper for CourseApp
+    # Attach actions for tests/host
+    bar._act_editor = act_editor  # type: ignore[attr-defined]
+    bar._act_sidebar = act_sidebar  # type: ignore[attr-defined]
+
+    # Keep Edit action enabled states fresh when focus changes
+    app = QApplication.instance()
+    if app is not None:
+        app.focusChanged.connect(lambda _old, _new: _enable_edit_actions(edit_menu))
+
     return bar
 
 

@@ -58,9 +58,9 @@ class SplitterResponsiveTests(unittest.TestCase):
             sizes = vs.sizes()
             vs.setSizes([sizes[0] + 50, max(80, sizes[1] - 50)])
             self.app.processEvents()
-            # Some platforms clamp tightly; ensure we can at least call setSizes without error.
-            # Visible window increases likelihood that sizes apply; accept either a change or same.
-            self.assertTrue(isinstance(vs.sizes(), list))
+            new_sizes = vs.sizes()
+            self.assertTrue(isinstance(new_sizes, list))
+            self.assertEqual(sum(new_sizes), sum(sizes))  # splitter preserves total
 
             course.close()
             self.app.processEvents()

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -97,7 +97,44 @@ class DashboardPage(QWidget):
             self._summary.setText("Add lesson JSON files under course/lessons to begin.")
 
 
+class PaneSwitch(QFrame):
+    paneChanged = Signal(str)  # "prompt" | "code"
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setObjectName("TopBar")
+        self.setFixedHeight(36)
+        row = QHBoxLayout(self)
+        row.setContentsMargins(12, 0, 8, 0)
+        row.setSpacing(6)
+        self._prompt = QPushButton("Prompt")
+        self._prompt.setObjectName("ToolButton")
+        self._prompt.setCheckable(True)
+        self._code = QPushButton("Code")
+        self._code.setObjectName("ToolButton")
+        self._code.setCheckable(True)
+        self._prompt.clicked.connect(lambda: self._emit("prompt"))
+        self._code.clicked.connect(lambda: self._emit("code"))
+        row.addWidget(self._prompt)
+        row.addWidget(self._code)
+        row.addStretch(1)
+        self.set_pane("prompt")
+
+    def _emit(self, pane: str) -> None:
+        self.set_pane(pane)
+        self.paneChanged.emit(pane)
+
+    def set_pane(self, pane: str) -> None:
+        pane = pane if pane in {"prompt", "code"} else "prompt"
+        for key, btn in (("prompt", self._prompt), ("code", self._code)):
+            btn.blockSignals(True)
+            btn.setChecked(key == pane)
+            btn.blockSignals(False)
+
+
 class LessonsPage(QWidget):
+    editorToggleAllowed = Signal(bool)
+
     def __init__(self, theme: Theme, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         outer = QVBoxLayout(self)
@@ -106,6 +143,11 @@ class LessonsPage(QWidget):
 
         self.mode_bar = ModeBar()
         outer.addWidget(self.mode_bar)
+
+        # Single-pane switch (visible under narrow width)
+        self.pane_bar = PaneSwitch()
+        self.pane_bar.hide()
+        outer.addWidget(self.pane_bar)
 
         host = QHBoxLayout()
         host.setContentsMargins(0, 0, 0, 0)
@@ -129,6 +171,10 @@ class LessonsPage(QWidget):
         self._mode: str = "learn"
         self._per_lesson_state: dict[str, tuple[str, int]] = {}
         self.mode_bar.modeChanged.connect(self._on_mode_changed)
+        self.pane_bar.paneChanged.connect(self._on_pane_changed)
+        self._single_pane: bool = False
+        self._active_pane: str = "code"
+        self.pane_bar.set_pane("code")
 
     def apply_theme(self, theme: Theme) -> None:
         self._theme = theme
@@ -140,7 +186,18 @@ class LessonsPage(QWidget):
         self._apply_editor_visibility()
 
     def _apply_editor_visibility(self) -> None:
-        self.ide.setVisible(self._editor_pref_visible and self._mode == "practice")
+        # Single-pane policy overrides editor visibility
+        if self._single_pane:
+            show_code = self._active_pane == "code"
+            self.content.setVisible(not show_code)
+            self.ide.setVisible(show_code and self._mode == "practice")
+            self.editorToggleAllowed.emit(False)
+            return
+        # Both panes visible; only Practice shows IDE; disable toggle otherwise
+        self.content.setVisible(True)
+        allow_toggle = self._mode == "practice"
+        self.ide.setVisible(self._editor_pref_visible and allow_toggle)
+        self.editorToggleAllowed.emit(allow_toggle)
 
     # Session-only lesson state ------------------------------------------------
     def present_lesson(
@@ -152,16 +209,18 @@ class LessonsPage(QWidget):
         prev_ok: bool,
         next_ok: bool,
     ) -> None:
+        # Restore per-lesson state where available
+        mode, saved_index = self._per_lesson_state.get(lesson.id, ("learn", exercise_index))
+        ex_index = saved_index if saved_index is not None else exercise_index
         self.content.show_lesson(
             lesson,
             exercise,
-            exercise_index=exercise_index,
+            exercise_index=ex_index,
             prev_ok=prev_ok,
             next_ok=next_ok,
         )
         # Restore per-lesson mode (default Learn)
-        mode, _ = self._per_lesson_state.get(lesson.id, ("learn", exercise_index))
-        self.set_mode(mode, lesson_id=lesson.id, exercise_index=exercise_index)
+        self.set_mode(mode, lesson_id=lesson.id, exercise_index=ex_index)
 
     def set_mode(self, mode: str, *, lesson_id: str | None = None, exercise_index: int | None = None) -> None:
         self._mode = mode
@@ -178,6 +237,31 @@ class LessonsPage(QWidget):
         lesson = getattr(self.content, "lesson", None)
         lid = getattr(lesson, "id", None)
         self.set_mode(mode, lesson_id=lid)
+
+    def remember_exercise_index(self, lesson_id: str, index: int) -> None:
+        mode, _ = self._per_lesson_state.get(lesson_id, (self._mode, index))
+        self._per_lesson_state[lesson_id] = (mode, index)
+
+    def get_saved_exercise_index(self, lesson_id: str, default: int = 0) -> int:
+        return self._per_lesson_state.get(lesson_id, (self._mode, default))[1]
+
+    # --- responsive policy ---------------------------------------------------
+    def resizeEvent(self, event) -> None:  # noqa: N802
+        super().resizeEvent(event)
+        self._apply_layout_policy()
+
+    def _apply_layout_policy(self) -> None:
+        # Enter single-pane mode when width is narrow enough that both panes would crush usability.
+        threshold = 1200
+        wants_single = self.width() < threshold
+        if wants_single != self._single_pane:
+            self._single_pane = wants_single
+            self.pane_bar.setVisible(self._single_pane)
+        self._apply_editor_visibility()
+
+    def _on_pane_changed(self, pane: str) -> None:
+        self._active_pane = pane if pane in {"prompt", "code"} else "prompt"
+        self._apply_editor_visibility()
 
 
 class PlaygroundPage(QWidget):

@@ -55,10 +55,16 @@ class MenuFocusRoutingTests(unittest.TestCase):
             line.setFocus()
             self.app.processEvents()
 
-            # Menubar should expose the four top-level menus
-            titles = [a.text().replace("&", "") for a in course.menuBar().actions()]
-            for name in ("File", "Edit", "View", "Help"):
-                self.assertIn(name, titles)
+            # Trigger Cut via menu action and verify it affected the focused widget
+            from PySide6.QtGui import QAction
+            # Actions are parented to the Edit menu; search from the window
+            cut_action = course.findChild(QAction, "edit.cut")
+            self.assertIsNotNone(cut_action)
+            assert cut_action is not None
+            self.assertTrue(cut_action.isEnabled())
+            cut_action.trigger()
+            self.app.processEvents()
+            self.assertEqual(line.text(), "")
 
             course.close()
             self.app.processEvents()

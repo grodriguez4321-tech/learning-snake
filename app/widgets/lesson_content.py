@@ -469,7 +469,8 @@ class LessonContent(QWidget):
         self._explanation.setVisible(show_learn)
         self._concepts.setVisible(show_learn)
         self._examples.setVisible(show_examples)
-        self._mistakes.setVisible(False)  # reserved; hide unless later specified
+        # In Examples mode, show real worked examples and common mistakes if present
+        self._mistakes.setVisible(show_examples)
         self._exercise.setVisible(show_practice)
         # Reset reading scroll on entering Learn/Examples
         if mode in {"learn", "examples"}:

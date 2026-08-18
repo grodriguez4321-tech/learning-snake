@@ -53,7 +53,7 @@ class ModeBehaviorTests(unittest.TestCase):
             lp = course.lessons_page
             self.assertTrue(lp.mode_bar is not None)
 
-            # Learn mode: editor should be temporarily hidden if Practice-only
+            # Learn mode: editor hidden
             lp.set_mode("learn")
             self.app.processEvents()
             self.assertFalse(lp.ide.isVisible())

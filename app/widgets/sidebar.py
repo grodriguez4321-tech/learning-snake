@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QFontMetrics
+from PySide6.QtGui import QFontMetrics, QPixmap
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -107,6 +107,7 @@ class LessonRow(QFrame):
 class Sidebar(QFrame):
     navChanged = Signal(str)
     lessonSelected = Signal(str)
+    collapsedChanged = Signal(bool)
 
     def __init__(
         self,
@@ -131,10 +132,30 @@ class Sidebar(QFrame):
         root.setContentsMargins(14, 18, 14, 14)
         root.setSpacing(4)
 
-        brand = QLabel(APP_NAME)
-        brand.setObjectName("BrandTitle")
-        brand.setContentsMargins(6, 0, 0, 8)
-        root.addWidget(brand)
+        brand_row = QHBoxLayout()
+        brand_row.setContentsMargins(6, 0, 6, 8)
+        brand_row.setSpacing(8)
+        self._brand_logo = QLabel()
+        self._brand_logo.setFixedSize(24, 24)
+        self._brand_logo.setToolTip(APP_NAME)
+        logo_path = (
+            "docs/design-handoff/basilisk-workspace-v9/assets/basilisk-app-mark-v2.png"
+        )
+        pix = QPixmap(logo_path)
+        if not pix.isNull():
+            self._brand_logo.setPixmap(pix.scaled(24, 24, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        brand_row.addWidget(self._brand_logo)
+        self._brand_label = QLabel(APP_NAME)
+        self._brand_label.setObjectName("BrandTitle")
+        brand_row.addWidget(self._brand_label, stretch=1)
+        # Manual collapse control
+        self._collapse_btn = QPushButton("«")
+        self._collapse_btn.setObjectName("ToolButton")
+        self._collapse_btn.setFixedHeight(26)
+        self._collapse_btn.setToolTip("Collapse curriculum rail")
+        self._collapse_btn.clicked.connect(lambda: self.set_collapsed(not self._collapsed))
+        brand_row.addWidget(self._collapse_btn)
+        root.addLayout(brand_row)
 
         for key, label, icon in NAV_ITEMS:
             btn = QPushButton(f"  {icon}   {label}")
@@ -194,7 +215,8 @@ class Sidebar(QFrame):
         self._collapsed = collapsed
         self.setFixedWidth(self._collapsed_width if collapsed else self._expanded_width)
         # Update nav button labels vs icons for accessibility
-        for key, (nav_key, label, icon) in zip(self._nav_buttons.keys(), NAV_ITEMS):
+        for key, item in zip(self._nav_buttons.keys(), NAV_ITEMS):
+            _nav_key, label, icon = item
             btn = self._nav_buttons[key]
             if collapsed:
                 btn.setText(f"  {icon}")
@@ -202,6 +224,11 @@ class Sidebar(QFrame):
             else:
                 btn.setText(f"  {icon}   {label}")
                 btn.setToolTip(label)
+        # Brand/label visibility
+        self._brand_label.setVisible(not collapsed)
+        self._collapse_btn.setText("»" if collapsed else "«")
+        self._collapse_btn.setToolTip("Expand curriculum rail" if collapsed else "Collapse curriculum rail")
+        self.collapsedChanged.emit(collapsed)
         # Lesson rows will elide text naturally within the narrower width
 
     def refresh_lessons(self, selected_lesson_id: str | None = None) -> None:

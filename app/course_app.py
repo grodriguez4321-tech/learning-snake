@@ -119,6 +119,7 @@ class CourseApp(QMainWindow):
         self.sidebar = Sidebar(self.controller.catalog, self.controller)
         self.sidebar.navChanged.connect(self._on_nav)
         self.sidebar.lessonSelected.connect(self._on_sidebar_select)
+        self.sidebar.collapsedChanged.connect(lambda _: None)
         root.addWidget(self.sidebar)
 
         right = QWidget()
@@ -141,6 +142,8 @@ class CourseApp(QMainWindow):
         self.dashboard_page.playgroundClicked.connect(lambda: self._on_nav("playground"))
 
         self.lessons_page = LessonsPage(self._theme)
+        # When temporary hiding policy applies, disable editor toggle routes
+        self.lessons_page.editorToggleAllowed.connect(self._on_editor_toggle_allowed)
         # smoke: lesson_view.lesson
         self.lessons_page.lesson = None  # type: ignore[attr-defined]
         content = self.lessons_page.content
@@ -228,6 +231,14 @@ class CourseApp(QMainWindow):
         self.prefs_store.update(sidebar_visible=False)
 
     def toggle_editor(self) -> None:
+        # Respect mode/responsive policy: no-op when temporarily disallowed
+        can_toggle = True
+        try:
+            can_toggle = self._editor_toggle_allowed  # type: ignore[attr-defined]
+        except Exception:
+            pass
+        if not can_toggle:
+            return
         if self._editor_visible:
             self.hide_editor()
         else:
@@ -301,12 +312,6 @@ class CourseApp(QMainWindow):
             self.top_bar.set_breadcrumb("No lessons found")
             return
         self._show_lesson(lesson)
-        # Maintain compatibility with existing UI tests: start in Practice view.
-        # Per-session mode memory will take over after the first interaction.
-        try:
-            self.lessons_page.set_mode("practice", lesson_id=lesson.id, exercise_index=0)
-        except Exception:
-            pass
         self._on_nav("lessons")
 
     def _show_lesson(self, lesson: Lesson, exercise_index: int | None = None) -> None:
@@ -315,7 +320,11 @@ class CourseApp(QMainWindow):
         self.lessons_page.lesson = lesson  # smoke compat
         self.controller.progress.data.current_lesson_id = lesson.id
         self.controller.progress.save()
-        requested_index = 0 if exercise_index is None else exercise_index
+        # Restore saved exercise index for the lesson when not explicitly requested
+        if exercise_index is None:
+            requested_index = self.lessons_page.get_saved_exercise_index(lesson.id, 0)
+        else:
+            requested_index = exercise_index
         self._exercise_index = max(0, min(requested_index, max(0, len(lesson.exercises) - 1)))
         exercise = lesson.exercises[self._exercise_index] if lesson.exercises else None
 
@@ -330,10 +339,6 @@ class CourseApp(QMainWindow):
             prev_ok=prev_ok,
             next_ok=next_ok,
         )
-        # If a specific exercise index was explicitly requested (e.g., from tests
-        # or deep links), default to Practice mode for that session visit.
-        if exercise is not None and exercise_index is not None:
-            self.lessons_page.set_mode("practice", lesson_id=lesson.id, exercise_index=self._exercise_index)
         self.sidebar.refresh_lessons(selected_lesson_id=lesson.id)
         self.top_bar.set_breadcrumb(f"📖  {lesson.section}  ›  {lesson.title}")
         self._refresh_progress_pill()
@@ -417,6 +422,9 @@ class CourseApp(QMainWindow):
         else:
             ide.clear_output()
             ide.feedback.reset()
+        # Remember the active exercise index for this lesson in-session
+        if self._current_lesson is not None:
+            self.lessons_page.remember_exercise_index(self._current_lesson.id, self._exercise_index)
         self._loading_exercise = False
 
     def _persist_current_draft(self) -> None:
@@ -491,6 +499,7 @@ class CourseApp(QMainWindow):
                 self.lessons_page.ide.feedback.set_message(
                     "There was an error. Read the Output panel and try again."
                 )
+            self.lessons_page.ide.activate_output()
 
         self._run_background(work, done, busy_message="Running code…")
 
@@ -523,6 +532,7 @@ class CourseApp(QMainWindow):
                     lines.append(result.run.error)
             kind = "success" if result.passed else "error"
             self.lessons_page.ide.feedback.set_message("\n".join(lines), kind=kind)
+            self.lessons_page.ide.activate_feedback()
             self.sidebar.refresh_lessons(selected_lesson_id=lesson.id)
             self._refresh_progress_pill()
             record = self.controller.progress.exercise(exercise.id)
@@ -564,6 +574,7 @@ class CourseApp(QMainWindow):
             text = f"Hint {used}: {hint}"
         ide.feedback.set_message(text, kind="hint")
         ide.set_hint_label(used, len(self._current_exercise.hints))
+        ide.activate_feedback()
 
     def _run_playground(self, code: str) -> None:
         if self._closing or self._busy:
@@ -661,6 +672,15 @@ class CourseApp(QMainWindow):
                 elif not should_collapse and self._auto_collapsed:
                     self.sidebar.set_collapsed(False)
                     self._auto_collapsed = False
+        except Exception:
+            pass
+
+    # --- view/menu sync helpers ---------------------------------------------
+    def _on_editor_toggle_allowed(self, allowed: bool) -> None:
+        self._editor_toggle_allowed = allowed
+        self.top_bar._editor_btn.setEnabled(allowed)
+        try:
+            self._menubar._act_editor.setEnabled(allowed)  # type: ignore[attr-defined]
         except Exception:
             pass
 

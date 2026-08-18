@@ -57,6 +57,8 @@ class ViewTogglePrefsTests(unittest.TestCase):
             self.assertFalse(course.top_bar._sidebar_btn.isChecked())
 
             # Toggle editor off then on
+            course.lessons_page.set_mode("practice")
+            self.app.processEvents()
             course.toggle_editor()
             self.app.processEvents()
             self.assertFalse(course.prefs_store.prefs.editor_visible)
@@ -65,6 +67,15 @@ class ViewTogglePrefsTests(unittest.TestCase):
             self.app.processEvents()
             self.assertTrue(course.prefs_store.prefs.editor_visible)
             self.assertTrue(course.top_bar._editor_btn.isChecked())
+
+            # Enter Learn mode: editor toggle becomes a no-op (disabled)
+            course.lessons_page.set_mode("learn")
+            self.app.processEvents()
+            self.assertFalse(course.top_bar._editor_btn.isEnabled())
+            before = course.prefs_store.prefs.editor_visible
+            course.toggle_editor()  # should no-op
+            self.app.processEvents()
+            self.assertEqual(course.prefs_store.prefs.editor_visible, before)
 
             course.close()
             self.app.processEvents()

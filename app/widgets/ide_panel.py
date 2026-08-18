@@ -33,7 +33,7 @@ class IdePanel(QFrame):
     def __init__(self, theme: Theme, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setObjectName("EditorCard")
-        self.setMinimumWidth(380)
+        self.setMinimumWidth(520)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         root = QVBoxLayout(self)
@@ -134,7 +134,7 @@ class IdePanel(QFrame):
         self._vsplitter.addWidget(work_host)
         self._vsplitter.addWidget(drawer_host)
         # Target sizes: editor area dominant; drawer ~180 px initially
-        self._vsplitter.setSizes([480, 200])
+        self._vsplitter.setSizes([520, 180])
 
         root.addWidget(body, stretch=1)
         self._starter = ""
@@ -148,6 +148,9 @@ class IdePanel(QFrame):
     def set_busy(self, busy: bool, message: str = "Running…") -> None:
         for btn in (self._run, self._check, self._hint, self._reset):
             btn.setEnabled(not busy)
+        # Show Output tab and enlarge drawer during busy to surface status
+        self._tabs.setCurrentWidget(self.output)
+        self.set_drawer_active() if busy else self.set_drawer_idle()
         self.output.set_busy(busy, message)
 
     def set_hint_label(self, used: int, total: int) -> None:
@@ -231,9 +234,36 @@ class IdePanel(QFrame):
 
     def set_output(self, text: str, *, kind: str = "plain") -> None:
         self.output.set_text(text, kind=kind)
+        self.activate_output()
 
     def output_text(self) -> str:
         return self.output.plain_text
 
     def focus_editor(self) -> None:
         self.editor.setFocus()
+
+    # --- drawer / tabs helpers ----------------------------------------------
+    def set_drawer_collapsed(self) -> None:
+        sizes = self._vsplitter.sizes()
+        total = max(1, sum(sizes))
+        self._vsplitter.setSizes([total - 40, 40])
+
+    def set_drawer_idle(self) -> None:
+        sizes = self._vsplitter.sizes()
+        total = max(1, sum(sizes))
+        idle = 140
+        self._vsplitter.setSizes([max(200, total - idle), idle])
+
+    def set_drawer_active(self) -> None:
+        sizes = self._vsplitter.sizes()
+        total = max(1, sum(sizes))
+        active = 240
+        self._vsplitter.setSizes([max(160, total - active), active])
+
+    def activate_output(self) -> None:
+        self._tabs.setCurrentWidget(self.output)
+        self.set_drawer_active()
+
+    def activate_feedback(self) -> None:
+        self._tabs.setCurrentWidget(self.feedback)
+        self.set_drawer_active()
