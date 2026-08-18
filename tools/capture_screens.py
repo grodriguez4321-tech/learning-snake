@@ -15,8 +15,6 @@ sys.path.insert(0, str(ROOT))
 
 from app.course_app import CourseApp
 from app.theme import DARK, LIGHT, build_stylesheet
-from app.ui_prefs import UiPrefsStore
-from engine.progress import ProgressStore
 from main import build_controller
 
 
@@ -74,15 +72,7 @@ def main() -> int:
     # Isolated progress/prefs
     tmp = ROOT / "docs" / "review-evidence" / "workspace-v9" / _sha_short()
     _ensure_dir(tmp)
-    progress_path = tmp / "progress.json"
-    prefs_path = tmp / "ui_prefs.json"
-    prefs = UiPrefsStore(prefs_path)
-    prefs.load()
-    controller, runner, _ignored = build_controller(ROOT)
-    controller.progress = ProgressStore(progress_path)
-    controller.progress.load()
-    controller.progress.load_warning = None
-    controller.progress.recovered_from_corrupt = False
+    controller, runner, prefs = build_controller(ROOT, data_dir=tmp)
 
     course = CourseApp(controller, runner, prefs_store=prefs)
     course.show()
