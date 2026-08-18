@@ -508,6 +508,179 @@ SOLUTIONS: dict[str, dict[str, str]] = {
             "    }\n"
         )
     },
+    # --- collections_19_nested_data ---
+    "collections_19_ex1": {"answer": "5"},
+    "collections_19_ex2": {
+        "code": (
+            'dispatch = {\n'
+            '    "destination": "Gloamfen",\n'
+            '    "party": [{"name": "Mira", "health": 8}],\n'
+            "}\n"
+            'print(dispatch["party"][0]["name"])\n'
+        )
+    },
+    "collections_19_ex3": {
+        "code": (
+            'dispatch = {"supplies": ["rope"]}\n'
+            'dispatch["supplies"].append("torch")\n'
+            'print(dispatch["supplies"])\n'
+        )
+    },
+    "collections_19_ex4": {
+        "code": (
+            "def total_party_health(party):\n"
+            "    total = 0\n"
+            "    for member in party:\n"
+            '        total += member["health"]\n'
+            "    return total\n"
+        )
+    },
+    "collections_19_ex5": {
+        "code": (
+            "def numbered_roster(party):\n"
+            "    lines = []\n"
+            "    for i, member in enumerate(party, start=1):\n"
+            '        lines.append(f"{i}. {member[\'name\']} — {member[\"health\"]} HP")\n'
+            "    return lines\n"
+        )
+    },
+    # --- functions_20_scope ---
+    "functions_20_ex1": {"answer": "waiting"},
+    "functions_20_ex2": {"answer": "2"},
+    "functions_20_ex3": {
+        "code": (
+            "supplies = 3\n"
+            "\n"
+            "def use_supply(supplies):\n"
+            "    return supplies - 1\n"
+            "\n"
+            "print(use_supply(3))\n"
+        )
+    },
+    "functions_20_ex4": {
+        "code": (
+            "def apply_damage(health, hit):\n"
+            "    return health - hit\n"
+        )
+    },
+    "functions_20_ex5": {
+        "code": (
+            "total_health = 999\n"
+            "\n"
+            "def party_report(party):\n"
+            "    total = 0\n"
+            "    for member in party:\n"
+            '        total += member["health"]\n'
+            "    return {\n"
+            "        \"member_count\": len(party),\n"
+            "        \"total_health\": total,\n"
+            "    }\n"
+        )
+    },
+    # --- strings_21_methods ---
+    "strings_21_ex1": {"answer": "north"},
+    "strings_21_ex2": {
+        "code": (
+            'entry = "Mira|Scout"\n'
+            'parts = entry.split("|")\n'
+            "print(parts[1])\n"
+        )
+    },
+    "strings_21_ex3": {
+        "code": (
+            'command = "  OPEN GATE  "\n'
+            "command = command.strip().lower()\n"
+            "print(command)\n"
+        )
+    },
+    "strings_21_ex4": {
+        "code": (
+            "def normalize_username(text):\n"
+            "    return text.strip().lower()\n"
+        )
+    },
+    "strings_21_ex5": {
+        "code": (
+            "def parse_log_line(line):\n"
+            '    parts = line.split("|")\n'
+            "    name = parts[0].strip()\n"
+            "    status = parts[1].strip().lower()\n"
+            "    return {\"name\": name, \"status\": status}\n"
+        )
+    },
+    # --- errors_22_tracebacks ---
+    "errors_22_ex1": {"answer": "1"},
+    "errors_22_ex2": {
+        "code": (
+            "def route_status(ready):\n"
+            "    if ready:\n"
+            '        return "Ready"\n'
+            '    return "Review"\n'
+        )
+    },
+    "errors_22_ex3": {
+        "code": (
+            "def member_label(member):\n"
+            '    return f"{member[\'name\']}: {member[\'role\']}"\n'
+        )
+    },
+    "errors_22_ex4": {
+        "code": (
+            "def supply_label(item, count):\n"
+            '    return f"{item}: {count}"\n'
+        )
+    },
+    "errors_22_ex5": {
+        "code": (
+            "def second_health(party):\n"
+            '    return party[1]["health"]\n'
+            "\n"
+            "party = [\n"
+            '    {"name": "Mira", "health": 8},\n'
+            '    {"name": "Rook", "health": 10},\n'
+            "]\n"
+            "print(second_health(party))\n"
+        )
+    },
+    # --- errors_23_logic_debugging ---
+    "errors_23_ex1": {"answer": "3"},
+    "errors_23_ex2": {"answer": "wounded"},
+    "errors_23_ex3": {
+        "code": (
+            "def signal_level(score):\n"
+            "    if score >= 80:\n"
+            '        return "Elite"\n'
+            "    elif score >= 50:\n"
+            '        return "Ready"\n'
+            '    return "Hold"\n'
+        )
+    },
+    "errors_23_ex4": {
+        "code": (
+            "def countdown(start):\n"
+            "    values = []\n"
+            "    while start > 0:\n"
+            "        values.append(start)\n"
+            "        start -= 1\n"
+            "    return values\n"
+        )
+    },
+    "errors_23_ex5": {
+        "code": (
+            "def expedition_report(party):\n"
+            "    total_health = 0\n"
+            "    needs_rest = False\n"
+            "    for member in party:\n"
+            '        total_health += member["health"]\n'
+            '        if member["health"] < 5:\n'
+            "            needs_rest = True\n"
+            "    return {\n"
+            "        \"member_count\": len(party),\n"
+            "        \"total_health\": total_health,\n"
+            "        \"needs_rest\": needs_rest,\n"
+            "    }\n"
+        )
+    },
 }
 
 

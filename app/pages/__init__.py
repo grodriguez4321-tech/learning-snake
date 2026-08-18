@@ -268,7 +268,7 @@ class SettingsPage(QWidget):
     resetProgressClicked = Signal()
     saveClicked = Signal()
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, controller: CourseController | None = None, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         from PySide6.QtCore import Qt
 
@@ -279,6 +279,18 @@ class SettingsPage(QWidget):
         title = QLabel("Settings")
         title.setObjectName("PageTitle")
         layout.addWidget(title)
+
+        if controller is not None and getattr(controller, "developer_mode", False):
+            banner = QLabel(
+                "Developer Preview is active:\n"
+                "- All lessons are navigable for QA review.\n"
+                "- Progress and drafts are saved to developer_progress.json.\n"
+                "- Normal learner progress is unchanged."
+            )
+            banner.setObjectName("BodyText")
+            banner.setStyleSheet("color: #c58a00;")  # subtle warning accent
+            banner.setWordWrap(True)
+            layout.addWidget(banner)
 
         body = QLabel(
             f"{APP_NAME} saves theme and panel visibility from the top toolbar. "

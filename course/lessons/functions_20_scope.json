@@ -1,0 +1,224 @@
+{
+  "id": "functions_20_scope",
+  "section": "Realistic Data and Debugging",
+  "section_order": 9,
+  "order": 2,
+  "title": "Where Names Live",
+  "topics": ["functions"],
+  "content": "What problem does this solve?\nAs programs grow, the same name can appear in different places. A name created inside a function is local to that call; parameters are local names supplied by the caller. A function can read a global name, but depending on hidden global state makes behavior harder to understand and test. Assigning to a name inside a function normally makes that name local; reading it first can raise UnboundLocalError.\n\nPreviously in your program\nYou passed values into functions and returned results. You updated values in nested structures. Now you’ll make inputs and outputs explicit instead of changing module-level names from inside a function.\n\nBasic syntax\n  route = \"north\"\n\n  def choose_route():\n      route = \"south\"\n      return route\n\n  print(choose_route())\n  print(route)\n\nWhat actually happens\nWhen Python sees an assignment to a name inside a function, that name is treated as local in the whole function body unless declared global. Reading a local before it is assigned raises UnboundLocalError.\n\nWhen this is useful\nPassing values in and returning results out makes a function’s behavior clear and easier to test. Use a global only when the whole program truly owns that single piece of state.",
+  "concepts": [
+    "Names assigned inside a function are local to that call",
+    "Parameters are local names given by the caller",
+    "Reading a global can work, but hidden dependencies make tests fragile",
+    "Assignment creates a local; reading it first can raise UnboundLocalError",
+    "global exists but is not the pattern in this lesson"
+  ],
+  "examples": [
+    {
+      "title": "Return value versus outer name",
+      "code": "signal = \"dim\"\n\ndef calibrate():\n    signal = \"bright\"\n    return signal\n\nprint(calibrate())\nprint(signal)",
+      "explanation": "calibrate() returns the local value bright, while the outer signal remains dim."
+    }
+  ],
+  "common_mistakes": [
+    "Relying on a hidden global instead of passing a parameter",
+    "Assigning to a name inside a function and expecting the module variable to change",
+    "Reading a would-be local before assigning it, which raises UnboundLocalError"
+  ],
+  "exercises": [
+    {
+      "id": "functions_20_ex1",
+      "type": "predict_output",
+      "title": "The outer name stays the same",
+      "prompt": "What does this print?",
+      "code_to_predict": "status = \"waiting\"\n\ndef prepare():\n    status = \"ready\"\n    return status\n\nprepare()\nprint(status)",
+      "expected_answer": "waiting",
+      "topics": ["functions"],
+      "hints": [
+        "Names assigned inside a function are local to that function.",
+        "prepare() returns \"ready\", but the outer status was not changed.",
+        "print reads the module-level status."
+      ]
+    },
+    {
+      "id": "functions_20_ex2",
+      "type": "architecture",
+      "title": "Make the dependency explicit",
+      "prompt": "A helper must calculate a new supply count. Which design is clearest and easiest to test?",
+      "choices": [
+        "Read and change a hidden global supplies variable.",
+        "Receive supplies as a parameter and return the new count.",
+        "Print the new count without returning it."
+      ],
+      "expected_answer": "2",
+      "topics": ["functions"],
+      "success_message": "Yes — explicit input and a returned output make the helper easy to understand and test.",
+      "failure_message": "Prefer passing values in and returning a result. Hidden globals or print-only helpers make behavior harder to reuse.",
+      "hints": [
+        "Think about how you would test the helper in isolation.",
+        "Printing does not give other code a value to use.",
+        "Prefer a parameter for input and a return value for output."
+      ]
+    },
+    {
+      "id": "functions_20_ex3",
+      "type": "debug",
+      "title": "Repair the hidden dependency",
+      "prompt": "Refactor to use a parameter and return one less, leaving the module-level supplies unchanged.",
+      "starter_code": "supplies = 3\n\ndef use_supply():\n    supplies = supplies - 1\n    return supplies\n\nprint(use_supply())\n",
+      "topics": ["functions", "debugging"],
+      "hints": [
+        "Declare use_supply(supplies) with one parameter.",
+        "Subtract 1 from that parameter and return the result.",
+        "Call use_supply(3) at the bottom. Do not change the outer supplies."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "use_supply",
+          "parameters": ["supplies"],
+          "message": "Define use_supply(supplies) so the value comes from the caller."
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "2\n",
+          "message": "After your repair, the demonstration should print 2."
+        },
+        {
+          "kind": "function",
+          "function": "use_supply",
+          "args": [3],
+          "expected": 2,
+          "message": "use_supply(3) should return 2."
+        },
+        {
+          "kind": "function",
+          "function": "use_supply",
+          "args": [1],
+          "expected": 0,
+          "message": "use_supply(1) should return 0."
+        },
+        {
+          "kind": "globals",
+          "name": "supplies",
+          "expected": 3,
+          "message": "Do not mutate the module-level supplies — it must remain 3."
+        }
+      ]
+    },
+    {
+      "id": "functions_20_ex4",
+      "type": "write_code",
+      "title": "Apply damage explicitly",
+      "prompt": "Write apply_damage(health, hit) that returns health - hit.",
+      "starter_code": "def apply_damage(health, hit):\n    # Return health - hit without reading outer variables.\n    pass\n",
+      "topics": ["functions"],
+      "hints": [
+        "Use only the two parameters.",
+        "Subtract hit from health.",
+        "Return the result."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "apply_damage",
+          "parameters": ["health", "hit"],
+          "message": "Define apply_damage(health, hit)."
+        },
+        {
+          "kind": "function",
+          "function": "apply_damage",
+          "args": [10, 3],
+          "expected": 7,
+          "message": "apply_damage(10, 3) should return 7."
+        },
+        {
+          "kind": "function",
+          "function": "apply_damage",
+          "args": [5, 0],
+          "expected": 5,
+          "message": "Zero damage should leave health unchanged."
+        },
+        {
+          "kind": "function",
+          "function": "apply_damage",
+          "args": [3, 5],
+          "expected": -2,
+          "message": "Health can become negative when hit is larger."
+        },
+        {
+          "kind": "function",
+          "function": "apply_damage",
+          "args": [12, 4],
+          "expected": 8,
+          "message": "Do not hardcode — apply the subtraction to the given numbers."
+        }
+      ]
+    },
+    {
+      "id": "functions_20_ex5",
+      "type": "mini_project",
+      "title": "Local party report",
+      "prompt": "Return a report built only from the parameter and local names.\n\nReturn exactly:\n{\n  \"member_count\": len(party),\n  \"total_health\": ...,\n}\n\nLoop over each nested member record and total its \"health\" locally. The global total_health must remain 999.",
+      "starter_code": "total_health = 999\n\ndef party_report(party):\n    # Build the report from the parameter and local names.\n    pass\n",
+      "topics": ["functions", "collections"],
+      "hints": [
+        "Start total at 0 inside the function.",
+        "Loop over each member and add member[\"health\"].",
+        "Return the dictionary with exactly the two requested keys."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "party_report",
+          "parameters": ["party"],
+          "message": "Define party_report(party) with one parameter."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "in_function": "party_report",
+          "message": "Use a for loop inside party_report to total member health."
+        },
+        {
+          "kind": "function",
+          "function": "party_report",
+          "args": [[]],
+          "expected": {"member_count": 0, "total_health": 0},
+          "message": "Empty party should report counts 0 / 0."
+        },
+        {
+          "kind": "function",
+          "function": "party_report",
+          "args": [[{"name": "Mira", "health": 8}]],
+          "expected": {"member_count": 1, "total_health": 8},
+          "message": "One member at 8 → counts 1 / 8."
+        },
+        {
+          "kind": "function",
+          "function": "party_report",
+          "args": [[{"name": "A", "health": 3}, {"name": "B", "health": 7}, {"name": "C", "health": 0}]],
+          "expected": {"member_count": 3, "total_health": 10},
+          "message": "Three members 3, 7, 0 → counts 3 / 10."
+        },
+        {
+          "kind": "function",
+          "function": "party_report",
+          "args": [[{"name": "X", "health": 2}, {"name": "Y", "health": 9}]],
+          "expected": {"member_count": 2, "total_health": 11},
+          "message": "Do not hardcode — calculate from the given records."
+        },
+        {
+          "kind": "globals",
+          "name": "total_health",
+          "expected": 999,
+          "message": "Do not change the module-level total_health — it must remain 999."
+        }
+      ]
+    }
+  ]
+}
+

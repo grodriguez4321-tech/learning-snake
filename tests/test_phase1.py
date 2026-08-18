@@ -26,8 +26,9 @@ class CatalogTests(unittest.TestCase):
         catalog.load()
         self.assertGreaterEqual(len(catalog.lessons), 18)
         ids = [lesson.id for lesson in catalog.lessons]
+        # The first 18 lessons remain stable; later batches may extend the catalog.
         self.assertEqual(
-            ids,
+            ids[:18],
             [
                 "fundamentals_01_print",
                 "fundamentals_02_variables",

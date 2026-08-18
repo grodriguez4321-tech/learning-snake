@@ -21,10 +21,13 @@ class CourseController:
         catalog: CourseCatalog,
         progress: ProgressStore,
         checker: ExerciseChecker,
+        *,
+        developer_mode: bool = False,
     ) -> None:
         self.catalog = catalog
         self.progress = progress
         self.checker = checker
+        self.developer_mode = developer_mode
 
     def all_exercise_ids(self) -> list[str]:
         ids: list[str] = []
@@ -33,6 +36,8 @@ class CourseController:
         return ids
 
     def is_unlocked(self, lesson: Lesson) -> bool:
+        if self.developer_mode:
+            return True
         index = self.catalog.index_of(lesson.id)
         if index <= 0:
             return True
