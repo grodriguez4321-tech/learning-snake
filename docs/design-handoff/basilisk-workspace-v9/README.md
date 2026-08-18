@@ -8,6 +8,7 @@ This package contains the approved Superdesign prototype at version 9 and its fi
 - `assets/basilisk-app-mark-v2.png` — final blue-and-basil-green Basilisk emblem
 - `source.json` — source draft identifiers and review links
 - `screenshots/` — durable desktop references (1440×900) for key states
+- `references/` — local static Learn/Examples reference HTML used to render durable images
 
 ## Review the prototype
 
@@ -77,8 +78,8 @@ To make the approved appearance reviewable offline (without CDNs or external lin
 
 - `practice-1440x900.png` — default desktop layout
 - `practice-collapsed-rail-1440x900.png` — collapsed curriculum rail variant
-- `learn-1440x900.png` — header Learn tab visual state (content unchanged in this prototype; see `source.json` for authoritative Learn content design)
-- `examples-1440x900.png` — header Examples tab visual state (content unchanged; see `source.json` for authoritative Examples content design)
+- `learn-1440x900.png` — Learn mode reference captured from `references/learn-reference.html` (durable local approximation of the approved Learn composition; see `source.json` for the authoritative source)
+- `examples-1440x900.png` — Examples mode reference captured from `references/examples-reference.html` (durable local approximation of the approved Examples composition; see `source.json` for the authoritative source)
 
 ## Source
 

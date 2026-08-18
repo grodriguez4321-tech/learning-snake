@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Basilisk — Learn (Reference)</title>
+  <style>
+    :root{
+      --app-bg:#080B10;--rail-bg:#0D1219;--panel-bg:#111823;--active-panel:#172131;
+      --border-subtle:rgba(148,163,184,0.14);--border-strong:rgba(148,163,184,0.24);
+      --text-primary:#F1F5F9;--text-secondary:#A7B2C2;--text-muted:#6F7D90;
+      --primary-blue:#3B82F6;--basil-green:#54D6A1;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--app-bg);color:var(--text-primary);font-family:Inter,ui-sans-serif,system-ui,sans-serif}
+    .row{display:flex;height:100vh;width:100vw;overflow:hidden}
+    aside{width:232px;background:var(--rail-bg);border-right:1px solid var(--border-subtle);padding:16px}
+    .brand{height:56px;width:56px;background:linear-gradient(135deg,#3B82F6, #54D6A1);border-radius:12px}
+    main{flex:1;display:flex;flex-direction:column}
+    header{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border-subtle)}
+    .title small{display:flex;gap:6px;color:var(--text-muted);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:11px;margin-bottom:2px}
+    .title h1{margin:0;font-size:16px}
+    .seg{display:flex;background:var(--panel-bg);padding:4px;border:1px solid var(--border-subtle);border-radius:10px}
+    .seg button{border:0;background:transparent;color:var(--text-secondary);padding:6px 10px;border-radius:8px;font-size:12px;font-weight:600;cursor:default}
+    .seg .active{background:var(--active-panel);color:var(--text-primary)}
+    .content{display:flex;flex:1;overflow:hidden}
+    .prompt{width:520px;min-width:480px;border-right:1px solid var(--border-subtle);background:rgba(17,24,35,.7);padding:24px;overflow:auto}
+    .prompt h2{margin:0 0 8px 0}
+    .prompt p{margin:0 0 14px 0;color:var(--text-secondary);line-height:1.5}
+    .callout{border:1px solid var(--border-strong);background:#0A0F16;border-radius:10px;padding:14px;margin:10px 0;color:var(--text-primary)}
+    .example{border:1px solid var(--border-strong);background:#0A0F16;border-radius:10px;padding:14px;margin:10px 0;font-family:JetBrains Mono,monospace;font-size:13px;line-height:1.5;color:var(--text-primary)}
+    .sidebar{flex:1;display:flex;flex-direction:column}
+    .panel{padding:18px}
+    .panel h3{margin:0 0 8px 0;font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.12em}
+    .checklist{display:grid;gap:8px}
+    .item{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid rgba(148,163,184,0.08);background:var(--panel-bg);border-radius:10px}
+    .dot{width:10px;height:10px;border-radius:999px;background:var(--text-muted);margin-top:4px}
+    .kbd{display:inline-block;background:var(--panel-bg);padding:1px 4px;border:1px solid rgba(255,255,255,.08);border-radius:4px}
+  </style>
+</head>
+<body>
+  <div class="row">
+    <aside>
+      <div class="brand" title="Basilisk emblem"></div>
+    </aside>
+    <main>
+      <header>
+        <div class="title">
+          <small><span>Python Fundamentals</span><span>›</span><span>Learn</span></small>
+          <h1>Leave a Trace — Concept: Printing Structured Output</h1>
+        </div>
+        <div class="seg" aria-label="Workspace modes">
+          <button class="active">Learn</button>
+          <button>Examples</button>
+          <button>Practice</button>
+        </div>
+      </header>
+      <div class="content">
+        <section class="prompt" aria-labelledby="learn-heading">
+          <h2 id="learn-heading">Why this matters</h2>
+          <p>Programs often present information in a structured way. In Basilisk, dispatches include a title
+            and labeled lines. You will combine strings and values and print them on separate lines.</p>
+          <div class="callout">
+            Goal: format a dispatch like:<br />
+            <strong>SEARCH DISPATCH</strong><br />
+            <strong>Expedition:</strong> 17<br />
+            <strong>Status:</strong> OVERDUE
+          </div>
+          <h2>Worked example</h2>
+          <p>This example shows labeled lines using multiple <code class="kbd">print()</code> calls.</p>
+          <pre class="example">print("SEARCH DISPATCH")
+print("Expedition:", 17)
+print("Status:", "OVERDUE")</pre>
+          <p>Notice the label and value are passed as <em>separate arguments</em>, which adds a space automatically.</p>
+        </section>
+        <aside class="sidebar">
+          <div class="panel">
+            <h3>Key ideas</h3>
+            <div class="checklist">
+              <div class="item"><div class="dot" style="background:var(--basil-green)"></div><div>Use one <code class="kbd">print()</code> per output line</div></div>
+              <div class="item"><div class="dot" style="background:var(--basil-green)"></div><div>Pass label and value as two arguments</div></div>
+              <div class="item"><div class="dot" style="background:var(--primary-blue)"></div><div>Exact capitalization matters in strings</div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>Next</h3>
+            <p>Switch to <strong>Practice</strong> to apply this structure on your own.</p>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
+
