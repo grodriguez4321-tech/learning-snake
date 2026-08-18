@@ -61,10 +61,25 @@ def _enable_edit_actions(menu: QMenu) -> None:
         for act in (undo, redo, cut, copy, paste, select_all):
             act.setEnabled(False)
         return
-    is_readonly = _bool_attr(w, "isReadOnly", False)
-    has_sel = _bool_attr(w, "hasSelectedText", False)
-    undo_avail = _bool_attr(w, "isUndoAvailable", True)
-    redo_avail = _bool_attr(w, "isRedoAvailable", True)
+    # Type-aware edit state
+    if isinstance(w, (QPlainTextEdit, QTextEdit)):
+        try:
+            cursor = w.textCursor()  # type: ignore[attr-defined]
+            doc = w.document()  # type: ignore[attr-defined]
+            has_sel = bool(cursor.hasSelection())
+            undo_avail = bool(doc.isUndoAvailable())
+            redo_avail = bool(doc.isRedoAvailable())
+        except Exception:
+            has_sel = _bool_attr(w, "hasSelectedText", False)
+            undo_avail = True
+            redo_avail = True
+        is_readonly = _bool_attr(w, "isReadOnly", False)
+    else:
+        # QLineEdit and other simple inputs
+        is_readonly = _bool_attr(w, "isReadOnly", False)
+        has_sel = _bool_attr(w, "hasSelectedText", False)
+        undo_avail = _bool_attr(w, "isUndoAvailable", True)
+        redo_avail = _bool_attr(w, "isRedoAvailable", True)
     undo.setEnabled(not is_readonly and undo_avail)
     redo.setEnabled(not is_readonly and redo_avail)
     cut.setEnabled(not is_readonly and has_sel)

@@ -35,15 +35,8 @@ class ViewTogglePrefsTests(unittest.TestCase):
 
     def test_view_menu_checkmarks_sync_with_prefs(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            progress_path = Path(tmp) / "progress.json"
-            prefs_path = Path(tmp) / "ui_prefs.json"
-            prefs = UiPrefsStore(prefs_path)
-            prefs.load()
-            controller, runner, _ignored_prefs = build_controller(ROOT)
-            controller.progress = ProgressStore(progress_path)
-            controller.progress.load()
-            controller.progress.load_warning = None
-            controller.progress.recovered_from_corrupt = False
+            data_dir = Path(tmp)
+            controller, runner, prefs = build_controller(ROOT, data_dir=data_dir)
 
             course = CourseApp(controller, runner, prefs_store=prefs)
             self.app.processEvents()

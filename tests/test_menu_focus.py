@@ -35,14 +35,8 @@ class MenuFocusRoutingTests(unittest.TestCase):
 
     def test_edit_actions_route_to_focused_widget(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            progress_path = Path(tmp) / "progress.json"
-            prefs = UiPrefsStore(Path(tmp) / "ui_prefs.json")
-            prefs.load()
-            controller, runner, _ignored_prefs = build_controller(ROOT)
-            controller.progress = ProgressStore(progress_path)
-            controller.progress.load()
-            controller.progress.load_warning = None
-            controller.progress.recovered_from_corrupt = False
+            data_dir = Path(tmp)
+            controller, runner, prefs = build_controller(ROOT, data_dir=data_dir)
 
             course = CourseApp(controller, runner, prefs_store=prefs)
             self.app.processEvents()
@@ -118,9 +112,39 @@ class MenuFocusRoutingTests(unittest.TestCase):
             line.setReadOnly(False)
             self.app.processEvents()
 
-            # Finish by ensuring actions are present
-            self.assertIsNotNone(cut_action)
-            self.assertIsNotNone(undo_action)
+            # Now test with a QPlainTextEdit (code-like editor path)
+            editor = QPlainTextEdit()
+            editor.setPlainText("hello\nworld")
+            editor.show()
+            editor.setFocus()
+            self.app.processEvents()
+            # Select All via action and verify operations work end-to-end
+            select_all_action.trigger()
+            self.app.processEvents()
+            # Refresh Edit menu state to reflect selection before triggering cut
+            edit_menu = None
+            for act in course._menubar.actions():  # type: ignore[attr-defined]
+                if act.text().lower().startswith("&edit"):
+                    edit_menu = act.menu()
+                    break
+            if edit_menu is not None:
+                edit_menu.aboutToShow.emit()
+                self.app.processEvents()
+            cut_action.trigger()
+            self.app.processEvents()
+            self.assertEqual(editor.toPlainText(), "")
+            # Undo then Redo
+            # Use editor's undo/redo directly to validate behavior
+            editor.undo()
+            self.app.processEvents()
+            self.assertIn("hello", editor.toPlainText())
+            editor.redo()
+            self.app.processEvents()
+            self.assertEqual(editor.toPlainText(), "")
+            # Paste should reinsert previously copied 'abc' from prior step
+            paste_action.trigger()
+            self.app.processEvents()
+            self.assertTrue(len(editor.toPlainText()) > 0)
 
             course.close()
             self.app.processEvents()
