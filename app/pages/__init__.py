@@ -131,6 +131,13 @@ class PaneSwitch(QFrame):
             btn.setChecked(key == pane)
             btn.blockSignals(False)
 
+    def set_code_allowed(self, allowed: bool) -> None:
+        """Enable/disable the Code button when single-pane is in a non-Practice mode."""
+        self._code.setEnabled(allowed)
+        if not allowed:
+            # Ensure Prompt remains selected when Code is not allowed
+            self.set_pane("prompt")
+
 
 class LessonsPage(QWidget):
     editorToggleAllowed = Signal(bool)
@@ -173,8 +180,8 @@ class LessonsPage(QWidget):
         self.mode_bar.modeChanged.connect(self._on_mode_changed)
         self.pane_bar.paneChanged.connect(self._on_pane_changed)
         self._single_pane: bool = False
-        self._active_pane: str = "code"
-        self.pane_bar.set_pane("code")
+        self._active_pane: str = "prompt"
+        self.pane_bar.set_pane("prompt")
 
     def apply_theme(self, theme: Theme) -> None:
         self._theme = theme
@@ -188,9 +195,15 @@ class LessonsPage(QWidget):
     def _apply_editor_visibility(self) -> None:
         # Single-pane policy overrides editor visibility
         if self._single_pane:
-            show_code = self._active_pane == "code"
+            allow_code = self._mode == "practice"
+            # In Learn/Examples, always show Prompt; Code is unavailable.
+            self.pane_bar.set_code_allowed(allow_code)
+            if not allow_code:
+                self._active_pane = "prompt"
+            show_code = allow_code and self._active_pane == "code"
             self.content.setVisible(not show_code)
-            self.ide.setVisible(show_code and self._mode == "practice")
+            self.ide.setVisible(show_code)
+            # Editor toggle is a no-op while single-pane policy is active
             self.editorToggleAllowed.emit(False)
             return
         # Both panes visible; only Practice shows IDE; disable toggle otherwise
@@ -252,7 +265,7 @@ class LessonsPage(QWidget):
 
     def _apply_layout_policy(self) -> None:
         # Enter single-pane mode when width is narrow enough that both panes would crush usability.
-        threshold = 1200
+        threshold = 900
         wants_single = self.width() < threshold
         if wants_single != self._single_pane:
             self._single_pane = wants_single
@@ -260,6 +273,12 @@ class LessonsPage(QWidget):
         self._apply_editor_visibility()
 
     def _on_pane_changed(self, pane: str) -> None:
+        # Do not allow switching to Code outside Practice in single-pane mode
+        if self._single_pane and self._mode != "practice" and pane == "code":
+            self.pane_bar.set_pane("prompt")
+            self._active_pane = "prompt"
+            self._apply_editor_visibility()
+            return
         self._active_pane = pane if pane in {"prompt", "code"} else "prompt"
         self._apply_editor_visibility()
 

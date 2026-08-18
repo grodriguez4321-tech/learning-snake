@@ -76,7 +76,8 @@ class CourseApp(QMainWindow):
 
         self.setWindowTitle(WINDOW_TITLE)
         self.resize(1400, 900)
-        self.setMinimumSize(1100, 700)
+        # Allow widths below 900 to exercise the Prompt/Code single-pane policy.
+        self.setMinimumSize(800, 600)
 
         self._build_ui()
         self.apply_theme(self._theme)

@@ -138,10 +138,21 @@ class Sidebar(QFrame):
         self._brand_logo = QLabel()
         self._brand_logo.setFixedSize(24, 24)
         self._brand_logo.setToolTip(APP_NAME)
-        logo_path = (
-            "docs/design-handoff/basilisk-workspace-v9/assets/basilisk-app-mark-v2.png"
-        )
-        pix = QPixmap(logo_path)
+        # Resolve logo relative to the application module so cwd does not matter.
+        try:
+            from pathlib import Path
+            base = Path(__file__).resolve().parents[2]
+            logo_path = (
+                base
+                / "docs"
+                / "design-handoff"
+                / "basilisk-workspace-v9"
+                / "assets"
+                / "basilisk-app-mark-v2.png"
+            )
+            pix = QPixmap(str(logo_path))
+        except Exception:
+            pix = QPixmap()
         if not pix.isNull():
             self._brand_logo.setPixmap(pix.scaled(24, 24, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         brand_row.addWidget(self._brand_logo)
