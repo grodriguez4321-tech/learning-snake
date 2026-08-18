@@ -18,6 +18,7 @@ from app.branding import APP_NAME, APP_TAGLINE
 from app.theme import Theme
 from app.widgets.ide_panel import IdePanel
 from app.widgets.lesson_content import LessonContent
+from app.widgets.mode_bar import ModeBar
 from course.catalog import CourseCatalog
 from engine.course_controller import CourseController
 
@@ -99,9 +100,17 @@ class DashboardPage(QWidget):
 class LessonsPage(QWidget):
     def __init__(self, theme: Theme, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 12, 12)
-        layout.setSpacing(0)
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 12, 12)
+        outer.setSpacing(0)
+
+        self.mode_bar = ModeBar()
+        outer.addWidget(self.mode_bar)
+
+        host = QHBoxLayout()
+        host.setContentsMargins(0, 0, 0, 0)
+        host.setSpacing(0)
+        outer.addLayout(host, stretch=1)
 
         self.splitter = QSplitter()
         self.splitter.setChildrenCollapsible(False)
@@ -113,14 +122,62 @@ class LessonsPage(QWidget):
         self.splitter.setStretchFactor(0, 5)
         self.splitter.setStretchFactor(1, 5)
         self.splitter.setSizes([620, 580])
-        layout.addWidget(self.splitter)
+        host.addWidget(self.splitter)
+
+        self._theme = theme
+        self._editor_pref_visible = True
+        self._mode: str = "learn"
+        self._per_lesson_state: dict[str, tuple[str, int]] = {}
+        self.mode_bar.modeChanged.connect(self._on_mode_changed)
 
     def apply_theme(self, theme: Theme) -> None:
+        self._theme = theme
         self.content.apply_theme(theme)
         self.ide.apply_theme(theme)
 
     def set_editor_visible(self, visible: bool) -> None:
-        self.ide.setVisible(visible)
+        self._editor_pref_visible = visible
+        self._apply_editor_visibility()
+
+    def _apply_editor_visibility(self) -> None:
+        self.ide.setVisible(self._editor_pref_visible and self._mode == "practice")
+
+    # Session-only lesson state ------------------------------------------------
+    def present_lesson(
+        self,
+        *,
+        lesson,
+        exercise,
+        exercise_index: int,
+        prev_ok: bool,
+        next_ok: bool,
+    ) -> None:
+        self.content.show_lesson(
+            lesson,
+            exercise,
+            exercise_index=exercise_index,
+            prev_ok=prev_ok,
+            next_ok=next_ok,
+        )
+        # Restore per-lesson mode (default Learn)
+        mode, _ = self._per_lesson_state.get(lesson.id, ("learn", exercise_index))
+        self.set_mode(mode, lesson_id=lesson.id, exercise_index=exercise_index)
+
+    def set_mode(self, mode: str, *, lesson_id: str | None = None, exercise_index: int | None = None) -> None:
+        self._mode = mode
+        self.mode_bar.set_mode(mode)
+        self.content.set_mode(mode)
+        self._apply_editor_visibility()
+        if lesson_id is not None:
+            current = self._per_lesson_state.get(lesson_id, (mode, exercise_index or 0))
+            ex_index = current[1] if exercise_index is None else exercise_index
+            self._per_lesson_state[lesson_id] = (mode, ex_index or 0)
+
+    def _on_mode_changed(self, mode: str) -> None:
+        # Update UI and remember for the current lesson if present
+        lesson = getattr(self.content, "lesson", None)
+        lid = getattr(lesson, "id", None)
+        self.set_mode(mode, lesson_id=lid)
 
 
 class PlaygroundPage(QWidget):

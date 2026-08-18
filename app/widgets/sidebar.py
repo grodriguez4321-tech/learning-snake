@@ -116,7 +116,10 @@ class Sidebar(QFrame):
     ) -> None:
         super().__init__(parent)
         self.setObjectName("Sidebar")
-        self.setFixedWidth(256)
+        self._collapsed = False
+        self._expanded_width = 232
+        self._collapsed_width = 64
+        self.setFixedWidth(self._expanded_width)
         self._catalog = catalog
         self._controller = controller
         self._nav_buttons: dict[str, QPushButton] = {}
@@ -139,6 +142,8 @@ class Sidebar(QFrame):
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.setCheckable(True)
             btn.setFixedHeight(36)
+            btn.setAccessibleName(label)
+            btn.setToolTip(label)
             btn.clicked.connect(lambda checked=False, k=key: self._on_nav(k))
             self._nav_buttons[key] = btn
             root.addWidget(btn)
@@ -183,6 +188,21 @@ class Sidebar(QFrame):
         self._active_nav = key
         for k, btn in self._nav_buttons.items():
             btn.setChecked(k == key)
+
+    # Collapsed/expanded widths ------------------------------------------------
+    def set_collapsed(self, collapsed: bool) -> None:
+        self._collapsed = collapsed
+        self.setFixedWidth(self._collapsed_width if collapsed else self._expanded_width)
+        # Update nav button labels vs icons for accessibility
+        for key, (nav_key, label, icon) in zip(self._nav_buttons.keys(), NAV_ITEMS):
+            btn = self._nav_buttons[key]
+            if collapsed:
+                btn.setText(f"  {icon}")
+                btn.setToolTip(label)
+            else:
+                btn.setText(f"  {icon}   {label}")
+                btn.setToolTip(label)
+        # Lesson rows will elide text naturally within the narrower width
 
     def refresh_lessons(self, selected_lesson_id: str | None = None) -> None:
         if selected_lesson_id is not None:

@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QButtonGroup,
     QFrame,
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QTabWidget,
     QPushButton,
     QRadioButton,
     QSizePolicy,
+    QSplitter,
     QVBoxLayout,
     QWidget,
 )
@@ -51,8 +53,19 @@ class IdePanel(QFrame):
 
         body = QWidget()
         body_l = QVBoxLayout(body)
-        body_l.setContentsMargins(12, 10, 12, 12)
-        body_l.setSpacing(10)
+        body_l.setContentsMargins(0, 0, 0, 0)
+        body_l.setSpacing(0)
+
+        # Vertical splitter: top (work area), bottom (drawer tabs)
+        self._vsplitter = QSplitter(Qt.Orientation.Vertical)
+        self._vsplitter.setChildrenCollapsible(False)
+        self._vsplitter.setHandleWidth(10)
+        body_l.addWidget(self._vsplitter, stretch=1)
+
+        work_host = QWidget()
+        work = QVBoxLayout(work_host)
+        work.setContentsMargins(12, 10, 12, 12)
+        work.setSpacing(10)
 
         self.editor = CodeEditorWidget(theme)
         self.editor.setMinimumHeight(180)
@@ -60,17 +73,17 @@ class IdePanel(QFrame):
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
         self.editor.runRequested.connect(self.runClicked.emit)
-        body_l.addWidget(self.editor, stretch=3)
+        work.addWidget(self.editor, stretch=3)
 
         self._answer_label = QLabel("Your answer")
         self._answer_label.setObjectName("MutedLabel")
-        body_l.addWidget(self._answer_label)
+        work.addWidget(self._answer_label)
 
         self._answer = QLineEdit()
         self._answer.setObjectName("AnswerField")
         self._answer.setPlaceholderText("Type predicted output here…")
         self._answer.setFixedHeight(34)
-        body_l.addWidget(self._answer)
+        work.addWidget(self._answer)
 
         self._choice_host = QWidget()
         self._choice_layout = QVBoxLayout(self._choice_host)
@@ -78,7 +91,7 @@ class IdePanel(QFrame):
         self._choice_layout.setSpacing(6)
         self._choice_group = QButtonGroup(self)
         self._choice_buttons: list[QRadioButton] = []
-        body_l.addWidget(self._choice_host)
+        work.addWidget(self._choice_host)
         self._choice_host.hide()
 
         actions = QHBoxLayout()
@@ -103,13 +116,25 @@ class IdePanel(QFrame):
         for btn in (self._run, self._check, self._hint, self._reset):
             actions.addWidget(btn)
         actions.addStretch(1)
-        body_l.addLayout(actions)
+        work.addLayout(actions)
 
+        # Bottom drawer: tabbed Output / Feedback
+        drawer_host = QWidget()
+        drawer_l = QVBoxLayout(drawer_host)
+        drawer_l.setContentsMargins(12, 6, 12, 12)
+        drawer_l.setSpacing(8)
+        self._tabs = QTabWidget()
+        self._tabs.setTabPosition(QTabWidget.TabPosition.North)
         self.output = OutputPanel(theme)
-        body_l.addWidget(self.output, stretch=2)
-
         self.feedback = FeedbackPanel()
-        body_l.addWidget(self.feedback, stretch=0)
+        self._tabs.addTab(self.output, "Output")
+        self._tabs.addTab(self.feedback, "Feedback")
+        drawer_l.addWidget(self._tabs)
+
+        self._vsplitter.addWidget(work_host)
+        self._vsplitter.addWidget(drawer_host)
+        # Target sizes: editor area dominant; drawer ~180 px initially
+        self._vsplitter.setSizes([480, 200])
 
         root.addWidget(body, stretch=1)
         self._starter = ""
