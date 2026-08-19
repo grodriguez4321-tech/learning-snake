@@ -1664,6 +1664,23 @@ def run_payload(payload: dict[str, Any]) -> dict[str, Any]:
         try:
             with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
                 compiled = compile(source, filename, "exec")
+                # Seed namespace with first fixture values to avoid NameError in mixed sets.
+                if has_script_fixtures and has_other_checks:
+                    reserved = {"expected_stdout", "protect"}
+                    for t in tests_list:
+                        if (t.get("kind") or "").lower() != "script_fixtures":
+                            continue
+                        fixtures = list(t.get("fixtures") or [])
+                        if not fixtures:
+                            continue
+                        seed = dict(fixtures[0])
+                        for key, value in seed.items():
+                            if key in reserved:
+                                continue
+                            # Do not overwrite preexisting names set by prior runs.
+                            if key not in namespace:
+                                namespace[str(key)] = value
+                        break
                 exec(compiled, namespace, namespace)
         except Exception as exc:  # noqa: BLE001
             success = False
