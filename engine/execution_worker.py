@@ -168,37 +168,49 @@ def apply_test(
         reserved = {"expected_stdout", "protect"}
         for case in fixtures:
             provided = set(str(k) for k in case.keys() if k not in reserved)
-            protect = set(str(n) for n in case.get("protect", []) if isinstance(case, dict))
+            protect = set(str(n) for n in (case.get("protect") or []) if isinstance(case, dict))
             protect_names |= (protect or provided)
         try:
             tree = ast.parse(source)
         except Exception:  # noqa: BLE001
             return False, test.get("message") or "Your code could not be parsed."
-        if protect_names:
-            class _StripAssigns(ast.NodeTransformer):
-                def __init__(self, names: set[str]) -> None:
-                    self._names = names
-                def visit_Assign(self, node: ast.Assign):  # type: ignore[override]
-                    targets = []
-                    for t in node.targets:
-                        if isinstance(t, ast.Name) and t.id in self._names:
-                            # drop this target; if all dropped, remove the stmt
+        if protect_names and isinstance(tree, ast.Module):
+            # Restrict stripping to the initial contiguous block of top-level assignments
+            # (baseline initializers) only. Preserve later/inner assignments.
+            new_body: list[ast.stmt] = []
+            scanning = True
+            for stmt in list(tree.body):
+                if scanning and isinstance(stmt, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
+                    # Filter targets that bind protected names.
+                    if isinstance(stmt, ast.Assign):
+                        remaining_targets: list[ast.expr] = []
+                        for t in stmt.targets:
+                            if isinstance(t, ast.Name) and t.id in protect_names:
+                                continue
+                            remaining_targets.append(t)
+                        if remaining_targets:
+                            new_node = ast.Assign(targets=remaining_targets, value=stmt.value, type_comment=getattr(stmt, "type_comment", None))
+                            ast.copy_location(new_node, stmt)
+                            new_body.append(new_node)
+                        # else: drop this statement entirely
+                        continue
+                    if isinstance(stmt, ast.AnnAssign):
+                        target = stmt.target
+                        if isinstance(target, ast.Name) and target.id in protect_names:
+                            # drop
                             continue
-                        targets.append(t)
-                    if not targets:
-                        return None
-                    node.targets = targets
-                    return self.generic_visit(node)
-                def visit_AugAssign(self, node: ast.AugAssign):  # type: ignore[override]
-                    if isinstance(node.target, ast.Name) and node.target.id in self._names:
-                        return None
-                    return self.generic_visit(node)
-                def visit_AnnAssign(self, node: ast.AnnAssign):  # type: ignore[override]
-                    target = node.target
-                    if isinstance(target, ast.Name) and target.id in self._names:
-                        return None
-                    return self.generic_visit(node)
-            tree = _StripAssigns(protect_names).visit(tree) or tree
+                        new_body.append(stmt)
+                        continue
+                    if isinstance(stmt, ast.AugAssign):
+                        if isinstance(stmt.target, ast.Name) and stmt.target.id in protect_names:
+                            continue
+                        new_body.append(stmt)
+                        continue
+                # Any non-assignment ends the baseline-initializer strip phase.
+                if scanning and not isinstance(stmt, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
+                    scanning = False
+                new_body.append(stmt)
+            tree.body = new_body
             ast.fix_missing_locations(tree)
         try:
             compiled = compile(tree, "<student>", "exec")
@@ -212,7 +224,7 @@ def apply_test(
             }
             # Inject initial values (kept invisible to the learner).
             for key, value in dict(case).items():
-                if key == "expected_stdout":
+                if key in reserved:
                     continue
                 scenario_ns[str(key)] = value
             buffer = io.StringIO()
@@ -1643,10 +1655,12 @@ def run_payload(payload: dict[str, Any]) -> dict[str, Any]:
     stderr_buffer = io.StringIO()
     success = True
     error = None
+    tests_list = list(payload.get("tests", []))
     has_script_fixtures = any(
-        (t.get("kind") or "").lower() == "script_fixtures" for t in payload.get("tests", [])
+        (t.get("kind") or "").lower() == "script_fixtures" for t in tests_list
     )
-    if not has_script_fixtures:
+    has_other_checks = any((t.get("kind") or "").lower() != "script_fixtures" for t in tests_list)
+    if (not has_script_fixtures) or has_other_checks:
         try:
             with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
                 compiled = compile(source, filename, "exec")
@@ -1657,9 +1671,9 @@ def run_payload(payload: dict[str, Any]) -> dict[str, Any]:
 
     stdout = stdout_buffer.getvalue()
     stderr = stderr_buffer.getvalue()
-    # When script-fixture checks are present, the authoritative runs happen inside the test itself;
+    # When only script-fixture checks are present, the authoritative runs happen inside the test itself;
     # skip the initial run outcome entirely.
-    if has_script_fixtures:
+    if has_script_fixtures and not has_other_checks:
         success = True
         error = None
     result: dict[str, Any] = {
