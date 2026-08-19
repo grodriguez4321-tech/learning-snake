@@ -162,10 +162,48 @@ def apply_test(
         fixtures = list(test.get("fixtures") or [])
         if not fixtures:
             return False, test.get("message") or "No fixtures were provided for this check."
+        # Optionally protect fixture names from being overwritten by top-level assignments.
+        protect_names: set[str] = set()
+        # Per-fixture override list may be provided; otherwise default to keys except reserved.
+        reserved = {"expected_stdout", "protect"}
+        for case in fixtures:
+            provided = set(str(k) for k in case.keys() if k not in reserved)
+            protect = set(str(n) for n in case.get("protect", []) if isinstance(case, dict))
+            protect_names |= (protect or provided)
         try:
-            compiled = compile(source, "<student>", "exec")
+            tree = ast.parse(source)
         except Exception:  # noqa: BLE001
             return False, test.get("message") or "Your code could not be parsed."
+        if protect_names:
+            class _StripAssigns(ast.NodeTransformer):
+                def __init__(self, names: set[str]) -> None:
+                    self._names = names
+                def visit_Assign(self, node: ast.Assign):  # type: ignore[override]
+                    targets = []
+                    for t in node.targets:
+                        if isinstance(t, ast.Name) and t.id in self._names:
+                            # drop this target; if all dropped, remove the stmt
+                            continue
+                        targets.append(t)
+                    if not targets:
+                        return None
+                    node.targets = targets
+                    return self.generic_visit(node)
+                def visit_AugAssign(self, node: ast.AugAssign):  # type: ignore[override]
+                    if isinstance(node.target, ast.Name) and node.target.id in self._names:
+                        return None
+                    return self.generic_visit(node)
+                def visit_AnnAssign(self, node: ast.AnnAssign):  # type: ignore[override]
+                    target = node.target
+                    if isinstance(target, ast.Name) and target.id in self._names:
+                        return None
+                    return self.generic_visit(node)
+            tree = _StripAssigns(protect_names).visit(tree) or tree
+            ast.fix_missing_locations(tree)
+        try:
+            compiled = compile(tree, "<student>", "exec")
+        except Exception:  # noqa: BLE001
+            return False, test.get("message") or "Your code could not be compiled."
         for index, case in enumerate(fixtures, start=1):
             # Fresh namespace for each scenario; preserve the guarded import policy.
             scenario_ns: dict[str, Any] = {
@@ -1605,19 +1643,23 @@ def run_payload(payload: dict[str, Any]) -> dict[str, Any]:
     stderr_buffer = io.StringIO()
     success = True
     error = None
-    try:
-        with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
-            compiled = compile(source, filename, "exec")
-            exec(compiled, namespace, namespace)
-    except Exception as exc:  # noqa: BLE001
-        success = False
-        error = student_traceback(exc)
+    has_script_fixtures = any(
+        (t.get("kind") or "").lower() == "script_fixtures" for t in payload.get("tests", [])
+    )
+    if not has_script_fixtures:
+        try:
+            with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
+                compiled = compile(source, filename, "exec")
+                exec(compiled, namespace, namespace)
+        except Exception as exc:  # noqa: BLE001
+            success = False
+            error = student_traceback(exc)
 
     stdout = stdout_buffer.getvalue()
     stderr = stderr_buffer.getvalue()
-    # When script-fixture checks are present, the authoritative runs happen inside the test itself.
-    # Do not fail early on the initial run — allow the test to execute fresh scenarios.
-    if any((t.get("kind") or "").lower() == "script_fixtures" for t in payload.get("tests", [])):
+    # When script-fixture checks are present, the authoritative runs happen inside the test itself;
+    # skip the initial run outcome entirely.
+    if has_script_fixtures:
         success = True
         error = None
     result: dict[str, Any] = {

@@ -93,7 +93,15 @@ V32_LESSON_IDS = frozenset(
     }
 )
 
-V32_EXERCISE_PREFIXES = tuple(f"{lesson_id}_" for lesson_id in V32_LESSON_IDS)
+def _v32_exercise_prefixes() -> tuple[str, ...]:
+    prefixes: set[str] = set()
+    for lid in V32_LESSON_IDS:
+        parts = lid.split("_")
+        if len(parts) >= 2:
+            prefixes.add(f"{parts[0]}_{parts[1]}_")
+    return tuple(sorted(prefixes))
+
+V32_EXERCISE_PREFIXES = _v32_exercise_prefixes()
 
 
 DEFAULT_MASTERY_TOPICS = [
@@ -322,13 +330,18 @@ class ProgressStore:
         # If current lesson points into the V3.2 set, unset it to avoid dropping into a mismatched exercise.
         if data.current_lesson_id in V32_LESSON_IDS:
             data.current_lesson_id = None
+        # Reset mastery for tracked topics so the UI does not claim competence
+        # based on replaced assessments.
+        for topic in DEFAULT_MASTERY_TOPICS:
+            data.mastery[topic] = 0.0
         data.curriculum_version = 3
         self.migrated_from_legacy = True
         archive_note = f" A backup was saved as {archive.name}." if archive else ""
         self.load_warning = (
             "Basilisk Curriculum V3.2 Production Core replaces the prior lessons. "
             "Prior completions and drafts for Lessons 1–28 were cleared so old work "
-            "does not attach to rewritten exercises. Mastery scores were kept."
+            "does not attach to rewritten exercises. Mastery indicators were reset "
+            "for core topics to reflect the new curriculum."
             f"{archive_note}"
         )
 
