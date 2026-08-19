@@ -77,6 +77,6 @@ class ProgressMigrationV32Tests(unittest.TestCase):
             for eid in ("fundamentals_01_ex3", "decisions_10_ex3", "collections_11_ex1", "errors_22_ex1", "data_24_ex2", "oop_28_ex1"):
                 self.assertNotIn(eid, store.data.exercises)
             self.assertIn("sandbox_ex1", store.data.exercises)
-            # Mastery reset for core topics; mistake topics preserved.
-            self.assertEqual(store.data.mastery.get("print"), 0.0)
+            # Mastery preserved (policy: longitudinal metric); mistake topics preserved.
+            self.assertEqual(store.data.mastery.get("print"), 0.3)
             self.assertEqual(store.data.mistake_topics.get("print"), 1)

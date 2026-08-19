@@ -81,3 +81,46 @@ class ScriptFixturesTests(unittest.TestCase):
         code = 'print("Expedition 17: INVESTIGATE")\n'
         result = checker.check(ex, code=code)
         self.assertFalse(result.passed)
+
+    def test_script_fixtures_override_baseline_assignments(self) -> None:
+        # Student script with baseline assignments should still be driven by hidden fixtures.
+        runner = CodeRunner(timeout=2.0)
+        checker = ExerciseChecker(runner)
+        ex = exercise_from_dict(
+            {
+                "id": "tmp_ex2",
+                "type": "write_code",
+                "title": "Hidden fixtures override",
+                "prompt": "Script prints based on variables",
+                "tests": [
+                    {
+                        "kind": "script_fixtures",
+                        "fixtures": [
+                            {
+                                "expedition": 18,
+                                "registered": 3,
+                                "bedrolls": 2,
+                                "expected_stdout": "Expedition 18: INVESTIGATE\n",
+                            },
+                            {
+                                "expedition": 18,
+                                "registered": 3,
+                                "bedrolls": 3,
+                                "expected_stdout": "Expedition 18: CLEAR\n",
+                            },
+                        ],
+                    }
+                ],
+            }
+        )
+        code = (
+            "expedition = 999\n"
+            "registered = 0\n"
+            "bedrolls = 0\n"
+            "if bedrolls < registered:\n"
+            "    print(f\"Expedition {expedition}: INVESTIGATE\")\n"
+            "else:\n"
+            "    print(f\"Expedition {expedition}: CLEAR\")\n"
+        )
+        result = checker.check(ex, code=code)
+        self.assertTrue(result.passed, result.message)
