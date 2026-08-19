@@ -157,6 +157,47 @@ def apply_test(
 ) -> tuple[bool, str]:
     kind = test.get("kind", "stdout_equals")
 
+    if kind == "script_fixtures":
+        # Run the student's script against multiple hidden initial states without requiring functions.
+        fixtures = list(test.get("fixtures") or [])
+        if not fixtures:
+            return False, test.get("message") or "No fixtures were provided for this check."
+        try:
+            compiled = compile(source, "<student>", "exec")
+        except Exception:  # noqa: BLE001
+            return False, test.get("message") or "Your code could not be parsed."
+        for index, case in enumerate(fixtures, start=1):
+            # Fresh namespace for each scenario; preserve the guarded import policy.
+            scenario_ns: dict[str, Any] = {
+                "__name__": "__student__",
+                "__builtins__": namespace.get("__builtins__", {}),
+            }
+            # Inject initial values (kept invisible to the learner).
+            for key, value in dict(case).items():
+                if key == "expected_stdout":
+                    continue
+                scenario_ns[str(key)] = value
+            buffer = io.StringIO()
+            try:
+                with redirect_stdout(buffer), redirect_stderr(io.StringIO()):
+                    exec(compiled, scenario_ns, scenario_ns)
+            except Exception:  # noqa: BLE001
+                return False, test.get("message") or "Your program did not run for a hidden scenario."
+            expected = case.get("expected_stdout")
+            actual = buffer.getvalue()
+            if isinstance(expected, str):
+                if actual.rstrip("\n") != expected.rstrip("\n"):
+                    return False, test.get("message") or (
+                        "The printed lines did not match for one of our hidden scenarios."
+                    )
+            elif expected is not None:
+                # Support simple equality for non-string expected values if provided.
+                if str(actual).rstrip("\n") != str(expected).rstrip("\n"):
+                    return False, test.get("message") or (
+                        "The printed lines did not match for one of our hidden scenarios."
+                    )
+        return True, "Output matched for all hidden scenarios."
+
     if kind == "stdout_equals":
         expected = test.get("expected", "")
         expected_text = expected if isinstance(expected, str) else str(expected)
@@ -1574,6 +1615,11 @@ def run_payload(payload: dict[str, Any]) -> dict[str, Any]:
 
     stdout = stdout_buffer.getvalue()
     stderr = stderr_buffer.getvalue()
+    # When script-fixture checks are present, the authoritative runs happen inside the test itself.
+    # Do not fail early on the initial run — allow the test to execute fresh scenarios.
+    if any((t.get("kind") or "").lower() == "script_fixtures" for t in payload.get("tests", [])):
+        success = True
+        error = None
     result: dict[str, Any] = {
         "success": success,
         "stdout": stdout,
