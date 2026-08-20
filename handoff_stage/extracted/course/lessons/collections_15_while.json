@@ -1,0 +1,392 @@
+{
+  "curriculum_revision": "3.2",
+  "id": "collections_15_while",
+  "section": "Expedition Dispatch",
+  "section_order": 6,
+  "order": 2,
+  "title": "Repeat Until the Condition Changes",
+  "topics": [
+    "loops",
+    "conditionals"
+  ],
+  "content": "What problem does this solve?\nA for loop is usually best when you already know the collection or range to visit. A while loop is for repetition controlled by a condition: Python checks the condition before each pass and repeats only while it remains True.\n\nTrack four pieces\n1. Starting state — what value controls the loop?\n2. Condition — what must remain True for another pass?\n3. Body — what work happens each pass?\n4. Update — what changes so the condition can eventually become False?\n\nA terminating example\n  count = 3\n  while count > 0:\n      print(count)\n      count = count - 1\nThe output is 3, 2, 1. The update moves count toward 0, where the condition becomes False.\n\nZero passes are possible\nIf the condition is already False before the first check, the body does not run at all.\n\nVocabulary after the behavior\nAn iteration is one pass through the loop. Termination is the point where repetition stops. An infinite loop is one whose condition never becomes False.",
+  "concepts": [
+    "while checks its condition before every pass",
+    "The body can run zero times",
+    "A changing value usually moves the loop toward termination",
+    "Trace starting state, condition, work, and update separately",
+    "Use for when visiting a known collection/range and while when an unknown number of repetitions depends on a changing condition"
+  ],
+  "examples": [
+    {
+      "title": "Countdown",
+      "code": "count = 3\nwhile count > 0:\n    print(count)\n    count = count - 1",
+      "explanation": "The loop prints the current count, then moves it one step toward the stopping condition."
+    },
+    {
+      "title": "Zero passes",
+      "code": "count = 0\nwhile count > 0:\n    print(count)",
+      "explanation": "The condition is False immediately, so the body never runs."
+    },
+    {
+      "title": "Index through a list",
+      "code": "items = [2, 4, 6]\nindex = 0\nwhile index < len(items):\n    print(items[index])\n    index = index + 1",
+      "explanation": "The index begins at 0 and changes after each visit until it reaches len(items)."
+    }
+  ],
+  "common_mistakes": [
+    "Forgetting the update and creating an infinite loop",
+    "Updating the wrong variable",
+    "Putting the update outside the loop",
+    "Using <= where < is needed and stepping past a valid index",
+    "Assuming a while loop always runs at least once",
+    "Using while for a simple collection traversal where for is clearer"
+  ],
+  "exercises": [
+    {
+      "id": "collections_15_ex1",
+      "type": "predict_output",
+      "title": "Count to zero",
+      "prompt": "What does the program print after the loop?",
+      "code_to_predict": "fuel = 3\nwhile fuel > 0:\n    fuel = fuel - 1\nprint(fuel)",
+      "expected_answer": "0",
+      "topics": [
+        "loops"
+      ],
+      "hints": [
+        "The print happens only after the loop is finished.",
+        "Trace fuel: 3 -> 2 -> 1 -> 0. At 0, the condition becomes False.",
+        "The value printed after the loop is 0."
+      ],
+      "reasoning_targets": [
+        "termination"
+      ]
+    },
+    {
+      "id": "collections_15_ex2",
+      "type": "architecture",
+      "title": "Zero passes",
+      "prompt": "How many times does the body of this loop run?\n\ncount = 0\nwhile count > 0:\n    print(count)",
+      "choices": [
+        "0 times",
+        "1 time",
+        "It never stops"
+      ],
+      "expected_answer": "1",
+      "topics": [
+        "loops"
+      ],
+      "hints": [
+        "Check the condition before imagining the first pass.",
+        "0 > 0 is False immediately.",
+        "Choose 0 times."
+      ],
+      "reasoning_targets": [
+        "boundaries"
+      ]
+    },
+    {
+      "id": "collections_15_ex3",
+      "type": "predict_output",
+      "title": "Trace each pass",
+      "prompt": "Write the exact output in order.",
+      "code_to_predict": "count = 3\nwhile count > 0:\n    print(count)\n    count = count - 1",
+      "expected_answer": "3\n2\n1",
+      "topics": [
+        "loops"
+      ],
+      "hints": [
+        "Record the value printed before each update.",
+        "The passes begin with count values 3, then 2, then 1.",
+        "The output is 3, 2, 1 on separate lines; 0 is not printed because the condition fails then."
+      ],
+      "reasoning_targets": [
+        "termination"
+      ]
+    },
+    {
+      "id": "collections_15_ex4",
+      "type": "architecture",
+      "title": "Name the progress variable",
+      "prompt": "In `while distance > 0`, which value must eventually change if this condition is going to become False?",
+      "choices": [
+        "distance",
+        "The word while",
+        "The number 0"
+      ],
+      "expected_answer": "1",
+      "topics": [
+        "loops"
+      ],
+      "hints": [
+        "Look at the part of the condition whose value can change while the program runs.",
+        "The fixed number 0 cannot move; the variable can.",
+        "distance must change."
+      ],
+      "reasoning_targets": [
+        "termination"
+      ]
+    },
+    {
+      "id": "collections_15_ex5",
+      "type": "architecture",
+      "title": "Infinite loop or not?",
+      "prompt": "Does this loop terminate on its own?\n\nx = 3\nwhile x > 0:\n    print(x)",
+      "choices": [
+        "Yes, after three prints",
+        "No, because x never changes",
+        "Yes, because print changes x"
+      ],
+      "expected_answer": "2",
+      "topics": [
+        "loops"
+      ],
+      "hints": [
+        "Ask what changes from one pass to the next.",
+        "Printing x does not change the value stored in x.",
+        "Because x stays 3, x > 0 remains True forever."
+      ],
+      "reasoning_targets": [
+        "termination",
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "collections_15_ex6",
+      "type": "fill_blank",
+      "title": "Make progress",
+      "prompt": "Complete the update so the loop terminates after three passes and prints 3 for steps.",
+      "starter_code": "distance = 3\nsteps = 0\nwhile distance > 0:\n    steps = steps + 1\n    # add the progress update here\nprint(steps)\n",
+      "reference_solution": "distance = 3\nsteps = 0\nwhile distance > 0:\n    steps = steps + 1\n    distance = distance - 1\nprint(steps)\n",
+      "topics": [
+        "loops",
+        "variables"
+      ],
+      "hints": [
+        "The condition depends on distance, not steps.",
+        "Move distance one unit closer to 0 on each pass.",
+        "Add `distance = distance - 1` inside the loop."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "while_loop",
+          "nonconstant": true
+        },
+        {
+          "kind": "source_uses",
+          "feature": "no_for_loop"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "3\n"
+        }
+      ],
+      "integration": [
+        "while_loop",
+        "variables",
+        "comparisons",
+        "assignment",
+        "print"
+      ],
+      "reasoning_targets": [
+        "termination"
+      ]
+    },
+    {
+      "id": "collections_15_ex7",
+      "type": "debug",
+      "title": "The signal never changes",
+      "prompt": "Repair this loop so it prints 3, 2, 1, then `clear`. Keep the while loop; do not replace it with a for loop.",
+      "starter_code": "signal = 3\nwhile signal > 0:\n    print(signal)\nprint(\"clear\")\n",
+      "reference_solution": "signal = 3\nwhile signal > 0:\n    print(signal)\n    signal = signal - 1\nprint(\"clear\")\n",
+      "topics": [
+        "loops"
+      ],
+      "hints": [
+        "The condition keeps reading the same signal value forever.",
+        "Change the value that the while condition depends on inside the body.",
+        "After printing, add `signal = signal - 1`."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "while_loop",
+          "nonconstant": true
+        },
+        {
+          "kind": "source_uses",
+          "feature": "no_for_loop"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "3\n2\n1\nclear\n"
+        }
+      ],
+      "integration": [
+        "while_loop",
+        "variables",
+        "comparisons",
+        "assignment",
+        "print"
+      ],
+      "reasoning_targets": [
+        "diagnosis",
+        "termination"
+      ]
+    },
+    {
+      "id": "collections_15_ex8",
+      "type": "architecture",
+      "title": "for or while?",
+      "prompt": "You must repeat a route check until a warning becomes False, and you do not know how many checks that will take. Which loop best matches the problem?",
+      "choices": [
+        "for",
+        "while"
+      ],
+      "expected_answer": "2",
+      "topics": [
+        "loops"
+      ],
+      "hints": [
+        "The number of repeats is not known in advance.",
+        "Repetition ends when a condition changes rather than after visiting a known collection/range.",
+        "Choose while."
+      ],
+      "success_message": "Correct. The changing warning condition controls when repetition ends."
+    },
+    {
+      "id": "collections_15_ex9",
+      "type": "write_code",
+      "title": "Write a terminating loop",
+      "prompt": "Starting from `count = 4`, write a while loop from scratch that prints 4, 3, 2, 1 on separate lines and leaves `count` equal to 0 when the loop finishes. Do not use `range()` or a for loop.",
+      "starter_code": "count = 4\n\n# Write the while loop.\n",
+      "reference_solution": "count = 4\n\nwhile count > 0:\n    print(count)\n    count = count - 1\n",
+      "topics": [
+        "loops",
+        "variables"
+      ],
+      "hints": [
+        "Use count itself as the progress value and stop when it is no longer greater than 0.",
+        "Inside the loop, print first, then decrease count by 1.",
+        "Use `while count > 0:`, `print(count)`, then `count = count - 1`."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "while_loop",
+          "nonconstant": true
+        },
+        {
+          "kind": "source_uses",
+          "feature": "no_for_loop"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "forbidden_call",
+          "name": "range"
+        },
+        {
+          "kind": "globals",
+          "name": "count",
+          "expected": 0,
+          "type_name": "int"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "4\n3\n2\n1\n"
+        }
+      ],
+      "success_message": "The loop terminates correctly and leaves its control variable at the intended boundary.",
+      "integration": [
+        "while_loop",
+        "variables",
+        "comparisons",
+        "assignment",
+        "print"
+      ],
+      "reasoning_targets": [
+        "termination",
+        "boundaries"
+      ]
+    },
+    {
+      "id": "collections_15_ex10",
+      "type": "mini_project",
+      "title": "Watchtower Countdown",
+      "prompt": "Build the watchtower countdown. Start with the supplied `watch` dictionary. While `checks_remaining` is greater than 0, print `<remaining>: <warning>` using the warning from `watch.get(\"warning\", \"clear\")`, then reduce `checks_remaining` by 1. After the loop, set `watch[\"status\"] = \"complete\"` and print `Status: complete`. The loop must be controlled by the dictionary value, not a separate hardcoded counter.",
+      "starter_code": "watch = {\"checks_remaining\": 3, \"warning\": \"fog\"}\n\n# Repeat until no checks remain, then mark the watch complete.\n",
+      "reference_solution": "watch = {\"checks_remaining\": 3, \"warning\": \"fog\"}\n\nwhile watch[\"checks_remaining\"] > 0:\n    warning = watch.get(\"warning\", \"clear\")\n    print(f\"{watch['checks_remaining']}: {warning}\")\n    watch[\"checks_remaining\"] = watch[\"checks_remaining\"] - 1\n\nwatch[\"status\"] = \"complete\"\nprint(f\"Status: {watch['status']}\")\n",
+      "topics": [
+        "loops",
+        "dictionaries",
+        "strings"
+      ],
+      "hints": [
+        "Use the record itself as the changing state: the while condition should read watch[\"checks_remaining\"].",
+        "Inside the loop, get the warning, print the current count, then assign checks_remaining to one less than its current value.",
+        "After the loop reaches 0, add the status key and print it. Keep the update inside the loop so termination is guaranteed."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "while_loop",
+          "nonconstant": true
+        },
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "get",
+          "name": "watch",
+          "min_args": 2
+        },
+        {
+          "kind": "source_uses",
+          "feature": "subscript"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "fstring"
+        },
+        {
+          "kind": "globals",
+          "name": "watch",
+          "expected": {
+            "checks_remaining": 0,
+            "warning": "fog",
+            "status": "complete"
+          },
+          "type_name": "dict"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "3: fog\n2: fog\n1: fog\nStatus: complete\n"
+        }
+      ],
+      "success_message": "Watchtower complete. The record itself controlled repetition, changed on each pass, and ended in a verifiable final state.",
+      "integration": [
+        "while_loop",
+        "dictionaries",
+        "dictionary_lookup",
+        "dict_get",
+        "dictionary_update",
+        "comparisons",
+        "assignment",
+        "f_strings",
+        "print"
+      ],
+      "reasoning_targets": [
+        "termination"
+      ],
+      "project_role": "bridge_project",
+      "criteria": [
+        "condition_controlled_repetition",
+        "progress_to_termination",
+        "warning_fallback",
+        "final_record_status"
+      ]
+    }
+  ],
+  "lesson_number": 15,
+  "production_contract_version": 1
+}

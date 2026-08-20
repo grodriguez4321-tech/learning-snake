@@ -1,0 +1,378 @@
+{
+  "curriculum_revision": "3.2",
+  "id": "functions_16_parameters",
+  "section": "Expedition Dispatch",
+  "section_order": 6,
+  "order": 3,
+  "title": "Give a Function the Full Situation",
+  "topics": [
+    "functions"
+  ],
+  "content": "What problem does this solve?\nOne input is sometimes not enough to describe the work a function must do. A function can declare several parameters so each required piece of information has its own name.\n\nMatch from left to right\n  def label(name, role):\n      return f\"{name}: {role}\"\n  label(\"Mira\", \"Scout\")\nWith a normal positional call, Python matches the first argument to the first parameter and the second argument to the second parameter. Order therefore matters.\n\nUse every required input\nA parameter should exist because the function needs that information. Hidden tests should change each input so hardcoded or ignored values cannot pass.\n\nVocabulary after the behavior\nA parameter is the name in the function definition. An argument is the value supplied in one call. Positional arguments are matched from left to right.",
+  "concepts": [
+    "Functions can declare several required parameters",
+    "Positional arguments match parameters from left to right",
+    "Argument order can change the result",
+    "Every required parameter should contribute to the function's behavior"
+  ],
+  "examples": [
+    {
+      "title": "Two required inputs",
+      "code": "def add(a, b):\n    return a + b\nprint(add(2, 5))",
+      "explanation": "The first argument becomes a and the second becomes b."
+    },
+    {
+      "title": "Order matters",
+      "code": "def label(first, second):\n    return f\"{first}-{second}\"\nprint(label(\"A\", \"B\"))\nprint(label(\"B\", \"A\"))",
+      "explanation": "Swapping positional arguments swaps which parameter receives each value."
+    }
+  ],
+  "common_mistakes": [
+    "Passing arguments in the wrong order",
+    "Adding parameters but then hardcoding one of their values in the body",
+    "Confusing parameter names in the definition with argument values at the call site",
+    "Assuming Python guesses positional arguments from their meaning rather than their position"
+  ],
+  "exercises": [
+    {
+      "id": "functions_16_ex1",
+      "type": "predict_output",
+      "title": "Match the arguments",
+      "prompt": "What prints?",
+      "code_to_predict": "def label(name, role):\n    return f\"{name}: {role}\"\nprint(label(\"Mira\", \"Scout\"))",
+      "expected_answer": "Mira: Scout",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "Match the arguments to the parameter list from left to right.",
+        "Mira becomes name; Scout becomes role.",
+        "The returned string is Mira: Scout."
+      ]
+    },
+    {
+      "id": "functions_16_ex2",
+      "type": "fill_blank",
+      "title": "Complete the signature",
+      "prompt": "Complete the function signature so the body can multiply `price` by `quantity`.",
+      "starter_code": "def total(price):\n    return price * quantity\n",
+      "reference_solution": "def total(price, quantity):\n    return price * quantity\n",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "The body uses two separate inputs.",
+        "Both names used as required inputs should appear inside the parentheses of the definition.",
+        "Use `def total(price, quantity):`."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "total",
+          "parameters": [
+            "price",
+            "quantity"
+          ]
+        },
+        {
+          "kind": "function",
+          "function": "total",
+          "args": [
+            4,
+            3
+          ],
+          "expected": 12
+        },
+        {
+          "kind": "function",
+          "function": "total",
+          "args": [
+            7,
+            1
+          ],
+          "expected": 7
+        }
+      ],
+      "integration": [
+        "functions",
+        "multiple_parameters",
+        "arithmetic",
+        "return"
+      ]
+    },
+    {
+      "id": "functions_16_ex3",
+      "type": "predict_output",
+      "title": "Argument order changes the result",
+      "prompt": "What prints?",
+      "code_to_predict": "def order(first, second):\n    return f\"{first}-{second}\"\nprint(order(\"B\", \"A\"))",
+      "expected_answer": "B-A",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "Do not reorder the values by meaning; use their call positions.",
+        "B is the first argument, so it becomes first. A becomes second.",
+        "The output is B-A."
+      ]
+    },
+    {
+      "id": "functions_16_ex4",
+      "type": "debug",
+      "title": "Fix the call site",
+      "prompt": "The function is correct, but the call passes the values in the wrong order. Repair only the call so the program prints `Mira: Scout`.",
+      "starter_code": "def label(name, role):\n    return f\"{name}: {role}\"\n\nprint(label(\"Scout\", \"Mira\"))\n",
+      "reference_solution": "def label(name, role):\n    return f\"{name}: {role}\"\n\nprint(label(\"Mira\", \"Scout\"))\n",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "Read the parameter order in the definition first.",
+        "The first argument must be the character name; the second must be the role.",
+        "Call `label(\"Mira\", \"Scout\")`."
+      ],
+      "tests": [
+        {
+          "kind": "stdout_equals",
+          "expected": "Mira: Scout\n"
+        }
+      ],
+      "reasoning_targets": [
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "functions_16_ex5",
+      "type": "write_code",
+      "title": "Carry capacity",
+      "prompt": "Write `carry_capacity(base_slots, bonus_slots)` that returns the sum of its two inputs. Both parameters must affect the result. Negative bonus values should reduce the total normally.",
+      "starter_code": "def carry_capacity(base_slots, bonus_slots):\n    pass\n",
+      "reference_solution": "def carry_capacity(base_slots, bonus_slots):\n    return base_slots + bonus_slots\n",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "The function needs only one arithmetic expression.",
+        "Use both parameter names rather than a fixed number.",
+        "Return `base_slots + bonus_slots`."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "carry_capacity",
+          "parameters": [
+            "base_slots",
+            "bonus_slots"
+          ]
+        },
+        {
+          "kind": "function",
+          "function": "carry_capacity",
+          "args": [
+            5,
+            3
+          ],
+          "expected": 8
+        },
+        {
+          "kind": "function",
+          "function": "carry_capacity",
+          "args": [
+            5,
+            0
+          ],
+          "expected": 5
+        },
+        {
+          "kind": "function",
+          "function": "carry_capacity",
+          "args": [
+            5,
+            -2
+          ],
+          "expected": 3
+        },
+        {
+          "kind": "function",
+          "function": "carry_capacity",
+          "args": [
+            0,
+            4
+          ],
+          "expected": 4
+        }
+      ],
+      "integration": [
+        "functions",
+        "multiple_parameters",
+        "arithmetic",
+        "return"
+      ],
+      "reasoning_targets": [
+        "boundaries"
+      ]
+    },
+    {
+      "id": "functions_16_ex6",
+      "type": "mini_project",
+      "title": "Dispatch Status",
+      "prompt": "Write `dispatch_status(party, supplies, warning_active)`. Return `\"Denied\"` if a warning is active OR the party is empty. Otherwise return `\"Ready\"` when there are at least two supply items for each party member. Return `\"Review\"` for the remaining cases. Use all three parameters; do not hardcode one sample party size.",
+      "starter_code": "def dispatch_status(party, supplies, warning_active):\n    pass\n",
+      "reference_solution": "def dispatch_status(party, supplies, warning_active):\n    if warning_active or len(party) == 0:\n        return \"Denied\"\n    elif len(supplies) >= len(party) * 2:\n        return \"Ready\"\n    else:\n        return \"Review\"\n",
+      "topics": [
+        "functions",
+        "conditionals",
+        "collections"
+      ],
+      "hints": [
+        "Handle denial first: either an active warning or an empty party is enough.",
+        "If departure is not denied, compare the supply count with two times the party count.",
+        "Use `if warning_active or len(party) == 0`, then an `elif` comparing `len(supplies)` with `len(party) * 2`, then `else`."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "dispatch_status",
+          "parameters": [
+            "party",
+            "supplies",
+            "warning_active"
+          ]
+        },
+        {
+          "kind": "source_uses",
+          "feature": "boolean_or",
+          "in_function": "dispatch_status"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "len_call",
+          "in_function": "dispatch_status"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "elif_branch",
+          "in_function": "dispatch_status"
+        },
+        {
+          "kind": "function",
+          "function": "dispatch_status",
+          "args": [
+            [],
+            [
+              "rope",
+              "torch"
+            ],
+            false
+          ],
+          "expected": "Denied"
+        },
+        {
+          "kind": "function",
+          "function": "dispatch_status",
+          "args": [
+            [
+              "Mira"
+            ],
+            [
+              "rope",
+              "torch"
+            ],
+            true
+          ],
+          "expected": "Denied"
+        },
+        {
+          "kind": "function",
+          "function": "dispatch_status",
+          "args": [
+            [
+              "Mira"
+            ],
+            [
+              "rope",
+              "torch"
+            ],
+            false
+          ],
+          "expected": "Ready"
+        },
+        {
+          "kind": "function",
+          "function": "dispatch_status",
+          "args": [
+            [
+              "Mira",
+              "Rook"
+            ],
+            [
+              "rope",
+              "torch",
+              "chalk",
+              "water"
+            ],
+            false
+          ],
+          "expected": "Ready"
+        },
+        {
+          "kind": "function",
+          "function": "dispatch_status",
+          "args": [
+            [
+              "Mira",
+              "Rook"
+            ],
+            [
+              "rope",
+              "torch",
+              "chalk"
+            ],
+            false
+          ],
+          "expected": "Review"
+        },
+        {
+          "kind": "function",
+          "function": "dispatch_status",
+          "args": [
+            [
+              "Mira"
+            ],
+            [
+              "rope"
+            ],
+            false
+          ],
+          "expected": "Review"
+        }
+      ],
+      "success_message": "Dispatch status responds correctly to empty parties, warnings, exact supply boundaries, and undersupply.",
+      "integration": [
+        "functions",
+        "multiple_parameters",
+        "lists",
+        "len",
+        "arithmetic",
+        "boolean_logic",
+        "comparisons",
+        "elif",
+        "return"
+      ],
+      "reasoning_targets": [
+        "boundaries"
+      ],
+      "project_role": "lesson_synthesis",
+      "criteria": [
+        "use_all_required_parameters",
+        "calculate_status_from_inputs",
+        "return_status_result"
+      ]
+    }
+  ],
+  "lesson_number": 16,
+  "production_contract_version": 1
+}

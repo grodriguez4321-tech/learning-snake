@@ -1,0 +1,177 @@
+{
+  "curriculum_revision": "3.2",
+  "id": "fundamentals_01_print",
+  "section": "Python Fundamentals",
+  "section_order": 1,
+  "order": 1,
+  "title": "Leave a Trace",
+  "topics": [
+    "print"
+  ],
+  "concept_ids": [
+    "print",
+    "comments",
+    "strings"
+  ],
+  "content": "What problem does this solve?\nPython can do work without showing you anything. print() gives you a simple way to see a value or message while the program runs.\n\nStart with the behavior\nPython reads these beginner programs from top to bottom. When it reaches print(\"hello\"), it shows hello in the output area. Text inside quotes is text data. A line that starts with # is a note for the person reading the code; Python does not run that note.\n\nSmallest useful shapes\n  print(\"hello\")\n  print(\"first\")\n  print(\"second\")\n  # a comment for the reader\n\nVocabulary after the behavior\nA piece of quoted text is a string. print(...) is a function call. What the program shows is output.\n\nWhen this is useful\nUse print() when you need to observe what a program did. Use comments to leave short explanations for a future reader.",
+  "concepts": [
+    "Python runs these simple statements from top to bottom",
+    "Quoted text is a string",
+    "print() shows a value in the output area",
+    "A # comment is for humans and does not run"
+  ],
+  "examples": [
+    {
+      "title": "One line",
+      "code": "print(\"hello\")",
+      "explanation": "Python runs the print call and shows hello."
+    },
+    {
+      "title": "Order matters",
+      "code": "print(\"first\")\nprint(\"second\")",
+      "explanation": "The first print runs before the second."
+    },
+    {
+      "title": "Expedition transfer",
+      "code": "print(\"EXPEDITION LOG 17\")\nprint(\"Status: OVERDUE\")",
+      "explanation": "The Python behavior is unchanged; only the data is themed."
+    }
+  ],
+  "common_mistakes": [
+    "Leaving quotes off literal text makes Python treat the word like a name",
+    "Expecting a # comment to produce output",
+    "Assuming the lines can run in any order"
+  ],
+  "exercises": [
+    {
+      "id": "fundamentals_01_ex1",
+      "type": "predict_output",
+      "title": "Read one print",
+      "prompt": "What appears in the output?",
+      "code_to_predict": "print(\"hello\")",
+      "expected_answer": "hello",
+      "topics": [
+        "print"
+      ],
+      "hints": [
+        "Look only at the value inside print(...).",
+        "The quotes mark text; the quotes themselves are not part of the normal output.",
+        "The single output line is hello."
+      ]
+    },
+    {
+      "id": "fundamentals_01_ex2",
+      "type": "fill_blank",
+      "title": "Change the message",
+      "prompt": "Change the quoted text so the program prints exactly:\nready",
+      "starter_code": "print(\"change me\")\n",
+      "reference_solution": "print(\"ready\")\n",
+      "topics": [
+        "print"
+      ],
+      "hints": [
+        "Only the message needs to change.",
+        "Keep the parentheses and quotes; replace the text inside the quotes.",
+        "Use print(\"ready\")."
+      ],
+      "tests": [
+        {
+          "kind": "stdout_equals",
+          "expected": "ready\n"
+        }
+      ],
+      "success_message": "You changed the program's visible output without changing its structure."
+    },
+    {
+      "id": "fundamentals_01_ex3",
+      "type": "write_code",
+      "title": "Two lines in order",
+      "prompt": "Write two print() calls so the output is exactly:\nfirst\nsecond",
+      "starter_code": "# Write two print calls\n",
+      "reference_solution": "print(\"first\")\nprint(\"second\")\n",
+      "topics": [
+        "print"
+      ],
+      "hints": [
+        "Each output line can come from one print() call.",
+        "Write the first print before the second because Python runs top to bottom.",
+        "Use print(\"first\") and then print(\"second\")."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "print_min_calls",
+          "expected": 2,
+          "message": "Use two print() calls."
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "first\nsecond\n"
+        }
+      ]
+    },
+    {
+      "id": "fundamentals_01_ex4",
+      "type": "debug",
+      "title": "Quote the text",
+      "prompt": "This is supposed to print SEARCH. Repair the line.",
+      "starter_code": "print(SEARCH)\n",
+      "reference_solution": "print(\"SEARCH\")\n",
+      "topics": [
+        "print"
+      ],
+      "hints": [
+        "Python is currently treating SEARCH like a name instead of literal text.",
+        "Literal text belongs inside quotes.",
+        "Change the line to print(\"SEARCH\")."
+      ],
+      "tests": [
+        {
+          "kind": "stdout_equals",
+          "expected": "SEARCH\n"
+        }
+      ],
+      "failure_message": "The program should treat SEARCH as quoted text and print one line."
+    },
+    {
+      "id": "fundamentals_01_ex5",
+      "type": "write_code",
+      "title": "Expedition dispatch",
+      "prompt": "Print exactly these three lines:\nSEARCH DISPATCH\nExpedition: 17\nStatus: OVERDUE\n\nInclude one useful # comment in your code for a future reader.",
+      "starter_code": "# Build the three-line dispatch\n",
+      "reference_solution": "# Search authorization for Expedition 17\nprint(\"SEARCH DISPATCH\")\nprint(\"Expedition: 17\")\nprint(\"Status: OVERDUE\")\n",
+      "topics": [
+        "print"
+      ],
+      "hints": [
+        "Plan one print() call for each required output line.",
+        "A comment can sit on its own line and begins with #; it should explain something about the code.",
+        "Write the comment, then three print() calls in the same order as the required output."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "comment",
+          "message": "Include a real # comment."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "print_min_calls",
+          "expected": 3,
+          "message": "Use at least three print() calls."
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "SEARCH DISPATCH\nExpedition: 17\nStatus: OVERDUE\n"
+        }
+      ],
+      "success_message": "You produced a small readable dispatch and left a note for the next reader.",
+      "integration": [
+        "print",
+        "comments"
+      ]
+    }
+  ],
+  "lesson_number": 1,
+  "production_contract_version": 1
+}

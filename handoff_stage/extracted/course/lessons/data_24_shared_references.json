@@ -1,0 +1,451 @@
+{
+  "curriculum_revision": "3.2",
+  "id": "data_24_shared_references",
+  "section": "Data & Objects",
+  "section_order": 8,
+  "order": 1,
+  "title": "When Two Names Reach the Same List",
+  "topics": [
+    "references",
+    "lists"
+  ],
+  "content": "What problem does this solve?\nAssignment does not always create a new copy. With a list, `b = a` makes both names reach the same list. If code changes that list through either name, the other name sees the change too.\n\nMutation versus rebinding\nAppending through b changes the shared list. Writing `b = [9]` is different: b is rebound so it reaches a different list; the original list itself was not changed.\n\nMake a separate outer list\n  b = list(a)\ncreates a new outer list containing the same current items. Appending to b no longer appends to a. If those items are themselves mutable lists, the inner lists are still shared; one-level copying does not promise deep independence.\n\nFunctions make the contract matter\nA helper may intentionally mutate its input, or it may be required to preserve the caller's list and return a separate one. Neither rule is universally correct; the function's contract must say which behavior is intended.\n\nVocabulary after the behavior\nA reference is how a name reaches an object. Two names for the same mutable object are aliases. Mutation changes the object; rebinding changes which object a name reaches. `list(existing)` makes a shallow, one-level list copy.",
+  "concepts": [
+    "Two names can refer to the same mutable list",
+    "Mutation through either alias is visible through the other",
+    "Rebinding one name does not mutate the original object",
+    "list(existing) makes a separate outer list",
+    "A shallow outer copy can still share nested mutable items",
+    "Whether a function mutates its input is part of its contract"
+  ],
+  "examples": [
+    {
+      "title": "Two names, one list",
+      "code": "a = [1, 2]\nb = a\nb.append(3)\nprint(a)",
+      "explanation": "a and b reach the same list, so the append is visible through a."
+    },
+    {
+      "title": "Rebinding one name",
+      "code": "a = [1, 2]\nb = a\nb = [9]\nprint(a)\nprint(b)",
+      "explanation": "b now reaches a new list; a still reaches the original."
+    },
+    {
+      "title": "Separate outer list",
+      "code": "a = [1, 2]\nb = list(a)\nb.append(3)\nprint(a)\nprint(b)",
+      "explanation": "The outer lists are separate, so appending to b does not alter a."
+    },
+    {
+      "title": "Nested sharing remains",
+      "code": "original = [[\"rope\"], [\"torch\"]]\ncopied = list(original)\ncopied[0].append(\"chalk\")\nprint(original[0])",
+      "explanation": "Only the outer list was copied; both outer lists still contain the same inner list objects."
+    }
+  ],
+  "common_mistakes": [
+    "Assuming b = a copies a list because there are two variable names",
+    "Assuming rebinding b mutates a",
+    "Using equal contents as proof that two variables are the same object",
+    "Copying only after unintended mutation already happened",
+    "Treating all mutation as bad rather than specifying the function contract",
+    "Assuming one-level copying makes arbitrary nested data fully independent"
+  ],
+  "exercises": [
+    {
+      "id": "data_24_ex1",
+      "type": "predict_output",
+      "title": "Two names, one list",
+      "prompt": "What prints?",
+      "code_to_predict": "a = [1, 2]\nb = a\nb.append(3)\nprint(a)",
+      "expected_answer": "[1, 2, 3]",
+      "topics": [
+        "references",
+        "lists"
+      ],
+      "hints": [
+        "Track which list object each name reaches before the append.",
+        "b = a does not create a new list; both names reach the same one.",
+        "Appending through b makes a show [1, 2, 3]."
+      ]
+    },
+    {
+      "id": "data_24_ex2",
+      "type": "predict_output",
+      "title": "Change through the other name",
+      "prompt": "What prints?",
+      "code_to_predict": "a = [\"x\"]\nb = a\na.append(\"y\")\nprint(b)",
+      "expected_answer": "['x', 'y']",
+      "topics": [
+        "references",
+        "lists"
+      ],
+      "hints": [
+        "Again, assignment made two names for one list.",
+        "Changing the list through a is visible through b.",
+        "b prints ['x', 'y']."
+      ]
+    },
+    {
+      "id": "data_24_ex3",
+      "type": "predict_output",
+      "title": "Rebinding is different",
+      "prompt": "What two lines print?",
+      "code_to_predict": "a = [1, 2]\nb = a\nb = [9]\nprint(a)\nprint(b)",
+      "expected_answer": "[1, 2]\n[9]",
+      "topics": [
+        "references",
+        "lists"
+      ],
+      "hints": [
+        "The second assignment to b changes what b reaches.",
+        "No method changed the original [1, 2] list.",
+        "a prints [1, 2]; b prints [9]."
+      ]
+    },
+    {
+      "id": "data_24_ex4",
+      "type": "predict_output",
+      "title": "Separate outer copy",
+      "prompt": "What two lines print?",
+      "code_to_predict": "a = [1, 2]\nb = list(a)\nb.append(3)\nprint(a)\nprint(b)",
+      "expected_answer": "[1, 2]\n[1, 2, 3]",
+      "topics": [
+        "references",
+        "lists"
+      ],
+      "hints": [
+        "list(a) creates another outer list.",
+        "Appending to b changes the copied list only.",
+        "a stays [1, 2]; b becomes [1, 2, 3]."
+      ]
+    },
+    {
+      "id": "data_24_ex5",
+      "type": "predict_output",
+      "title": "Outer copy, inner sharing",
+      "prompt": "What prints?",
+      "code_to_predict": "original = [[\"rope\"], [\"torch\"]]\ncopied = list(original)\ncopied[0].append(\"chalk\")\nprint(original[0])",
+      "expected_answer": "['rope', 'chalk']",
+      "topics": [
+        "references",
+        "lists"
+      ],
+      "hints": [
+        "The outer list was copied, but ask what objects are stored inside both outer lists.",
+        "Both outer lists still contain the same first inner list.",
+        "Appending chalk to copied[0] changes that shared inner list, so original[0] also contains chalk."
+      ]
+    },
+    {
+      "id": "data_24_ex6",
+      "type": "predict_output",
+      "title": "Function changes its argument",
+      "prompt": "What prints?",
+      "code_to_predict": "def add_flag(items):\n    items.append(\"flag\")\n\nvalues = [\"a\"]\nadd_flag(values)\nprint(values)",
+      "expected_answer": "['a', 'flag']",
+      "topics": [
+        "references",
+        "functions"
+      ],
+      "hints": [
+        "The argument passes the list object into the parameter.",
+        "append mutates that same list rather than rebinding only the local parameter.",
+        "values therefore becomes ['a', 'flag']."
+      ]
+    },
+    {
+      "id": "data_24_ex7",
+      "type": "debug",
+      "title": "Preserve the caller",
+      "prompt": "`add_flag` is required to leave its input list unchanged. Repair it by making a separate outer list, appending to the copy, and returning the copy.",
+      "starter_code": "def add_flag(items):\n    items.append(\"flag\")\n    return items\n",
+      "reference_solution": "def add_flag(items):\n    result = list(items)\n    result.append(\"flag\")\n    return result\n",
+      "topics": [
+        "references",
+        "functions",
+        "lists"
+      ],
+      "hints": [
+        "Do not append until you have a different outer list to work with.",
+        "Create `result = list(items)`, then mutate result instead of items.",
+        "Append flag to result and return result."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "calls_name",
+          "name": "list",
+          "in_function": "add_flag"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "append_call",
+          "in_function": "add_flag"
+        },
+        {
+          "kind": "function",
+          "function": "add_flag",
+          "args": [
+            [
+              "a"
+            ]
+          ],
+          "expected": [
+            "a",
+            "flag"
+          ],
+          "arg_after": {
+            "0": [
+              "a"
+            ]
+          }
+        },
+        {
+          "kind": "function",
+          "function": "add_flag",
+          "args": [
+            []
+          ],
+          "expected": [
+            "flag"
+          ],
+          "arg_after": {
+            "0": []
+          }
+        }
+      ],
+      "integration": [
+        "functions",
+        "parameters",
+        "lists",
+        "list_copy",
+        "append",
+        "return"
+      ],
+      "reasoning_targets": [
+        "mutation_contract",
+        "reference_independence",
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "data_24_ex8",
+      "type": "write_code",
+      "title": "Non-mutating helper",
+      "prompt": "Write `with_item(items, item)` that returns a separate outer list containing the old values plus item. The caller's `items` list must remain unchanged.",
+      "starter_code": "def with_item(items, item):\n    pass\n",
+      "reference_solution": "def with_item(items, item):\n    result = list(items)\n    result.append(item)\n    return result\n",
+      "topics": [
+        "references",
+        "functions",
+        "lists"
+      ],
+      "hints": [
+        "Copy the outer list before changing anything.",
+        "Append the new item to the copied result, not to the parameter list.",
+        "Use `result = list(items)`, append item, then return result."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "calls_name",
+          "name": "list",
+          "in_function": "with_item"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "append_call",
+          "in_function": "with_item"
+        },
+        {
+          "kind": "function",
+          "function": "with_item",
+          "args": [
+            [
+              "rope"
+            ],
+            "torch"
+          ],
+          "expected": [
+            "rope",
+            "torch"
+          ],
+          "arg_after": {
+            "0": [
+              "rope"
+            ]
+          }
+        },
+        {
+          "kind": "function",
+          "function": "with_item",
+          "args": [
+            [],
+            "chalk"
+          ],
+          "expected": [
+            "chalk"
+          ],
+          "arg_after": {
+            "0": []
+          }
+        }
+      ],
+      "integration": [
+        "functions",
+        "multiple_parameters",
+        "lists",
+        "list_copy",
+        "append",
+        "return"
+      ],
+      "reasoning_targets": [
+        "mutation_contract",
+        "reference_independence"
+      ]
+    },
+    {
+      "id": "data_24_ex9",
+      "type": "architecture",
+      "title": "Mutation as a contract",
+      "prompt": "A function named `consume_last(supplies)` is explicitly documented to remove the final supply from the caller's list. Is mutating that list acceptable?",
+      "choices": [
+        "Yes, because mutation is part of the stated contract.",
+        "No, functions may never mutate arguments."
+      ],
+      "expected_answer": "1",
+      "topics": [
+        "references"
+      ],
+      "hints": [
+        "Do not turn the previous exercises into a rule that mutation is always wrong.",
+        "The important question is whether the caller was promised that its list would change.",
+        "Here mutation is explicitly the contract, so it is acceptable."
+      ],
+      "reasoning_targets": [
+        "mutation_contract"
+      ]
+    },
+    {
+      "id": "data_24_ex10",
+      "type": "mini_project",
+      "title": "Prepare Independent Loadouts",
+      "prompt": "Write `prepare_loadouts(base, party_size)` returning a list containing `party_size` separate outer copies of `base`. Use a loop and make a new `list(base)` for each member. Mutating one returned loadout must not change `base` or any sibling loadout. `party_size = 0` should return an empty list.",
+      "starter_code": "def prepare_loadouts(base, party_size):\n    pass\n",
+      "reference_solution": "def prepare_loadouts(base, party_size):\n    loadouts = []\n    for index in range(party_size):\n        loadouts.append(list(base))\n    return loadouts\n",
+      "topics": [
+        "references",
+        "functions",
+        "lists",
+        "loops"
+      ],
+      "hints": [
+        "Start with an empty outer result list and repeat once per party member.",
+        "The copy operation must happen inside the loop so each member receives a different outer list.",
+        "Inside `for index in range(party_size)`, append `list(base)` to loadouts; return loadouts after the loop."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "in_function": "prepare_loadouts"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "range_call",
+          "in_function": "prepare_loadouts"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "calls_name",
+          "name": "list",
+          "in_function": "prepare_loadouts",
+          "inside": "for_loop"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "append_call",
+          "in_function": "prepare_loadouts"
+        },
+        {
+          "kind": "function",
+          "function": "prepare_loadouts",
+          "args": [
+            [
+              "rope",
+              "torch"
+            ],
+            2
+          ],
+          "expected": [
+            [
+              "rope",
+              "torch"
+            ],
+            [
+              "rope",
+              "torch"
+            ]
+          ],
+          "arg_after": {
+            "0": [
+              "rope",
+              "torch"
+            ]
+          }
+        },
+        {
+          "kind": "function",
+          "function": "prepare_loadouts",
+          "args": [
+            [
+              "rope"
+            ],
+            0
+          ],
+          "expected": [],
+          "arg_after": {
+            "0": [
+              "rope"
+            ]
+          }
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda pair: (pair[0][0].append(\"mark\"), [pair[0][1], pair[1]])[1])((prepare_loadouts([\"rope\"], 2), [\"rope\"]))",
+          "expected": [
+            [
+              "rope"
+            ],
+            [
+              "rope"
+            ]
+          ],
+          "message": "Changing one returned loadout must leave its sibling and the original content unchanged."
+        }
+      ],
+      "integration": [
+        "functions",
+        "multiple_parameters",
+        "lists",
+        "list_copy",
+        "append",
+        "shared_references",
+        "range",
+        "for_loop",
+        "structured_returns"
+      ],
+      "reasoning_targets": [
+        "reference_independence"
+      ],
+      "project_role": "bridge_project",
+      "criteria": [
+        "copy_outer_loadout_per_member",
+        "preserve_base_list",
+        "isolate_sibling_mutation",
+        "verify_independence"
+      ],
+      "success_message": "Each party member now owns a separate outer loadout, and the base list remains untouched."
+    }
+  ],
+  "lesson_number": 24,
+  "production_contract_version": 1
+}

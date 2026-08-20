@@ -1,0 +1,330 @@
+{
+  "curriculum_revision": "3.2",
+  "id": "oop_27_methods",
+  "section": "Data & Objects",
+  "section_order": 8,
+  "order": 4,
+  "title": "Give Objects Behavior",
+  "topics": [
+    "oop",
+    "methods"
+  ],
+  "content": "What problem does this solve?\nObjects become useful when related behavior can live beside their state. A method is a function defined on a class. When you call `player.heal(2)`, that player is passed to the method as self.\n\nRead state\nA method can use self attributes to calculate and return information without changing the object.\n\nChange state\nA method can also assign a new value to `self.attribute`, creating a state transition on that particular object.\n\nBehavior belongs where responsibility belongs\nLearning classes does not mean every function should become a method. A calculation involving two unrelated numbers may remain a free function. A behavior that naturally acts on one object's state is a stronger method candidate.\n\nVocabulary after the behavior\nAn instance method is behavior called through an instance. State is the data currently stored on an object; a state transition is a deliberate change to that data.",
+  "concepts": [
+    "Methods are functions attached to classes and called through objects",
+    "self is the instance before the dot in a method call",
+    "Methods can read state without changing it",
+    "Methods can update self attributes to change one object",
+    "Not every helper needs to become a method"
+  ],
+  "examples": [
+    {
+      "title": "Read state",
+      "code": "class Counter:\n    def __init__(self, value):\n        self.value = value\n    def doubled(self):\n        return self.value * 2\nprint(Counter(3).doubled())",
+      "explanation": "The method reads object state and returns a calculation without mutation."
+    },
+    {
+      "title": "Change state",
+      "code": "class Counter:\n    def __init__(self, value):\n        self.value = value\n    def add_one(self):\n        self.value = self.value + 1\nc = Counter(3)\nc.add_one()\nprint(c.value)",
+      "explanation": "The method updates this instance through self.value."
+    }
+  ],
+  "common_mistakes": [
+    "Forgetting self in a method signature",
+    "Forgetting parentheses when a method call is required",
+    "Updating a local variable instead of self.attribute",
+    "Returning the old state before applying an update",
+    "Putting unrelated utility behavior into a class only because classes exist",
+    "Assuming every method must mutate state"
+  ],
+  "exercises": [
+    {
+      "id": "oop_27_ex1",
+      "type": "predict_output",
+      "title": "Read state through a method",
+      "prompt": "What prints?",
+      "code_to_predict": "class Box:\n    def __init__(self, value):\n        self.value = value\n    def doubled(self):\n        return self.value * 2\nb = Box(3)\nprint(b.doubled())",
+      "expected_answer": "6",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "b becomes self for the doubled call.",
+        "The method reads b.value, which is 3, and multiplies it by 2.",
+        "The output is 6."
+      ]
+    },
+    {
+      "id": "oop_27_ex2",
+      "type": "fill_blank",
+      "title": "Change the object",
+      "prompt": "Complete `add_one` so it changes this Counter instance from value to value + 1.",
+      "starter_code": "class Counter:\n    def __init__(self, value):\n        self.value = value\n    def add_one(self):\n        pass\n",
+      "reference_solution": "class Counter:\n    def __init__(self, value):\n        self.value = value\n    def add_one(self):\n        self.value = self.value + 1\n",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "The value to change lives on the current instance.",
+        "Use the same self attribute on both sides of the assignment.",
+        "Assign `self.value = self.value + 1`."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Counter"
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda c: (c.add_one(), c.value)[1])(Counter(3))",
+          "expected": 4
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda c: (c.add_one(), c.value)[1])(Counter(-1))",
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "id": "oop_27_ex3",
+      "type": "predict_output",
+      "title": "State after two calls",
+      "prompt": "What prints?",
+      "code_to_predict": "class Counter:\n    def __init__(self):\n        self.value = 0\n    def add_one(self):\n        self.value = self.value + 1\nc = Counter()\nc.add_one()\nc.add_one()\nprint(c.value)",
+      "expected_answer": "2",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "Track the same c object through both calls.",
+        "Each call adds 1 to the existing self.value.",
+        "0 becomes 1, then 2."
+      ]
+    },
+    {
+      "id": "oop_27_ex4",
+      "type": "architecture",
+      "title": "Method or free helper?",
+      "prompt": "A calculation only needs two unrelated numbers and no object state. Must it become a method now that classes exist?",
+      "choices": [
+        "Yes; all new functions should be methods.",
+        "No; an ordinary function may be clearer when no object owns the behavior."
+      ],
+      "expected_answer": "2",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "Ask what object state the calculation naturally belongs to.",
+        "If no object owns the inputs or result, attaching it to a class adds ceremony without responsibility.",
+        "A free function may be clearer."
+      ],
+      "reasoning_targets": [
+        "responsibility_design"
+      ]
+    },
+    {
+      "id": "oop_27_ex5",
+      "type": "debug",
+      "title": "Update the attribute, not a local",
+      "prompt": "Repair `take_damage` so it changes `self.health` and returns the new health.",
+      "starter_code": "class Character:\n    def __init__(self, health):\n        self.health = health\n    def take_damage(self, amount):\n        health = health - amount\n        return health\n",
+      "reference_solution": "class Character:\n    def __init__(self, health):\n        self.health = health\n    def take_damage(self, amount):\n        self.health = self.health - amount\n        return self.health\n",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "The health that persists between calls is stored on the object.",
+        "Read and write self.health, not an undefined/local health name.",
+        "Use `self.health = self.health - amount` and return self.health."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Character"
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda c: (c.take_damage(3), c.health)[1])(Character(10))",
+          "expected": 7
+        },
+        {
+          "kind": "expression",
+          "expression": "Character(10).take_damage(0)",
+          "expected": 10
+        }
+      ],
+      "reasoning_targets": [
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "oop_27_ex6",
+      "type": "write_code",
+      "title": "Damage and heal",
+      "prompt": "Add `take_damage(amount)` and `heal(amount)` to Character. Each method changes `self.health` by the amount and returns the new health. Do not clamp health; zero and negative results are allowed by this Python exercise.",
+      "starter_code": "class Character:\n    def __init__(self, name, health):\n        self.name = name\n        self.health = health\n",
+      "reference_solution": "class Character:\n    def __init__(self, name, health):\n        self.name = name\n        self.health = health\n    def take_damage(self, amount):\n        self.health = self.health - amount\n        return self.health\n    def heal(self, amount):\n        self.health = self.health + amount\n        return self.health\n",
+      "topics": [
+        "oop",
+        "functions"
+      ],
+      "hints": [
+        "Both methods update the same self.health attribute in opposite arithmetic directions.",
+        "Damage subtracts amount; heal adds amount; return the updated attribute after assignment.",
+        "Implement both methods with `self.health = self.health ± amount`, then return self.health."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Character"
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda c: (c.take_damage(3), c.heal(2), c.health)[2])(Character(\"A\",10))",
+          "expected": 9
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda c: (c.take_damage(5), c.health)[1])(Character(\"A\",2))",
+          "expected": -3
+        },
+        {
+          "kind": "expression",
+          "expression": "Character(\"A\",4).heal(0)",
+          "expected": 4
+        }
+      ],
+      "integration": [
+        "classes",
+        "init",
+        "self",
+        "methods",
+        "instance_state",
+        "arithmetic",
+        "return"
+      ],
+      "reasoning_targets": [
+        "boundaries"
+      ]
+    },
+    {
+      "id": "oop_27_ex7",
+      "type": "write_code",
+      "title": "Inventory behavior",
+      "prompt": "Add `add_item(item)` that appends to `self.inventory`, and `item_count()` that returns `len(self.inventory)`.",
+      "starter_code": "class Character:\n    def __init__(self, name):\n        self.name = name\n        self.inventory = []\n",
+      "reference_solution": "class Character:\n    def __init__(self, name):\n        self.name = name\n        self.inventory = []\n    def add_item(self, item):\n        self.inventory.append(item)\n    def item_count(self):\n        return len(self.inventory)\n",
+      "topics": [
+        "oop",
+        "lists"
+      ],
+      "hints": [
+        "add_item should change the persistent inventory list on this instance.",
+        "item_count only reads state and returns len(self.inventory).",
+        "Append item through self.inventory; define a second method returning its length."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Character"
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda c: (c.add_item(\"rope\"), c.add_item(\"torch\"), c.item_count())[2])(Character(\"A\"))",
+          "expected": 2
+        },
+        {
+          "kind": "expression",
+          "expression": "Character(\"A\").item_count()",
+          "expected": 0
+        }
+      ],
+      "integration": [
+        "classes",
+        "init",
+        "self",
+        "methods",
+        "instance_state",
+        "lists",
+        "append",
+        "len",
+        "return"
+      ]
+    },
+    {
+      "id": "oop_27_ex8",
+      "type": "mini_project",
+      "title": "Character Behavior Check",
+      "prompt": "Build `Character(name, health)` with a fresh inventory and methods `take_damage`, `heal`, `add_item`, and `summary`. `summary()` returns exactly `name`, `health`, and `item_count`. Hidden checks exercise multiple method calls on separate instances and verify one character never changes the other.",
+      "starter_code": "class Character:\n    pass\n",
+      "reference_solution": "class Character:\n    def __init__(self, name, health):\n        self.name = name\n        self.health = health\n        self.inventory = []\n    def take_damage(self, amount):\n        self.health = self.health - amount\n        return self.health\n    def heal(self, amount):\n        self.health = self.health + amount\n        return self.health\n    def add_item(self, item):\n        self.inventory.append(item)\n    def summary(self):\n        return {\n            \"name\": self.name,\n            \"health\": self.health,\n            \"item_count\": len(self.inventory),\n        }\n",
+      "topics": [
+        "oop",
+        "references",
+        "lists",
+        "dictionaries"
+      ],
+      "hints": [
+        "Set up all persistent state in __init__ first, especially a fresh inventory list.",
+        "Each mutating method changes only self; summary should read the final state rather than duplicate stored counts.",
+        "Use take_damage/heal on self.health, append through self.inventory, and return a dictionary using len(self.inventory)."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Character"
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda c: (c.take_damage(3), c.heal(1), c.add_item(\"rope\"), c.summary())[3])(Character(\"Aria\",10))",
+          "expected": {
+            "name": "Aria",
+            "health": 8,
+            "item_count": 1
+          }
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda pair: (pair[0].add_item(\"x\"), pair[0].take_damage(5), pair[1].summary())[2])([Character(\"A\",10), Character(\"B\",14)])",
+          "expected": {
+            "name": "B",
+            "health": 14,
+            "item_count": 0
+          }
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda pair: pair[0].inventory is not pair[1].inventory)([Character(\"A\",1), Character(\"B\",1)])",
+          "expected": true
+        }
+      ],
+      "integration": [
+        "classes",
+        "init",
+        "self",
+        "instance_state",
+        "methods",
+        "append",
+        "len",
+        "dictionaries",
+        "structured_returns",
+        "arithmetic"
+      ],
+      "reasoning_targets": [
+        "reference_independence"
+      ],
+      "project_role": "bridge_project",
+      "criteria": [
+        "implement_state_methods",
+        "maintain_fresh_inventory",
+        "exercise_two_instances",
+        "return_summary_record"
+      ],
+      "success_message": "The class now owns both state and related behavior, while separate instances remain independent."
+    }
+  ],
+  "lesson_number": 27,
+  "production_contract_version": 1
+}

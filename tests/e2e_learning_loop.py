@@ -242,11 +242,15 @@ def _run_with_data_dir(data_dir: Path) -> int:
                 continue
             course._show_lesson(first, i)
             qt.processEvents()
-            sol = SOLUTIONS[exercise.id]
-            if "code" in sol:
-                course.editor.set_code(sol["code"])
-            if "answer" in sol:
-                course.lessons_page.ide.set_answer(sol["answer"])
+            # Prefer embedded reference solution for runnable exercises.
+            if exercise.is_code_exercise and exercise.reference_solution.strip():
+                course.editor.set_code(exercise.reference_solution)
+            elif not exercise.is_code_exercise:
+                answer = exercise.expected_answer or (exercise.choices[0] if exercise.choices else "")
+                course.lessons_page.ide.set_answer(str(answer))
+            else:
+                # Fallback: leave as-is; checker will report missing solution
+                pass
             course._check_answer()
             wait_until(qt, course)
             if not controller.progress.is_exercise_complete(exercise.id):
