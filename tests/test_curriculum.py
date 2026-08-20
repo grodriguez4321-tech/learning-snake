@@ -76,61 +76,50 @@ class GradingHoleTests(unittest.TestCase):
 
     def test_fstring_hardcoded_line_fails(self) -> None:
         exercise = self._exercise("fundamentals_03_fstrings", "fundamentals_03_ex3")
-        starter = (
-            "expedition = 17\n"
-            "registered = 4\n"
-            "days_overdue = 3\n"
-        )
+        starter = 'item = "torch"\ncount = 4\n\n'
         hardcoded = self.checker.check(
-            exercise,
-            code=starter + 'print("Expedition 17 | Party 4 | 3 days overdue")\n',
+            exercise, code=starter + 'print("torch: 4")\n'
         )
         self.assertFalse(hardcoded.passed)
-        valid = self.checker.check(
-            exercise,
-            code=starter
-            + 'print(f"Expedition {expedition} | Party {registered} | {days_overdue} days overdue")\n',
-        )
+        valid = self.checker.check(exercise, code=starter + 'print(f"{item}: {count}")\n')
         self.assertTrue(valid.passed, valid.message)
 
     def test_fstring_debug_predict_feedback(self) -> None:
         exercise = self._exercise("fundamentals_03_fstrings", "fundamentals_03_ex1")
-        wrong = self.checker.check(exercise, answer="Party registered:4")
+        wrong = self.checker.check(exercise, answer="Hello,Ada")
         self.assertFalse(wrong.passed)
-        self.assertNotIn("Party registered: 4", wrong.message)
+        self.assertNotIn("Hello, Ada", wrong.message or "")
 
-    def test_evidence_count_hardcoded_number_fails(self) -> None:
-        exercise = self._exercise("fundamentals_02_variables", "fundamentals_02_ex2")
-        hardcoded = self.checker.check(
-            exercise,
-            code=(
-                "tracks_found = 2\n"
-                "damaged_items = 3\n"
-                "evidence_count = 5\n"
-                "print(evidence_count)\n"
-            ),
-        )
-        self.assertFalse(hardcoded.passed)
+    def test_variables_report_must_print_variables_not_literals(self) -> None:
+        exercise = self._exercise("fundamentals_02_variables", "fundamentals_02_ex6")
         literals = self.checker.check(
             exercise,
             code=(
-                "tracks_found = 2\n"
-                "damaged_items = 3\n"
-                "evidence_count = 2 + 3\n"
-                "print(evidence_count)\n"
+                "expedition = 17\n"
+                "registered = 4\n"
+                "days_overdue = 3\n"
+                'status = "OVERDUE"\n'
+                "print(17)\n"
+                "print(4)\n"
+                "print(3)\n"
+                'print("OVERDUE")\n'
             ),
         )
         self.assertFalse(literals.passed)
-        swapped = self.checker.check(
+        use_vars = self.checker.check(
             exercise,
             code=(
-                "tracks_found = 2\n"
-                "damaged_items = 3\n"
-                "evidence_count = damaged_items + tracks_found\n"
-                "print(evidence_count)\n"
+                "expedition = 17\n"
+                "registered = 4\n"
+                "days_overdue = 3\n"
+                'status = "OVERDUE"\n'
+                "print(expedition)\n"
+                "print(registered)\n"
+                "print(days_overdue)\n"
+                "print(status)\n"
             ),
         )
-        self.assertTrue(swapped.passed, swapped.message)
+        self.assertTrue(use_vars.passed, use_vars.message)
 
     def test_evidence_without_append_fails(self) -> None:
         exercise = self._exercise("collections_02_append", "collections_02_ex2")
@@ -192,7 +181,7 @@ class GradingHoleTests(unittest.TestCase):
         self.assertTrue(fixed.passed, fixed.message)
 
     def test_inspect_clue_lookup_table_fails_hidden_input(self) -> None:
-        exercise = self._exercise("functions_01_basics", "functions_01_ex3")
+        exercise = self._exercise("functions_01_basics", "functions_01_ex7")
         table = self.checker.check(
             exercise,
             code=(
@@ -207,7 +196,7 @@ class GradingHoleTests(unittest.TestCase):
         self.assertFalse(table.passed)
 
     def test_architecture_feedback_is_print_vs_return(self) -> None:
-        exercise = self._exercise("functions_01_basics", "functions_01_ex2")
+        exercise = self._exercise("functions_01_basics", "functions_01_ex5")
         wrong = self.checker.check(exercise, answer="1")
         self.assertFalse(wrong.passed)
         self.assertNotIn("is-a", wrong.message)
@@ -217,7 +206,7 @@ class GradingHoleTests(unittest.TestCase):
         self.assertTrue(right.passed)
 
     def test_inspect_clue_accepts_equivalent_and_rejects_print_only(self) -> None:
-        exercise = self._exercise("functions_01_basics", "functions_01_ex3")
+        exercise = self._exercise("functions_01_basics", "functions_01_ex7")
         printed = self.checker.check(
             exercise,
             code=(
@@ -244,10 +233,11 @@ class GradingHoleTests(unittest.TestCase):
         exercise = self._exercise("fundamentals_01_print", "fundamentals_01_ex3")
         result = self.checker.check(exercise, code='print("nope")')
         self.assertFalse(result.passed)
-        self.assertNotIn("SEARCH DISPATCH", result.message)
+        self.assertNotIn("first\nsecond", result.message or "")
 
     def test_status_debug_requires_quoted_string(self) -> None:
-        exercise = self._exercise("fundamentals_02_variables", "fundamentals_02_ex3")
+        # V3.2: debug quoted text at fundamentals_02_ex5
+        exercise = self._exercise("fundamentals_02_variables", "fundamentals_02_ex5")
         broken = self.checker.check(exercise, code="status = OVERDUE\nprint(status)\n")
         self.assertFalse(broken.passed)
         fixed = self.checker.check(
@@ -437,7 +427,7 @@ class GradingHoleTests(unittest.TestCase):
 
     def test_use_last_supply_rejects_list_copy(self) -> None:
         exercise = self._exercise(
-            "collections_12_list_methods", "collections_12_ex5"
+            "collections_12_list_methods", "collections_12_ex7"
         )
         copied = self.checker.check(
             exercise,
@@ -459,35 +449,32 @@ class GradingHoleTests(unittest.TestCase):
 
     def test_prepare_supplies_rejects_replacement_list(self) -> None:
         exercise = self._exercise(
-            "collections_12_list_methods", "collections_12_ex4"
+            "collections_12_list_methods", "collections_12_ex6"
         )
         rebuilt = self.checker.check(
             exercise,
             code=(
-                "def prepare_supplies(supplies, new_item, damaged_item):\n"
-                "    return [item for item in supplies if item != damaged_item] + [new_item]\n"
+                "def prepare_supplies(supplies):\n"
+                "    return [item for item in supplies if item != 'cracked vial'] + ['antidote']\n"
             ),
         )
         self.assertFalse(rebuilt.passed)
 
-    def test_quartermaster_hints_match_starter_and_expected(self) -> None:
+    def test_quartermaster_project_hints_and_expected_output(self) -> None:
         exercise = self._exercise(
-            "collections_12_list_methods", "collections_12_ex6"
+            "collections_12_list_methods", "collections_12_ex8"
         )
         self.assertEqual(len(exercise.hints), 3)
-        hint3 = exercise.hints[2].lower()
-        self.assertNotIn("3 supplies", hint3)
-        self.assertNotIn("denied", hint3)
-        self.assertIn("5 supplies", hint3)
-        self.assertIn("review", hint3)
+        hints_text = "\n".join(exercise.hints).lower()
+        self.assertIn("remove", hints_text)
+        self.assertIn("append", hints_text)
+        self.assertIn("range(len(supplies))", hints_text)
+        self.assertTrue(any(word in hints_text for word in ["ready", "review"]))
         self.assertIn("cracked vial", exercise.starter_code)
-        self.assertIn('["rope", "torch", "chalk", "map", "cracked vial"]', exercise.starter_code)
         stdout = next(t for t in exercise.tests if t.kind == "stdout_equals")
-        self.assertEqual(stdout.expected, "3\n5\nReview\n")
-        # Hint 2 may name all three branches; hint 3 must match the graded Review path.
-        self.assertTrue(
-            any("review" in h.lower() for h in exercise.hints),
-            "hints should mention Review for the expected outcome",
+        self.assertEqual(
+            stdout.expected,
+            "Supply count: 3\n1: rope\n2: torch\n3: antidote\nREADY\n",
         )
 
     def test_abandoned_camp_is_script_level(self) -> None:
