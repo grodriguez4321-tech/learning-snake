@@ -14,7 +14,6 @@ from engine.course_controller import CourseController
 from engine.exercise_checker import ExerciseChecker
 from engine.progress import ProgressStore
 from main import build_controller
-from tests.exercise_solutions import submit_solution
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,10 +23,11 @@ class CatalogTests(unittest.TestCase):
     def test_loads_ordered_lessons(self) -> None:
         catalog = CourseCatalog(ROOT / "course" / "lessons")
         catalog.load()
-        self.assertGreaterEqual(len(catalog.lessons), 18)
+        # V3.2: exact 28 lessons total; spot-check first few and ordering.
+        self.assertEqual(len(catalog.lessons), 28)
         ids = [lesson.id for lesson in catalog.lessons]
         self.assertEqual(
-            ids,
+            ids[:8],
             [
                 "fundamentals_01_print",
                 "fundamentals_02_variables",
@@ -37,16 +37,6 @@ class CatalogTests(unittest.TestCase):
                 "collections_02_append",
                 "collections_03_loops",
                 "functions_01_basics",
-                "decisions_09_elif",
-                "decisions_10_boolean_logic",
-                "collections_11_len_range",
-                "collections_12_list_methods",
-                "collections_13_dictionaries",
-                "collections_14_dict_iteration",
-                "collections_15_while",
-                "functions_16_parameters",
-                "functions_17_defaults",
-                "functions_18_returning_data",
             ],
         )
         # Ordering is stable by section_order then order.
@@ -56,25 +46,16 @@ class CatalogTests(unittest.TestCase):
                 (right.section_order, right.order),
             )
 
-    def test_phase1_has_twenty_eight_exercises(self) -> None:
+    def test_catalog_counts_match_contract(self) -> None:
         catalog = CourseCatalog(ROOT / "course" / "lessons")
         catalog.load()
-        phase1_ids = {
-            "fundamentals_01_print",
-            "fundamentals_02_variables",
-            "fundamentals_03_fstrings",
-            "decisions_01_conditionals",
-            "collections_01_lists",
-            "collections_02_append",
-            "collections_03_loops",
-            "functions_01_basics",
-        }
-        count = sum(
-            len(lesson.exercises)
-            for lesson in catalog.lessons
-            if lesson.id in phase1_ids
+        total_exercises = sum(len(lesson.exercises) for lesson in catalog.lessons)
+        total_projects = sum(
+            1 for lesson in catalog.lessons for ex in lesson.exercises if ex.type == "mini_project"
         )
-        self.assertEqual(count, 28)
+        self.assertEqual(len(catalog.lessons), 28)
+        self.assertEqual(total_exercises, 214)
+        self.assertEqual(total_projects, 23)
 
     def test_lesson_ids_are_unique(self) -> None:
         catalog = CourseCatalog(ROOT / "course" / "lessons")
@@ -85,7 +66,7 @@ class CatalogTests(unittest.TestCase):
             exercise.id for lesson in catalog.lessons for exercise in lesson.exercises
         ]
         self.assertEqual(len(exercise_ids), len(set(exercise_ids)))
-        self.assertGreaterEqual(len(exercise_ids), 79)
+        self.assertEqual(len(exercise_ids), 214)
 
 
 class RunnerTests(unittest.TestCase):
@@ -166,7 +147,8 @@ class CheckerTests(unittest.TestCase):
     def test_function_checks_multiple_cases_and_feedback(self) -> None:
         lesson = self.catalog.get("functions_01_basics")
         assert lesson is not None
-        exercise = next(ex for ex in lesson.exercises if ex.id == "functions_01_ex3")
+        # V3.2: inspect_clue lives at functions_01_ex7
+        exercise = next(ex for ex in lesson.exercises if ex.id == "functions_01_ex7")
 
         wrong = self.checker.check(
             exercise,
@@ -243,12 +225,13 @@ class CheckerTests(unittest.TestCase):
         lesson = self.catalog.get("fundamentals_01_print")
         assert lesson is not None
         exercise = next(ex for ex in lesson.exercises if ex.id == "fundamentals_01_ex1")
-        wrong = self.checker.check(exercise, answer="WAYSTATION 7 Expedition: 17")
+        # V3.2: expected is "hello"
+        wrong = self.checker.check(exercise, answer="HELLO")
         self.assertFalse(wrong.passed)
-        self.assertNotIn("WAYSTATION 7\nExpedition: 17", wrong.message)
+        self.assertNotIn("hello", (wrong.message or "").lower())
         self.assertTrue(
             self.checker.check(
-                exercise, answer="WAYSTATION 7\nExpedition: 17"
+                exercise, answer="hello"
             ).passed
         )
 
@@ -282,8 +265,15 @@ class ProgressTests(unittest.TestCase):
             self.assertFalse(controller.is_unlocked(second))
 
             for exercise in first.exercises:
-                result = submit_solution(controller, first, exercise)
-                self.assertTrue(result.passed, result.message)
+                if exercise.is_code_exercise:
+                    code = exercise.reference_solution
+                    self.assertTrue(code.strip(), f"missing reference_solution for {exercise.id}")
+                    result = controller.submit_exercise(first, exercise, code=code)
+                else:
+                    answer = exercise.expected_answer or (exercise.choices[0] if exercise.choices else "")
+                    self.assertTrue(str(answer).strip(), f"missing expected_answer for {exercise.id}")
+                    result = controller.submit_exercise(first, exercise, answer=str(answer))
+                self.assertTrue(result.passed, f"{exercise.id}: {result.message}")
 
             record = store.exercise(first.exercises[0].id)
             self.assertGreaterEqual(record.attempts, 1)
@@ -353,12 +343,26 @@ class EndToEndLessonFlowTests(unittest.TestCase):
             self.assertFalse(controller.is_unlocked(second))
 
             controller = CourseController(catalog, progress_reopen, ExerciseChecker())
-            good = submit_solution(controller, lesson, exercise)
+            if exercise.is_code_exercise:
+                code = exercise.reference_solution
+                self.assertTrue(code.strip(), f"missing reference_solution for {exercise.id}")
+                good = controller.submit_exercise(lesson, exercise, code=code)
+            else:
+                answer = exercise.expected_answer or (exercise.choices[0] if exercise.choices else "")
+                self.assertTrue(str(answer).strip(), f"missing expected_answer for {exercise.id}")
+                good = controller.submit_exercise(lesson, exercise, answer=str(answer))
             self.assertTrue(good.passed, good.message)
 
             for remaining in lesson.exercises[1:]:
-                result = submit_solution(controller, lesson, remaining)
-                self.assertTrue(result.passed, result.message)
+                if remaining.is_code_exercise:
+                    code = remaining.reference_solution
+                    self.assertTrue(code.strip(), f"missing reference_solution for {remaining.id}")
+                    result = controller.submit_exercise(lesson, remaining, code=code)
+                else:
+                    answer = remaining.expected_answer or (remaining.choices[0] if remaining.choices else "")
+                    self.assertTrue(str(answer).strip(), f"missing expected_answer for {remaining.id}")
+                    result = controller.submit_exercise(lesson, remaining, answer=str(answer))
+                self.assertTrue(result.passed, f"{remaining.id}: {result.message}")
 
             self.assertTrue(controller.is_unlocked(second))
             self.assertTrue(

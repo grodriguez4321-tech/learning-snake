@@ -47,6 +47,9 @@ jobs:
           python -m unittest
           tests.test_phase1
           tests.test_curriculum
+          tests.test_v32_contract
+          tests.test_progress_migration_v32
+          tests.test_script_fixtures
           tests.test_learning_loop
           tests.test_reliability
           tests.test_ui_prefs
