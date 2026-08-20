@@ -122,61 +122,45 @@ class GradingHoleTests(unittest.TestCase):
         self.assertTrue(use_vars.passed, use_vars.message)
 
     def test_evidence_without_append_fails(self) -> None:
+        # V3.2: collections_02_ex2 requires items.append(\"torch\") and exact printed list
         exercise = self._exercise("collections_02_append", "collections_02_ex2")
         hardcoded = self.checker.check(
             exercise,
-            code=(
-                'evidence = ["broken lantern", "drag marks", "gray dust"]\n'
-                "print(evidence)\n"
-            ),
+            code=('items = ["rope", "torch"]\nprint(items)\n'),
         )
         self.assertFalse(hardcoded.passed)
         plus = self.checker.check(
             exercise,
-            code=(
-                'evidence = ["broken lantern", "drag marks"] + ["gray dust"]\n'
-                "print(evidence)\n"
-            ),
+            code=('items = ["rope"] + ["torch"]\nprint(items)\n'),
         )
         self.assertFalse(plus.passed)
         extend = self.checker.check(
             exercise,
-            code=(
-                'evidence = ["broken lantern", "drag marks"]\n'
-                'evidence.extend(["gray dust"])\n'
-                "print(evidence)\n"
-            ),
+            code=('items = ["rope"]\nitems.extend(["torch"])\nprint(items)\n'),
         )
         self.assertFalse(extend.passed)
         augassign = self.checker.check(
             exercise,
-            code=(
-                'evidence = ["broken lantern", "drag marks"]\n'
-                'evidence += ["gray dust"]\n'
-                "print(evidence)\n"
-            ),
+            code=('items = ["rope"]\nitems += ["torch"]\nprint(items)\n'),
         )
         self.assertFalse(augassign.passed)
         append = self.checker.check(
             exercise,
-            code=(
-                'evidence = ["broken lantern", "drag marks"]\n'
-                'evidence.append("gray dust")\n'
-                "print(evidence)\n"
-            ),
+            code=('items = ["rope"]\nitems.append("torch")\nprint(items)\n'),
         )
         self.assertTrue(append.passed, append.message)
 
     def test_index_debug_rejects_hardcoded_name(self) -> None:
+        # V3.2: collections_01_ex2 uses colors -> print(colors[1]) should print blue
         exercise = self._exercise("collections_01_lists", "collections_01_ex2")
         hardcoded = self.checker.check(
             exercise,
-            code='party = ["Aria", "Rook", "Mira", "Selene"]\nprint("Rook")\n',
+            code='colors = ["red", "blue", "green"]\nprint("blue")\n',
         )
         self.assertFalse(hardcoded.passed)
         fixed = self.checker.check(
             exercise,
-            code='party = ["Aria", "Rook", "Mira", "Selene"]\nprint(party[1])\n',
+            code='colors = ["red", "blue", "green"]\nprint(colors[1])\n',
         )
         self.assertTrue(fixed.passed, fixed.message)
 
@@ -341,38 +325,16 @@ class GradingHoleTests(unittest.TestCase):
         )
         self.assertFalse(partial_len.passed)
 
-    def test_capstone_returns_configured_success_message(self) -> None:
+    def test_intake_system_success_message_configured(self) -> None:
         exercise = self._exercise(
-            "collections_13_dictionaries", "collections_13_ex6"
+            "collections_13_dictionaries", "collections_13_ex7"
         )
-        result = self.checker.check(
-            exercise,
-            code=(
-                "def build_expedition_record(destination, party, supplies, has_guide, warning_active):\n"
-                "    record = {\n"
-                '        "destination": destination,\n'
-                '        "party": party,\n'
-                '        "supplies": supplies,\n'
-                '        "has_guide": has_guide,\n'
-                '        "warning_active": warning_active,\n'
-                '        "member_count": len(party),\n'
-                '        "supply_count": len(supplies),\n'
-                "    }\n"
-                "    if not has_guide or warning_active:\n"
-                '        record["status"] = "Denied"\n'
-                "    elif len(supplies) >= 5:\n"
-                '        record["status"] = "Cleared"\n'
-                "    else:\n"
-                '        record["status"] = "Review"\n'
-                "    return record\n"
-            ),
-        )
+        result = self.checker.check(exercise, code=exercise.reference_solution)
         self.assertTrue(result.passed, result.message)
         self.assertEqual(result.message, exercise.success_message)
-        self.assertIn("Do not trust the statues", result.message)
 
     def test_expedition_report_requires_calling_inspect_clue(self) -> None:
-        exercise = self._exercise("functions_01_basics", "functions_01_ex4")
+        exercise = self._exercise("functions_01_basics", "functions_01_ex8")
         rebuilt = self.checker.check(
             exercise,
             code=(
@@ -478,7 +440,8 @@ class GradingHoleTests(unittest.TestCase):
         )
 
     def test_abandoned_camp_is_script_level(self) -> None:
-        exercise = self._exercise("decisions_01_conditionals", "decisions_01_ex4")
+        # V3.2: The Abandoned Camp mini-project is decisions_01_ex7 (script-level)
+        exercise = self._exercise("decisions_01_conditionals", "decisions_01_ex7")
         self.assertNotIn("def ", exercise.starter_code)
         self.assertNotIn("camp_report", exercise.prompt.lower())
         with_func = self.checker.check(
@@ -523,36 +486,37 @@ class GradingHoleTests(unittest.TestCase):
         self.assertTrue(good.passed, good.message)
 
     def test_boolean_constructs_required(self) -> None:
-        and_ex = self._exercise("decisions_10_boolean_logic", "decisions_10_ex3")
+        # V3.2: Use write_code exercises for construct checks
+        and_not_ex = self._exercise("decisions_10_boolean_logic", "decisions_10_ex8")
         nested = self.checker.check(
-            and_ex,
+            and_not_ex,
             code=(
-                "def can_depart(has_guide, supplies):\n"
-                "    if has_guide:\n"
-                "        if supplies >= 10:\n"
-                "            return True\n"
-                "    return False\n"
+                "has_guide = True\n"
+                "supplies = 12\n"
+                "warning_active = False\n"
+                "can_depart = False\n"
+                "if has_guide:\n"
+                "    if supplies >= 10:\n"
+                "        if warning_active == False:\n"
+                "            can_depart = True\n"
+                "print(can_depart)\n"
             ),
         )
         self.assertFalse(nested.passed)
-        not_ex = self._exercise("decisions_10_boolean_logic", "decisions_10_ex4")
         without_not = self.checker.check(
-            not_ex,
+            and_not_ex,
             code=(
-                "def can_depart(has_guide, supplies, warning_active):\n"
-                "    return has_guide and supplies >= 10 and warning_active == False\n"
+                "has_guide = True\n"
+                "supplies = 12\n"
+                "warning_active = False\n"
+                "can_depart = has_guide and supplies >= 10 and (warning_active == False)\n"
+                "print(can_depart)\n"
             ),
         )
         self.assertFalse(without_not.passed)
-        or_ex = self._exercise("decisions_10_boolean_logic", "decisions_10_ex5")
-        with_or = self.checker.check(
-            or_ex,
-            code=(
-                "def has_escape_route(north_open, south_open):\n"
-                "    return north_open or south_open\n"
-            ),
-        )
-        self.assertTrue(with_or.passed, with_or.message)
+        route_board = self._exercise("decisions_10_boolean_logic", "decisions_10_ex9")
+        with_or_and = self.checker.check(route_board, code=route_board.reference_solution)
+        self.assertTrue(with_or_and.passed, with_or_and.message)
 
     def test_range_and_len_constructs_required(self) -> None:
         roster = self._exercise("collections_11_len_range", "collections_11_ex4")
