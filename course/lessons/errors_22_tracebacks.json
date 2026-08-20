@@ -1,0 +1,384 @@
+{
+  "curriculum_revision": "3.2",
+  "id": "errors_22_tracebacks",
+  "section": "Realistic Data & Debugging",
+  "section_order": 7,
+  "order": 4,
+  "title": "Read the Last Line First",
+  "topics": [
+    "debugging",
+    "errors"
+  ],
+  "content": "What problem does this solve?\nSome mistakes stop Python before execution; those are syntax errors. Other mistakes happen while code is running and produce a traceback. You do not need to read every traceback line at once.\n\nA beginner-safe routine\n1. Start with the final line: identify the error type and message.\n2. Find the referenced line in your own code.\n3. Inspect the names/values used on that line.\n4. Form one likely cause.\n5. Change one thing and run again.\n\nA new error is new evidence\nFixing one problem can reveal another that was hidden behind it. That does not mean the first repair was wrong.\n\nVocabulary after the behavior\nSyntaxError means Python could not parse the code. A runtime error happens during execution. A traceback records the path to the failure; common beginner types include NameError, TypeError, IndexError, and KeyError.",
+  "concepts": [
+    "Start with the final error type/message, then inspect the referenced learner line",
+    "Syntax errors prevent normal execution",
+    "NameError points to a name Python cannot resolve",
+    "TypeError often means an operation received incompatible value types",
+    "IndexError means a list position is outside the valid range",
+    "KeyError means the requested dictionary key is absent",
+    "Repair one likely cause at a time and rerun"
+  ],
+  "examples": [
+    {
+      "title": "NameError",
+      "code": "# If total was never defined:\nprint(total)",
+      "explanation": "Python reports that it cannot find the name total."
+    },
+    {
+      "title": "TypeError",
+      "code": "# This expression fails at runtime:\n# \"count: \" + 3",
+      "explanation": "The + operation is being asked to combine incompatible string/integer values."
+    },
+    {
+      "title": "Index and key evidence",
+      "code": "items = [\"a\"]\nrecord = {\"name\": \"Ada\"}\n# items[1] would raise IndexError\n# record[\"status\"] would raise KeyError",
+      "explanation": "The error type tells you whether to inspect positions or keys first."
+    }
+  ],
+  "common_mistakes": [
+    "Reading tracebacks only from the top and getting lost",
+    "Changing several unrelated lines at once",
+    "Deleting the failing line just to silence the error",
+    "Treating all errors as the same kind of failure",
+    "Assuming a new error after a repair invalidates the first repair"
+  ],
+  "exercises": [
+    {
+      "id": "errors_22_ex1",
+      "type": "architecture",
+      "title": "Where do you start?",
+      "prompt": "A traceback ends with `TypeError: ...` and points to line 4 in your code. What is the best first move?",
+      "choices": [
+        "Rewrite everything above line 4.",
+        "Read the final error type/message and inspect the referenced learner line.",
+        "Ignore the traceback and add print statements everywhere."
+      ],
+      "expected_answer": "2",
+      "topics": [
+        "debugging"
+      ],
+      "hints": [
+        "The final line summarizes what Python could not do.",
+        "The referenced learner line tells you where that failure surfaced.",
+        "Start with the TypeError message and line 4."
+      ],
+      "reasoning_targets": [
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "errors_22_ex2",
+      "type": "architecture",
+      "title": "Syntax never reaches runtime",
+      "prompt": "An error ends with `SyntaxError: expected :` and points at `if ready`. What should you identify first?",
+      "choices": [
+        "SyntaxError; inspect the `if ready` line for the missing syntax.",
+        "KeyError; inspect a dictionary.",
+        "Logic bug; run boundary tests first."
+      ],
+      "expected_answer": "1",
+      "topics": [
+        "debugging"
+      ],
+      "hints": [
+        "The final error type is given directly.",
+        "A SyntaxError means Python could not parse the code normally.",
+        "Inspect the `if ready` line for the missing colon."
+      ],
+      "reasoning_targets": [
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "errors_22_ex3",
+      "type": "architecture",
+      "title": "NameError evidence",
+      "prompt": "A traceback ends with `NameError: name 'scroe' is not defined` at `print(scroe)`. What is the best focused inspection?",
+      "choices": [
+        "Compare `scroe` with the variable names actually defined, such as `score`.",
+        "Replace every variable with a string.",
+        "Add a list index."
+      ],
+      "expected_answer": "1",
+      "topics": [
+        "debugging"
+      ],
+      "hints": [
+        "The error names the exact unresolved name.",
+        "Look for a spelling mismatch before changing unrelated code.",
+        "Compare scroe with the intended defined variable score."
+      ],
+      "reasoning_targets": [
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "errors_22_ex4",
+      "type": "architecture",
+      "title": "TypeError evidence",
+      "prompt": "A traceback points at `label = \"count: \" + count` and says a string and integer cannot be combined with `+`. Which values/types matter first?",
+      "choices": [
+        "The string `\"count: \"` and the integer stored in `count`.",
+        "The file name and line count only.",
+        "An unrelated global variable."
+      ],
+      "expected_answer": "1",
+      "topics": [
+        "debugging"
+      ],
+      "hints": [
+        "The failing operator is +, so inspect the values on its two sides.",
+        "One side is already a string; the message says the other is an integer.",
+        "Inspect the string and count integer together."
+      ],
+      "reasoning_targets": [
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "errors_22_ex5",
+      "type": "architecture",
+      "title": "IndexError evidence",
+      "prompt": "`items` contains one element, `index` is 1, and the traceback points at `items[index]` with IndexError. What relationship is wrong?",
+      "choices": [
+        "Index 1 is outside the valid indexes for a one-item list.",
+        "The list must be converted to a dictionary.",
+        "The string item is too short."
+      ],
+      "expected_answer": "1",
+      "topics": [
+        "debugging"
+      ],
+      "hints": [
+        "A one-item list has exactly one valid position.",
+        "List indexes start at 0, so the only valid index is 0.",
+        "Index 1 is outside the list."
+      ],
+      "reasoning_targets": [
+        "diagnosis",
+        "boundaries"
+      ]
+    },
+    {
+      "id": "errors_22_ex6",
+      "type": "architecture",
+      "title": "KeyError evidence",
+      "prompt": "A traceback points at `record[\"status\"]`; the record has only a `\"name\"` key and ends with `KeyError: status`. What should you inspect before editing?",
+      "choices": [
+        "The keys actually present and whether status is required by the program contract.",
+        "The list length of an unrelated variable.",
+        "Whether the program has enough comments."
+      ],
+      "expected_answer": "1",
+      "topics": [
+        "debugging"
+      ],
+      "hints": [
+        "A KeyError is about a missing requested dictionary key.",
+        "Before adding or changing anything, verify the record shape and the requirement for status.",
+        "Inspect present keys and the program contract."
+      ],
+      "reasoning_targets": [
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "errors_22_ex7",
+      "type": "debug",
+      "title": "Syntax stops execution",
+      "prompt": "Add only the missing syntax so the function can run and return Ready for True and Review for False.",
+      "starter_code": "def route_status(ready):\n    if ready\n        return \"Ready\"\n    return \"Review\"\n",
+      "reference_solution": "def route_status(ready):\n    if ready:\n        return \"Ready\"\n    return \"Review\"\n",
+      "topics": [
+        "debugging",
+        "functions"
+      ],
+      "hints": [
+        "The error is on the if header, not in the return statements.",
+        "Python block headers such as if end with a colon.",
+        "Change `if ready` to `if ready:`."
+      ],
+      "tests": [
+        {
+          "kind": "function",
+          "function": "route_status",
+          "args": [
+            true
+          ],
+          "expected": "Ready"
+        },
+        {
+          "kind": "function",
+          "function": "route_status",
+          "args": [
+            false
+          ],
+          "expected": "Review"
+        }
+      ],
+      "integration": [
+        "traceback_reading",
+        "if_else",
+        "functions",
+        "return"
+      ],
+      "reasoning_targets": [
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "errors_22_ex8",
+      "type": "debug",
+      "title": "Follow the misspelled name",
+      "prompt": "Repair the misspelled parameter reference so both fields come from the same `member` dictionary.",
+      "starter_code": "def member_label(member):\n    return f\"{memeber['name']}: {member['role']}\"\n",
+      "reference_solution": "def member_label(member):\n    return f\"{member['name']}: {member['role']}\"\n",
+      "topics": [
+        "debugging",
+        "functions",
+        "collections"
+      ],
+      "hints": [
+        "Read the NameError-style evidence: one spelling appears only once.",
+        "The parameter is named member, so every access should use that spelling.",
+        "Change memeber to member."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "fstring",
+          "in_function": "member_label"
+        },
+        {
+          "kind": "function",
+          "function": "member_label",
+          "args": [
+            {
+              "name": "Mira",
+              "role": "Scout"
+            }
+          ],
+          "expected": "Mira: Scout"
+        },
+        {
+          "kind": "function",
+          "function": "member_label",
+          "args": [
+            {
+              "name": "Rook",
+              "role": "Guard"
+            }
+          ],
+          "expected": "Rook: Guard"
+        }
+      ],
+      "reasoning_targets": [
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "errors_22_ex9",
+      "type": "mini_project",
+      "title": "Damaged Expedition Record",
+      "prompt": "Repair `summarize_entry(entry, party)` in stages. Run before each edit and note the final error type plus referenced line. The starter is intentionally layered: fixing the misspelled local name reveals an invalid index; fixing the index reveals a wrong dictionary key. The final function must return `<member name> | <clean lowercase status>` and clean status with `strip().lower()`. Do not add try/except.",
+      "starter_code": "def summarize_entry(entry, party):\n    memebr_index = entry[\"member_index\"]\n    member = party[member_index + 2]\n    status = entry[\"status\"].strip().lower()\n    return f\"{member['title']} | {status}\"\n",
+      "reference_solution": "def summarize_entry(entry, party):\n    member_index = entry[\"member_index\"]\n    member = party[member_index]\n    status = entry[\"status\"].strip().lower()\n    return f\"{member['name']} | {status}\"\n",
+      "topics": [
+        "debugging",
+        "functions",
+        "collections",
+        "strings"
+      ],
+      "hints": [
+        "Run first and repair only the evidence you currently have; do not try to guess all three bugs at once.",
+        "After the name is fixed, inspect the actual index value against party length. After that repair, inspect the member dictionary keys.",
+        "Final shape: member_index from entry, `party[member_index]`, member[\"name\"], and cleaned `entry[\"status\"].strip().lower()`."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "strip",
+          "in_function": "summarize_entry"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "lower",
+          "in_function": "summarize_entry"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "subscript",
+          "in_function": "summarize_entry"
+        },
+        {
+          "kind": "function",
+          "function": "summarize_entry",
+          "args": [
+            {
+              "member_index": 0,
+              "status": " READY "
+            },
+            [
+              {
+                "name": "Mira",
+                "role": "Scout"
+              },
+              {
+                "name": "Rook",
+                "role": "Guard"
+              }
+            ]
+          ],
+          "expected": "Mira | ready"
+        },
+        {
+          "kind": "function",
+          "function": "summarize_entry",
+          "args": [
+            {
+              "member_index": 1,
+              "status": " Hold "
+            },
+            [
+              {
+                "name": "Mira",
+                "role": "Scout"
+              },
+              {
+                "name": "Rook",
+                "role": "Guard"
+              }
+            ]
+          ],
+          "expected": "Rook | hold"
+        }
+      ],
+      "integration": [
+        "traceback_reading",
+        "nested_data",
+        "string_methods",
+        "parameters",
+        "indexing",
+        "dictionary_lookup",
+        "f_strings",
+        "return"
+      ],
+      "reasoning_targets": [
+        "diagnosis"
+      ],
+      "project_role": "bridge_project",
+      "criteria": [
+        "record_error_evidence",
+        "repair_runtime_failures",
+        "clean_status",
+        "verify_multiple_records"
+      ],
+      "success_message": "The final function passes multiple records. More importantly, the repair path follows evidence one failure at a time instead of random edits."
+    }
+  ],
+  "lesson_number": 22,
+  "production_contract_version": 1
+}

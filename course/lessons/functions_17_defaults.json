@@ -1,89 +1,127 @@
 {
+  "curriculum_revision": "3.2",
   "id": "functions_17_defaults",
-  "section": "Expedition Dispatch — Functions",
-  "section_order": 8,
-  "order": 2,
+  "section": "Expedition Dispatch",
+  "section_order": 6,
+  "order": 4,
   "title": "Defaults for the Common Case",
   "topics": [
     "functions"
   ],
-  "content": "What problem does this solve?\nMany dispatch calls share a common status or log level. Default parameter values let callers omit the everyday argument while still overriding it when needed. Keyword arguments bind by name so you can skip or reorder optional inputs clearly.\n\nPreviously in your program\nLesson 16 required every argument at the call site. Now some parameters can declare a fallback in the def header.\n\nBasic syntax\n  def stamp_route(place, note=\"queued\"):\n      return f\"{place} / {note}\"\n\n  stamp_route(\"East Docks\")\n  stamp_route(\"East Docks\", \"held\")\n  stamp_route(place=\"West Gate\", note=\"clear\")\n\nWhat actually happens\nRequired parameters come before defaulted ones. Omitting an optional argument uses its declared default. Passing a value overrides that default. Keywords bind by name. Mutable defaults such as lists or dictionaries can be dangerous later; this lesson uses safe immutable defaults like strings and numbers. The None-sentinel pattern comes in a later lesson.\n\nWhen this is useful\nAdd a default when one value is common but still worth making visible in the signature.",
+  "content": "What problem does this solve?\nSometimes one function input usually has the same value. A default places that common value in the function definition so callers may omit it. Callers can still replace the default for a particular call.\n\nUse the default\n  def greet(name, punctuation=\"!\"):\n      return f\"Hello, {name}{punctuation}\"\n  greet(\"Ada\")\nBecause the second argument is omitted, punctuation receives !.\n\nOverride it\n  greet(\"Ada\", \"?\")\nA supplied positional argument replaces the default for that call.\n\nOverride by name\n  greet(name=\"Ada\", punctuation=\".\")\nA keyword argument explicitly names the parameter it should replace. Required parameters must come before parameters that have defaults in the function definition.\n\nVocabulary after the behavior\nA default parameter supplies a value when its argument is omitted. A keyword argument names the parameter at the call site. An override replaces the default for one call.",
   "concepts": [
-    "Required parameters come before defaulted parameters",
-    "Omitting an optional argument uses its declared default",
-    "Passing a value overrides the default",
-    "Keyword arguments bind by name"
+    "A default supplies a common value when an argument is omitted",
+    "A caller can override a default positionally or by keyword",
+    "Keyword arguments match values to parameter names",
+    "Required parameters come before defaulted parameters in a function definition"
   ],
   "examples": [
     {
-      "title": "Common note",
-      "code": "def stamp_route(place, note=\"queued\"):\n    return f\"{place} / {note}\"\n\nprint(stamp_route(\"East Docks\"))\nprint(stamp_route(\"East Docks\", \"held\"))",
-      "explanation": "The first call uses the default queued. The second overrides note."
+      "title": "Use the default",
+      "code": "def greet(name, punctuation=\"!\"):\n    return f\"Hello, {name}{punctuation}\"\nprint(greet(\"Ada\"))",
+      "explanation": "No punctuation argument is supplied, so the default ! is used."
     },
     {
-      "title": "Keyword override",
-      "code": "def notice_line(text, tone=\"soft\", origin=\"desk\"):\n    return f\"{tone}|{origin}|{text}\"\n\nprint(notice_line(\"bridge clear\"))\nprint(notice_line(\"bridge clear\", origin=\"tower\"))",
-      "explanation": "Keywords let you override origin while keeping the default tone."
+      "title": "Override it",
+      "code": "def greet(name, punctuation=\"!\"):\n    return f\"Hello, {name}{punctuation}\"\nprint(greet(\"Ada\", \"?\"))",
+      "explanation": "The second positional argument replaces the default for this call."
+    },
+    {
+      "title": "Override by name",
+      "code": "def note(text, tone=\"soft\", source=\"desk\"):\n    return f\"{tone}|{source}|{text}\"\nprint(note(\"clear\", source=\"tower\"))",
+      "explanation": "source is overridden by name while tone keeps its default."
     }
   ],
   "common_mistakes": [
-    "Putting a defaulted parameter before a required one",
-    "Implementing a fallback only inside the body instead of in the signature",
-    "Forgetting that keywords bind by name, not by leftover position alone",
-    "Using a mutable list or dict as a default value"
+    "Putting a required parameter after a defaulted parameter",
+    "Writing a body-level fallback instead of a signature default when the signature is the learning objective",
+    "Assuming a default cannot be overridden",
+    "Using a keyword that does not match any parameter name",
+    "Using mutable list/dict defaults before understanding shared references"
   ],
   "exercises": [
     {
       "id": "functions_17_ex1",
       "type": "predict_output",
-      "title": "Use the declared default",
-      "prompt": "What does this print?",
-      "code_to_predict": "def mark_route(destination, status=\"Review\"):\n    return f\"{destination}: {status}\"\n\nprint(mark_route(\"Gloamfen\"))",
-      "expected_answer": "Gloamfen: Review",
+      "title": "Use the default",
+      "prompt": "What prints?",
+      "code_to_predict": "def mark(place, status=\"Review\"):\n    return f\"{place}: {status}\"\nprint(mark(\"Gate\"))",
+      "expected_answer": "Gate: Review",
       "topics": [
         "functions"
       ],
       "hints": [
-        "Only destination is passed at the call site.",
-        "status therefore uses its declared default.",
-        "The line is Gloamfen: Review."
+        "The call provides only the required place argument.",
+        "Because status is omitted, Python uses the value written after = in the signature.",
+        "status becomes Review, so the output is Gate: Review."
       ]
     },
     {
       "id": "functions_17_ex2",
+      "type": "predict_output",
+      "title": "Override positionally",
+      "prompt": "What prints?",
+      "code_to_predict": "def mark(place, status=\"Review\"):\n    return f\"{place}: {status}\"\nprint(mark(\"Gate\", \"Ready\"))",
+      "expected_answer": "Gate: Ready",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "A second argument was supplied in this call.",
+        "That positional value matches the status parameter and replaces its default.",
+        "The output is Gate: Ready."
+      ]
+    },
+    {
+      "id": "functions_17_ex3",
+      "type": "predict_output",
+      "title": "Override by name",
+      "prompt": "What prints?",
+      "code_to_predict": "def note(text, tone=\"soft\", source=\"desk\"):\n    return f\"{tone}|{source}|{text}\"\nprint(note(\"clear\", source=\"tower\"))",
+      "expected_answer": "soft|tower|clear",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "Only source is overridden by name.",
+        "tone is omitted, so it keeps soft; text receives clear.",
+        "The returned string is soft|tower|clear."
+      ]
+    },
+    {
+      "id": "functions_17_ex4",
       "type": "architecture",
       "title": "Which signature is valid?",
-      "prompt": "Which function signature is valid in Python?",
+      "prompt": "Which function definition correctly makes message required while level defaults to `\"NOTICE\"`?",
       "choices": [
-        "def log_entry(message, level=\"NOTICE\"):",
-        "def log_entry(level=\"NOTICE\", message):",
-        "def log_entry(\"NOTICE\", message):"
+        "def log(message, level=\"NOTICE\"):",
+        "def log(level=\"NOTICE\", message):",
+        "def log(\"NOTICE\", message):"
       ],
       "expected_answer": "1",
       "topics": [
         "functions"
       ],
-      "success_message": "Correct — required parameters come before defaulted parameters.",
-      "failure_message": "Required parameters must come before parameters that declare defaults.",
       "hints": [
-        "Defaults fill in missing trailing arguments.",
-        "A required name cannot sit after a defaulted one.",
-        "Choose the signature with message first, then level=\"NOTICE\"."
+        "Required parameters must appear before parameters with defaults.",
+        "Parameter names belong in the signature; literal argument values do not replace parameter names.",
+        "Choose `def log(message, level=\"NOTICE\"):`."
       ]
     },
     {
-      "id": "functions_17_ex3",
+      "id": "functions_17_ex5",
       "type": "fill_blank",
       "title": "One item by default",
-      "prompt": "Fill in the second parameter so format_supply(\"rope\") prints 1 x rope using a signature default (not a body fallback).",
-      "starter_code": "def format_supply(item, ______):\n    return f\"{quantity} x {item}\"\n\nprint(format_supply(\"rope\"))\n",
+      "prompt": "Complete the function signature so `format_supply(\"rope\")` returns `1 x rope`, while callers may still pass another quantity.",
+      "starter_code": "def format_supply(item, quantity):\n    return f\"{quantity} x {item}\"\n\nprint(format_supply(\"rope\"))\n",
+      "reference_solution": "def format_supply(item, quantity=1):\n    return f\"{quantity} x {item}\"\n\nprint(format_supply(\"rope\"))\n",
       "topics": [
         "functions"
       ],
       "hints": [
-        "The body already uses the name quantity.",
-        "Declare quantity in the header with a default of 1.",
-        "Write quantity=1 in the parameter list."
+        "The default belongs in the function signature, not inside the body.",
+        "Give quantity the common value 1 with `=`.",
+        "Use `def format_supply(item, quantity=1):`."
       ],
       "tests": [
         {
@@ -96,40 +134,45 @@
           ],
           "defaults": {
             "quantity": 1
-          },
-          "message": "Define format_supply(item, quantity=1)."
-        },
-        {
-          "kind": "stdout_equals",
-          "expected": "1 x rope\n",
-          "message": "format_supply(\"rope\") should print 1 x rope."
+          }
         },
         {
           "kind": "function",
           "function": "format_supply",
           "args": [
-            "torch",
+            "rope"
+          ],
+          "expected": "1 x rope"
+        },
+        {
+          "kind": "function",
+          "function": "format_supply",
+          "args": [
+            "rope",
             3
           ],
-          "expected": "3 x torch",
-          "message": "Callers must still be able to override quantity."
+          "expected": "3 x rope"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "1 x rope\n"
         }
       ]
     },
     {
-      "id": "functions_17_ex4",
+      "id": "functions_17_ex6",
       "type": "debug",
       "title": "Required before optional",
-      "prompt": "This definition is invalid because a defaulted parameter appears before a required one. Fix the parameter order so destination is required and status defaults to \"Review\".",
+      "prompt": "This definition is invalid because a required parameter appears after a defaulted one. Repair only the parameter order so `destination` is required and `status` defaults to `\"Review\"`.",
       "starter_code": "def mark_dispatch(status=\"Review\", destination):\n    return f\"{destination}: {status}\"\n",
+      "reference_solution": "def mark_dispatch(destination, status=\"Review\"):\n    return f\"{destination}: {status}\"\n",
       "topics": [
-        "functions",
-        "debugging"
+        "functions"
       ],
       "hints": [
-        "Required parameters come first.",
-        "destination should be first; status should keep its default.",
-        "def mark_dispatch(destination, status=\"Review\"):"
+        "The problem is in the order of the parameters, not the function body.",
+        "Put the required parameter first and the defaulted parameter second.",
+        "Use `def mark_dispatch(destination, status=\"Review\"):`."
       ],
       "tests": [
         {
@@ -142,8 +185,7 @@
           ],
           "defaults": {
             "status": "Review"
-          },
-          "message": "Define mark_dispatch(destination, status='Review')."
+          }
         },
         {
           "kind": "function",
@@ -151,46 +193,115 @@
           "args": [
             "Gloamfen"
           ],
-          "expected": "Gloamfen: Review",
-          "message": "mark_dispatch(\"Gloamfen\") should use the default status."
+          "expected": "Gloamfen: Review"
         },
         {
           "kind": "function",
           "function": "mark_dispatch",
           "args": [
-            "Ash Ford",
-            "Ready"
+            "Gloamfen",
+            "Cleared"
           ],
-          "expected": "Ash Ford: Ready",
-          "message": "Positional override of status must work."
-        },
-        {
-          "kind": "function",
-          "function": "mark_dispatch",
-          "args": [],
-          "kwargs": {
-            "destination": "Marsh Road",
-            "status": "Denied"
-          },
-          "expected": "Marsh Road: Denied",
-          "message": "Keyword arguments must bind by name."
+          "expected": "Gloamfen: Cleared"
         }
+      ],
+      "reasoning_targets": [
+        "diagnosis"
       ]
     },
     {
-      "id": "functions_17_ex5",
-      "type": "mini_project",
-      "title": "Dispatch log entry",
-      "prompt": "Write log_entry(message, level=\"NOTICE\", source=\"field\") that returns:\n  [<level>][<source>] <message>\n\nSupport positional overrides and keyword overrides. Do not print.",
-      "starter_code": "def log_entry(message, level=\"NOTICE\", source=\"field\"):\n    # Return the formatted log line.\n    pass\n",
+      "id": "functions_17_ex7",
+      "type": "write_code",
+      "title": "Default status helper",
+      "prompt": "Write `format_status(name, status=\"Review\")` from scratch. Return `<name>: <status>`. Calling it with only name must use Review; calling it with `status=\"Cleared\"` must override the default.",
+      "starter_code": "def format_status(name, status=\"Review\"):\n    pass\n",
+      "reference_solution": "def format_status(name, status=\"Review\"):\n    return f\"{name}: {status}\"\n",
       "topics": [
-        "functions"
+        "functions",
+        "strings"
       ],
-      "success_message": "Log line ready — common defaults stay convenient, and overrides stay clear.",
       "hints": [
-        "Keep the parameter names and defaults exactly as specified.",
-        "Build one f-string that inserts level, source, and message.",
-        "return f\"[{level}][{source}] {message}\""
+        "Keep the default in the signature and build one returned string from both parameter names.",
+        "Use an f-string and return it; do not print inside the function.",
+        "Return `f\"{name}: {status}\"`."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "format_status",
+          "parameters": [
+            "name",
+            "status"
+          ],
+          "defaults": {
+            "status": "Review"
+          }
+        },
+        {
+          "kind": "source_uses",
+          "feature": "fstring",
+          "in_function": "format_status"
+        },
+        {
+          "kind": "function",
+          "function": "format_status",
+          "args": [
+            "Gate"
+          ],
+          "expected": "Gate: Review"
+        },
+        {
+          "kind": "function",
+          "function": "format_status",
+          "args": [
+            "Gate"
+          ],
+          "expected": "Gate: Cleared",
+          "kwargs": {
+            "status": "Cleared"
+          }
+        },
+        {
+          "kind": "function",
+          "function": "format_status",
+          "args": [
+            "Bridge",
+            "Denied"
+          ],
+          "expected": "Bridge: Denied"
+        }
+      ],
+      "success_message": "The helper uses its default when omitted and accepts both positional and keyword overrides.",
+      "integration": [
+        "functions",
+        "parameters",
+        "defaults",
+        "keyword_arguments",
+        "return",
+        "f_strings"
+      ],
+      "reasoning_targets": [
+        "transfer"
+      ]
+    },
+    {
+      "id": "functions_17_ex8",
+      "type": "mini_project",
+      "title": "Dispatch Log Builder",
+      "prompt": "Write `log_entry(message, level=\"NOTICE\", source=\"field\")` so it returns `[<level>][<source>] <message>`. Then build exactly three strings in a `dispatch_log` list: `log_entry(\"gate checked\")`, `log_entry(\"venom found\", \"ALERT\")`, and `log_entry(\"signal clear\", source=\"tower\")`. Loop over the list and print each finished line.",
+      "starter_code": "def log_entry(message, level=\"NOTICE\", source=\"field\"):\n    pass\n\n# Build dispatch_log with three calls, then print each line.\n",
+      "reference_solution": "def log_entry(message, level=\"NOTICE\", source=\"field\"):\n    return f\"[{level}][{source}] {message}\"\n\ndispatch_log = [\n    log_entry(\"gate checked\"),\n    log_entry(\"venom found\", \"ALERT\"),\n    log_entry(\"signal clear\", source=\"tower\"),\n]\n\nfor line in dispatch_log:\n    print(line)\n",
+      "topics": [
+        "functions",
+        "lists",
+        "loops",
+        "strings"
+      ],
+      "hints": [
+        "First make log_entry correct on its own: it should always return one formatted string using both defaults when they are omitted.",
+        "Build the list by calling the function three different ways: defaults, positional level override, keyword source override.",
+        "Finally loop over dispatch_log and print each returned string. Do not duplicate the formatting outside the function."
       ],
       "tests": [
         {
@@ -205,14 +316,16 @@
           "defaults": {
             "level": "NOTICE",
             "source": "field"
-          },
-          "message": "Define log_entry(message, level='NOTICE', source='field')."
+          }
         },
         {
           "kind": "source_uses",
           "feature": "fstring",
-          "in_function": "log_entry",
-          "message": "Build the log line with an f-string inside log_entry."
+          "in_function": "log_entry"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "for_loop"
         },
         {
           "kind": "function",
@@ -220,8 +333,7 @@
           "args": [
             "gate checked"
           ],
-          "expected": "[NOTICE][field] gate checked",
-          "message": "Defaults should produce [NOTICE][field] ..."
+          "expected": "[NOTICE][field] gate checked"
         },
         {
           "kind": "function",
@@ -230,35 +342,58 @@
             "venom found",
             "ALERT"
           ],
-          "expected": "[ALERT][field] venom found",
-          "message": "A positional level override must replace NOTICE."
+          "expected": "[ALERT][field] venom found"
         },
         {
           "kind": "function",
           "function": "log_entry",
           "args": [
-            "tower signal"
+            "signal clear"
           ],
+          "expected": "[NOTICE][tower] signal clear",
           "kwargs": {
-            "source": "north tower"
-          },
-          "expected": "[NOTICE][north tower] tower signal",
-          "message": "A keyword source override must keep the default level."
+            "source": "tower"
+          }
         },
         {
-          "kind": "function",
-          "function": "log_entry",
-          "args": [
-            "statues moved"
+          "kind": "globals",
+          "name": "dispatch_log",
+          "expected": [
+            "[NOTICE][field] gate checked",
+            "[ALERT][field] venom found",
+            "[NOTICE][tower] signal clear"
           ],
-          "kwargs": {
-            "source": "ruins",
-            "level": "WARNING"
-          },
-          "expected": "[WARNING][ruins] statues moved",
-          "message": "Keyword overrides must bind level and source by name."
+          "type_name": "list"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "[NOTICE][field] gate checked\n[ALERT][field] venom found\n[NOTICE][tower] signal clear\n"
         }
+      ],
+      "success_message": "Dispatch log complete. One function handled the common case and two kinds of override, then older list/loop skills assembled the finished report.",
+      "integration": [
+        "functions",
+        "multiple_parameters",
+        "defaults",
+        "keyword_arguments",
+        "return",
+        "lists",
+        "for_loop",
+        "f_strings",
+        "print"
+      ],
+      "reasoning_targets": [
+        "transfer"
+      ],
+      "project_role": "bridge_project",
+      "criteria": [
+        "use_defaults",
+        "accept_overrides",
+        "build_multiple_log_lines",
+        "print_finished_log"
       ]
     }
-  ]
+  ],
+  "lesson_number": 17,
+  "production_contract_version": 1
 }

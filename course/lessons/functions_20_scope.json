@@ -1,0 +1,507 @@
+{
+  "curriculum_revision": "3.2",
+  "id": "functions_20_scope",
+  "section": "Realistic Data & Debugging",
+  "section_order": 7,
+  "order": 2,
+  "title": "Where Names Live",
+  "topics": [
+    "functions",
+    "scope"
+  ],
+  "content": "What problem does this solve?\nA function call gets its own local names. Parameters are local names created from the caller's arguments. A variable assigned inside a function normally belongs to that function call, so the same spelling inside and outside does not automatically mean the same stored value.\n\nSame spelling, different place\n  name = \"outside\"\n  def show():\n      name = \"inside\"\n      print(name)\n  show()\n  print(name)\nThe function prints inside; the outer name still stores outside.\n\nPrefer explicit dependencies\nWhen a helper needs information, pass it in as a parameter. When it produces information, return it. That is easier to reason about and test than secretly depending on outside state.\n\nRead before local assignment\nIf a function assigns to a name, Python normally treats that name as local in the function. Trying to read that local value before it has been assigned produces UnboundLocalError.\n\nVocabulary after the behavior\nScope describes where a name is available. A local variable belongs to one function call. Shadowing means a local name uses the same spelling as an outside name without replacing it.",
+  "concepts": [
+    "Parameters and variables assigned inside a function are local to that call",
+    "A local name can have the same spelling as an outside name without changing it",
+    "Passing dependencies as parameters makes functions easier to reason about and test",
+    "return carries a local result back to the caller",
+    "Assigning to a name inside a function makes a read-before-assignment of that local name fail"
+  ],
+  "examples": [
+    {
+      "title": "Inside then outside",
+      "code": "name = \"outside\"\ndef show():\n    name = \"inside\"\n    print(name)\nshow()\nprint(name)",
+      "explanation": "The local assignment does not replace the outer value."
+    },
+    {
+      "title": "Parameter instead of hidden state",
+      "code": "rate = 2\ndef total(amount, rate):\n    return amount * rate\nprint(total(5, 3))",
+      "explanation": "The helper receives the rate it needs explicitly instead of secretly reading the outer rate."
+    },
+    {
+      "title": "Read before assignment",
+      "code": "count = 3\ndef change():\n    count = count - 1",
+      "explanation": "Because the function assigns to count, count is local there; the right side would read it before a local value exists."
+    }
+  ],
+  "common_mistakes": [
+    "Assuming assignment inside a function automatically changes a same-named outside variable",
+    "Using globals because passing a parameter feels repetitive",
+    "Believing parameters are global",
+    "Reading a would-be local before assigning it",
+    "Turning “avoid hidden globals” into a slogan instead of understanding explicit dependencies"
+  ],
+  "exercises": [
+    {
+      "id": "functions_20_ex1",
+      "type": "predict_output",
+      "title": "Inside then outside",
+      "prompt": "Write the exact two output lines.",
+      "code_to_predict": "name = \"outside\"\ndef show():\n    name = \"inside\"\n    print(name)\nshow()\nprint(name)",
+      "expected_answer": "inside\noutside",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "Trace the function call separately from the outer code.",
+        "Inside show, the local name stores inside. After the call, the outer name still stores outside.",
+        "The lines are inside, then outside."
+      ]
+    },
+    {
+      "id": "functions_20_ex2",
+      "type": "predict_output",
+      "title": "The outside value stays",
+      "prompt": "What prints?",
+      "code_to_predict": "status = \"waiting\"\ndef prepare():\n    status = \"ready\"\n    return status\nprepare()\nprint(status)",
+      "expected_answer": "waiting",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "prepare returns ready, but the caller does not store that returned value.",
+        "The assignment inside prepare is local to the function call.",
+        "The outside status remains waiting."
+      ]
+    },
+    {
+      "id": "functions_20_ex3",
+      "type": "write_code",
+      "title": "Make the dependency explicit",
+      "prompt": "Rewrite `double_total` so it receives `total` as a parameter instead of reading the outside variable. Keep the outer total equal to 5 and print the result of `double_total(7)`, which should be 14.",
+      "starter_code": "total = 5\n\ndef double_total():\n    return total * 2\n\nprint(double_total())\n",
+      "reference_solution": "total = 5\n\ndef double_total(total):\n    return total * 2\n\nprint(double_total(7))\n",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "Put total inside the function parameter list so each call supplies the value explicitly.",
+        "Use only the parameter inside the function body; then call it with 7.",
+        "Define `double_total(total)` returning `total * 2`, then print `double_total(7)`."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "double_total",
+          "parameters": [
+            "total"
+          ]
+        },
+        {
+          "kind": "function",
+          "function": "double_total",
+          "args": [
+            3
+          ],
+          "expected": 6
+        },
+        {
+          "kind": "function",
+          "function": "double_total",
+          "args": [
+            10
+          ],
+          "expected": 20
+        },
+        {
+          "kind": "globals",
+          "name": "total",
+          "expected": 5,
+          "type_name": "int"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "14\n"
+        }
+      ],
+      "integration": [
+        "functions",
+        "parameters",
+        "local_scope",
+        "arithmetic",
+        "return",
+        "print"
+      ]
+    },
+    {
+      "id": "functions_20_ex4",
+      "type": "architecture",
+      "title": "Which helper is easier to test?",
+      "prompt": "Which design makes the function's dependency clearest and easiest to test?",
+      "choices": [
+        "A function silently reads and changes an outside `supplies` variable.",
+        "A function receives `supplies` as a parameter and returns its result."
+      ],
+      "expected_answer": "2",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "Ask whether a caller can see all inputs from the function call itself.",
+        "Hidden outside state makes behavior depend on information not shown in the call.",
+        "Choose the explicit parameter/return design."
+      ],
+      "reasoning_targets": [
+        "responsibility_design"
+      ]
+    },
+    {
+      "id": "functions_20_ex5",
+      "type": "architecture",
+      "title": "Why does this fail?",
+      "prompt": "What best explains the problem in this function?\n\ncount = 3\ndef use_one():\n    count = count - 1\n    return count",
+      "choices": [
+        "The assignment makes count local, so the right side tries to read that local before it has a value.",
+        "Python automatically changes the global count first.",
+        "Subtraction is not allowed inside a function."
+      ],
+      "expected_answer": "1",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "Notice that count is assigned inside the function.",
+        "That assignment makes count a local name for this function body unless special syntax is used.",
+        "The right side reads the local count before any local value has been assigned, causing UnboundLocalError."
+      ],
+      "reasoning_targets": [
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "functions_20_ex6",
+      "type": "debug",
+      "title": "Repair the hidden dependency",
+      "prompt": "Refactor this function to receive supplies as a parameter and return one less. Print `use_supply(supplies)`. The outside `supplies` variable must remain 3.",
+      "starter_code": "supplies = 3\ndef use_supply():\n    supplies = supplies - 1\n    return supplies\nprint(use_supply())\n",
+      "reference_solution": "supplies = 3\ndef use_supply(supplies):\n    supplies = supplies - 1\n    return supplies\nprint(use_supply(supplies))\n",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "Turn the value the function needs into a parameter.",
+        "The local parameter can be reassigned without changing the outside integer variable.",
+        "Define `use_supply(supplies)`, subtract 1 locally, return it, and call `use_supply(supplies)`."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "use_supply",
+          "parameters": [
+            "supplies"
+          ]
+        },
+        {
+          "kind": "function",
+          "function": "use_supply",
+          "args": [
+            5
+          ],
+          "expected": 4
+        },
+        {
+          "kind": "function",
+          "function": "use_supply",
+          "args": [
+            1
+          ],
+          "expected": 0
+        },
+        {
+          "kind": "globals",
+          "name": "supplies",
+          "expected": 3,
+          "type_name": "int"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "2\n"
+        }
+      ],
+      "integration": [
+        "functions",
+        "parameters",
+        "local_scope",
+        "arithmetic",
+        "assignment",
+        "return"
+      ],
+      "reasoning_targets": [
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "functions_20_ex7",
+      "type": "write_code",
+      "title": "Apply damage explicitly",
+      "prompt": "Write `apply_damage(health, hit)` that returns `health - hit` and reads no outside variables.",
+      "starter_code": "def apply_damage(health, hit):\n    pass\n",
+      "reference_solution": "def apply_damage(health, hit):\n    return health - hit\n",
+      "topics": [
+        "functions"
+      ],
+      "hints": [
+        "Both pieces of information belong in the function call.",
+        "Use the two parameter names directly in the arithmetic expression.",
+        "Return `health - hit`."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "apply_damage",
+          "parameters": [
+            "health",
+            "hit"
+          ]
+        },
+        {
+          "kind": "function",
+          "function": "apply_damage",
+          "args": [
+            10,
+            3
+          ],
+          "expected": 7
+        },
+        {
+          "kind": "function",
+          "function": "apply_damage",
+          "args": [
+            4,
+            4
+          ],
+          "expected": 0
+        },
+        {
+          "kind": "function",
+          "function": "apply_damage",
+          "args": [
+            2,
+            5
+          ],
+          "expected": -3
+        }
+      ],
+      "integration": [
+        "functions",
+        "multiple_parameters",
+        "local_scope",
+        "arithmetic",
+        "return"
+      ],
+      "reasoning_targets": [
+        "boundaries"
+      ]
+    },
+    {
+      "id": "functions_20_ex8",
+      "type": "write_code",
+      "title": "Keep both inputs local",
+      "prompt": "Write `format_pair(first, second)` returning `<first> | <second>`. Use only its parameters/local names; do not read any outside variable.",
+      "starter_code": "def format_pair(first, second):\n    pass\n",
+      "reference_solution": "def format_pair(first, second):\n    return f\"{first} | {second}\"\n",
+      "topics": [
+        "functions",
+        "strings"
+      ],
+      "hints": [
+        "The returned text is built entirely from the two arguments for this call.",
+        "Use an f-string with first and second.",
+        "Return `f\"{first} | {second}\"`."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "function_signature",
+          "name": "format_pair",
+          "parameters": [
+            "first",
+            "second"
+          ]
+        },
+        {
+          "kind": "source_uses",
+          "feature": "fstring",
+          "in_function": "format_pair"
+        },
+        {
+          "kind": "function",
+          "function": "format_pair",
+          "args": [
+            "A",
+            "B"
+          ],
+          "expected": "A | B"
+        },
+        {
+          "kind": "function",
+          "function": "format_pair",
+          "args": [
+            "left",
+            "right"
+          ],
+          "expected": "left | right"
+        }
+      ],
+      "integration": [
+        "functions",
+        "multiple_parameters",
+        "local_scope",
+        "f_strings",
+        "return"
+      ],
+      "reasoning_targets": [
+        "transfer"
+      ]
+    },
+    {
+      "id": "functions_20_ex9",
+      "type": "mini_project",
+      "title": "Local Party Report",
+      "prompt": "Keep the supplied outside `total_health = 999`. Write `party_report(party)` for a non-empty list of member dictionaries. Using only the parameter and local names, return a dictionary with `member_count`, `total_health`, and `lowest_health`. Sum all health values and track the lowest health without using `min()`. The outside total_health must remain 999.",
+      "starter_code": "total_health = 999\n\ndef party_report(party):\n    pass\n",
+      "reference_solution": "total_health = 999\n\ndef party_report(party):\n    total_health = 0\n    lowest_health = party[0][\"health\"]\n    for member in party:\n        total_health = total_health + member[\"health\"]\n        if member[\"health\"] < lowest_health:\n            lowest_health = member[\"health\"]\n    return {\n        \"member_count\": len(party),\n        \"total_health\": total_health,\n        \"lowest_health\": lowest_health,\n    }\n",
+      "topics": [
+        "functions",
+        "collections"
+      ],
+      "hints": [
+        "Start both local calculations inside the function: total at 0 and lowest health from the guaranteed first member.",
+        "Visit every member. Add health to the local total and replace lowest_health only when the current health is smaller.",
+        "Return the three named fields after the loop. Do not assign to the outside variable; the local name may have the same spelling safely."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "in_function": "party_report"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "if_statement",
+          "in_function": "party_report"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "len_call",
+          "in_function": "party_report"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "subscript",
+          "in_function": "party_report"
+        },
+        {
+          "kind": "function",
+          "function": "party_report",
+          "args": [
+            [
+              {
+                "name": "Mira",
+                "health": 8
+              },
+              {
+                "name": "Rook",
+                "health": 10
+              }
+            ]
+          ],
+          "expected": {
+            "member_count": 2,
+            "total_health": 18,
+            "lowest_health": 8
+          }
+        },
+        {
+          "kind": "function",
+          "function": "party_report",
+          "args": [
+            [
+              {
+                "name": "A",
+                "health": 5
+              },
+              {
+                "name": "B",
+                "health": 2
+              },
+              {
+                "name": "C",
+                "health": 7
+              }
+            ]
+          ],
+          "expected": {
+            "member_count": 3,
+            "total_health": 14,
+            "lowest_health": 2
+          }
+        },
+        {
+          "kind": "function",
+          "function": "party_report",
+          "args": [
+            [
+              {
+                "name": "Solo",
+                "health": 0
+              }
+            ]
+          ],
+          "expected": {
+            "member_count": 1,
+            "total_health": 0,
+            "lowest_health": 0
+          }
+        },
+        {
+          "kind": "globals",
+          "name": "total_health",
+          "expected": 999,
+          "type_name": "int"
+        }
+      ],
+      "integration": [
+        "functions",
+        "parameters",
+        "nested_data",
+        "for_loop",
+        "dictionary_lookup",
+        "local_scope",
+        "len",
+        "comparisons",
+        "if_else",
+        "arithmetic",
+        "dictionaries",
+        "structured_returns"
+      ],
+      "reasoning_targets": [
+        "accumulator_tracking",
+        "boundaries"
+      ],
+      "project_role": "bridge_project",
+      "criteria": [
+        "avoid_hidden_global_dependency",
+        "accumulate_total_health",
+        "track_lowest_health",
+        "return_complete_report"
+      ],
+      "success_message": "The report is fully determined by its argument and local state; a second party produces a second independent result."
+    }
+  ],
+  "lesson_number": 20,
+  "production_contract_version": 1
+}

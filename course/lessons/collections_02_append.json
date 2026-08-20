@@ -1,139 +1,220 @@
 {
+  "curriculum_revision": "3.2",
   "id": "collections_02_append",
   "section": "Collections",
   "section_order": 3,
   "order": 2,
   "title": "Record New Evidence",
   "topics": [
-    "collections"
+    "lists",
+    "append"
   ],
-  "content": "What problem does this solve?\nA field record changes when new evidence arrives. You need to add an item to a list you already have, without building a brand-new list from scratch every time.\n\nBasic syntax\n  evidence.append(\"gray dust\")\n\nWhat actually happens\nA list can be changed after you create it. append adds another element at the end of the same list. The name evidence still refers to that same list; it now has one more item.\n\nWhen this is useful\nUse append when something new should join a collection you already named \u2014 a recovered clue, a new party member, another entry in the log. Deeper list methods come later; this lesson focuses on append().",
+  "concept_ids": [
+    "append",
+    "list_mutation",
+    "lists",
+    "indexing"
+  ],
+  "content": "What problem does this solve?\nA list does not have to stay the way it was created. When new information arrives, append() can add one value to the end of the existing list.\n\nStart with the behavior\n  items = [\"a\"]\n  items.append(\"b\")\n  print(items)\nAfter append() runs, the same list now contains two values. This visible change is list mutation: the existing list was changed.\n\nThe method-call shape\n  list_name.append(value)\nThe dot connects the list to an operation it knows how to perform. Parentheses make it a call.\n\nScope boundary\nThis lesson focuses only on adding one item with append(). Removing items and the return values of list methods come later.",
   "concepts": [
-    "You can change a list after you create it",
-    "append adds an item at the end of the same list",
-    "After append, the name still refers to that same list"
+    "append(value) adds one item to the end of a list",
+    "The existing list changes after append()",
+    "Method calls use dot notation and parentheses"
   ],
   "examples": [
     {
+      "title": "Add one value",
+      "code": "items = [\"a\"]\nitems.append(\"b\")\nprint(items)",
+      "explanation": "The same list grows from one item to two."
+    },
+    {
       "title": "Recovered evidence",
       "code": "evidence = [\"broken lantern\", \"drag marks\"]\nevidence.append(\"gray dust\")\nprint(evidence)",
-      "explanation": "append changes the list in place. evidence now holds three clues, ending with gray dust."
+      "explanation": "New evidence is added without rebuilding the list from scratch."
     }
   ],
   "common_mistakes": [
-    "Expecting append to return a new list \u2014 it changes the existing one and returns None",
-    "Replacing the whole list with a finished literal instead of adding to the list you already have"
+    "Using square brackets instead of parentheses when calling append",
+    "Creating a new completed list instead of practicing mutation with append()",
+    "Expecting append() to insert at the front rather than the end"
   ],
   "exercises": [
     {
       "id": "collections_02_ex1",
       "type": "predict_output",
-      "title": "Predict the mutation",
-      "prompt": "What does this print? Type the exact output, including square brackets and quotes.",
-      "code_to_predict": "evidence = [\"broken lantern\", \"drag marks\"]\nevidence.append(\"torn cloak\")\nprint(evidence)",
-      "expected_answer": "['broken lantern', 'drag marks', 'torn cloak']",
+      "title": "One append",
+      "prompt": "What list prints?",
+      "code_to_predict": "items = [\"a\"]\nitems.append(\"b\")\nprint(items)",
+      "expected_answer": "['a', 'b']",
       "topics": [
-        "collections"
+        "lists",
+        "append"
       ],
       "hints": [
-        "append adds to the end of the existing list.",
-        "print(evidence) shows the whole list, not just the new clue.",
-        "Python prints lists with square brackets and quotes around each string."
+        "Start with the original list, then apply the append before reading the print line.",
+        "append(\"b\") adds b after the existing a.",
+        "The list becomes ['a', 'b']."
       ]
     },
     {
       "id": "collections_02_ex2",
-      "type": "write_code",
-      "title": "Add recovered evidence",
-      "prompt": "evidence already has two clues. Append \"gray dust\" to that list, then print the list. Do not replace evidence with a brand-new three-item literal.",
-      "starter_code": "evidence = [\"broken lantern\", \"drag marks\"]\n# Append gray dust, then print evidence\n",
+      "type": "fill_blank",
+      "title": "Append the item",
+      "prompt": "Change the method name so torch is added to the end of items. The output should be exactly ['rope', 'torch'].",
+      "starter_code": "items = [\"rope\"]\nitems.clear(\"torch\")\nprint(items)\n",
+      "reference_solution": "items = [\"rope\"]\nitems.append(\"torch\")\nprint(items)\n",
       "topics": [
-        "collections"
+        "lists",
+        "append"
       ],
       "hints": [
-        "Call a method on evidence to add one string at the end.",
-        "After adding, print the list variable itself.",
-        "Use evidence.append(\"gray dust\"), then print evidence."
+        "You need the list operation that adds one value to the end.",
+        "The method name is append, and it is called with parentheses.",
+        "Use items.append(\"torch\")."
       ],
       "tests": [
         {
           "kind": "source_uses",
           "feature": "append_call",
-          "name": "evidence",
-          "message": "Add gray dust to the existing evidence list with append()."
+          "message": "Use append() to add torch."
         },
         {
-          "kind": "globals",
-          "name": "evidence",
-          "type_name": "list",
-          "expected": [
-            "broken lantern",
-            "drag marks",
-            "gray dust"
-          ]
-        },
-        {
-          "kind": "stdout_contains",
-          "contains": "broken lantern"
-        },
-        {
-          "kind": "stdout_contains",
-          "contains": "gray dust"
+          "kind": "stdout_equals",
+          "expected": "['rope', 'torch']\n"
         }
       ]
     },
     {
       "id": "collections_02_ex3",
       "type": "write_code",
-      "title": "Report the new clue",
-      "prompt": "evidence already has two clues. Append \"gray dust\", then print exactly:\nNewest evidence: gray dust\n\nThe clue in that line must come from indexing into the updated list and an f-string \u2014 do not hardcode gray dust only in the print.",
-      "starter_code": "evidence = [\"broken lantern\", \"drag marks\"]\n# Append the new clue, then report it\n",
+      "title": "Grow an empty list",
+      "prompt": "Start with names = []. Append Ada, then append Lin, then print names. The output should be exactly:\n['Ada', 'Lin']",
+      "starter_code": "names = []\n\n# Append two names, then print the list\n",
+      "reference_solution": "names = []\nnames.append(\"Ada\")\nnames.append(\"Lin\")\nprint(names)\n",
       "topics": [
-        "collections",
-        "strings"
+        "lists",
+        "append"
       ],
       "hints": [
-        "Append first so the new clue becomes the last item.",
-        "The last item of a three-element list is at index 2.",
-        "Print an f-string such as Newest evidence: {evidence[2]} after appending."
+        "The empty list already exists; change it rather than replacing it.",
+        "Call append once for Ada and a second time for Lin so their order is preserved.",
+        "Use names.append(\"Ada\"), then names.append(\"Lin\"), then print(names)."
       ],
       "tests": [
         {
           "kind": "source_uses",
           "feature": "append_call",
-          "name": "evidence",
-          "message": "Append gray dust to evidence with append() before reporting it."
+          "message": "Use append() to grow the existing list."
         },
         {
-          "kind": "source_uses",
-          "feature": "fstring",
-          "names": [
-            "evidence"
+          "kind": "globals",
+          "name": "names",
+          "expected": [
+            "Ada",
+            "Lin"
           ],
-          "message": "Use an f-string that reads from the evidence list."
+          "type_name": "list"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "['Ada', 'Lin']\n"
+        }
+      ]
+    },
+    {
+      "id": "collections_02_ex4",
+      "type": "debug",
+      "title": "Parentheses for a call",
+      "prompt": "Repair the append syntax so the list becomes ['rope', 'torch'].",
+      "starter_code": "items = [\"rope\"]\nitems.append[\"torch\"]\nprint(items)\n",
+      "reference_solution": "items = [\"rope\"]\nitems.append(\"torch\")\nprint(items)\n",
+      "topics": [
+        "lists",
+        "append"
+      ],
+      "hints": [
+        "append is an operation you call, not a list you index.",
+        "Calls use parentheses. Square brackets are for indexing values such as items[0].",
+        "Change append[\"torch\"] to append(\"torch\")."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "append_call"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "['rope', 'torch']\n"
+        }
+      ]
+    },
+    {
+      "id": "collections_02_ex5",
+      "type": "mini_project",
+      "title": "Evidence Intake Board",
+      "prompt": "Start with the supplied evidence list.\n\n1. Append \"gray dust\".\n2. Append the supplied new_clue.\n3. Print exactly two lines using f-strings and indexing:\nFirst clue: broken lantern\nNewest clue: stone chip\n\nDo not replace evidence with a finished four-item list. Preserve its original order and add the new items with append().",
+      "starter_code": "evidence = [\"broken lantern\", \"drag marks\"]\nnew_clue = \"stone chip\"\n\n# Add the two new clues, then print first and newest\n",
+      "reference_solution": "evidence = [\"broken lantern\", \"drag marks\"]\nnew_clue = \"stone chip\"\n\nevidence.append(\"gray dust\")\nevidence.append(new_clue)\nprint(f\"First clue: {evidence[0]}\")\nprint(f\"Newest clue: {evidence[3]}\")\n",
+      "topics": [
+        "lists",
+        "append",
+        "indexing",
+        "f_strings"
+      ],
+      "hints": [
+        "Grow evidence first. Only after both appends should you look up the first and newest items.",
+        "The first clue remains at index 0. After two appends, the newest clue is the fourth item, index 3.",
+        "Append \"gray dust\", append new_clue, then use evidence[0] and evidence[3] inside the two f-strings."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "append_call",
+          "message": "Use append() to add new evidence."
         },
         {
           "kind": "source_uses",
           "feature": "subscript",
-          "name": "evidence",
-          "message": "Read the newest clue with evidence[...], not a hardcoded string alone."
+          "message": "Retrieve the first and newest items by indexing the changed list."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "fstring"
         },
         {
           "kind": "globals",
           "name": "evidence",
-          "type_name": "list",
           "expected": [
             "broken lantern",
             "drag marks",
-            "gray dust"
-          ]
+            "gray dust",
+            "stone chip"
+          ],
+          "type_name": "list"
         },
         {
           "kind": "stdout_equals",
-          "expected": "Newest evidence: gray dust\n"
+          "expected": "First clue: broken lantern\nNewest clue: stone chip\n"
         }
       ],
-      "success_message": "Newest clue recorded. The list changed, and your report used its updated state."
+      "success_message": "The board now reflects new evidence by changing and then reading the same list.",
+      "integration": [
+        "variables",
+        "lists",
+        "indexing",
+        "append",
+        "f_strings",
+        "print"
+      ],
+      "project_role": "bridge_project",
+      "criteria": [
+        "append_new_evidence",
+        "preserve_existing_evidence",
+        "retrieve_newest_item",
+        "format_board_output"
+      ]
     }
-  ]
+  ],
+  "lesson_number": 6,
+  "production_contract_version": 1
 }

@@ -1,67 +1,84 @@
 {
+  "curriculum_revision": "3.2",
   "id": "collections_14_dict_iteration",
-  "section": "Expedition Dispatch — Collections",
-  "section_order": 7,
+  "section": "Expedition Dispatch",
+  "section_order": 6,
   "order": 1,
   "title": "Read the Whole Ledger",
   "topics": [
-    "collections"
+    "dictionaries",
+    "loops"
   ],
-  "content": "What problem does this solve?\nAn intake record stores named facts. Dispatch work often needs every entry: each supply and its count. A plain for loop over a dictionary visits keys. .items() yields key/value pairs you can unpack. .get(key, default) reads a value when the key might be missing, without raising KeyError.\n\nPreviously in your program\nYou looked up record[\"destination\"] and built dictionaries with make_record. Now you walk every pair and handle a missing key safely.\n\nBasic syntax\n  crate = {\"nail\": 4, \"hinge\": 2}\n  for label in crate:\n      print(label)\n  for label, amount in crate.items():\n      print(label, amount)\n  crate.get(\"latch\", 0)\n\nWhat actually happens\nfor label in crate binds label to each key in insertion order. crate[label] then reads the matching value. crate.items() produces (key, value) pairs; unpacking into two names keeps both clear. crate.get(\"latch\", 0) returns the stored count when present, or 0 when the key is absent — including when the stored count is 0.\n\nWhen this is useful\nUse dictionary iteration when you must process every labeled entry. Use .get with an explicit default when absence should become a safe fallback value.",
+  "content": "What problem does this solve?\nA dictionary often holds several named facts, and sometimes your program must process every one. A plain for loop over a dictionary gives you its keys. When you need each key together with its value, .items() gives both. When a field is optional, .get(key, default) lets you state the fallback explicitly.\n\nStart with the behavior\n  scores = {\"Ada\": 3, \"Bo\": 5}\n  for name in scores:\n      print(name)\nA plain dictionary loop visits the keys.\n\nKey and value together\n  for name, score in scores.items():\n      print(name, score)\n.items() gives one key/value pair at a time, and Python places the two parts into the two loop variables.\n\nOptional fields\n  score = scores.get(\"Cy\", 0)\nIf Cy is missing, score becomes 0. Use direct lookup when the field is required and missing data should be an error; use .get when a fallback is genuinely part of the rule.\n\nVocabulary after the behavior\nIteration means visiting entries one at a time. Unpacking means receiving the two parts of a pair into two names.",
   "concepts": [
-    "for key in record visits dictionary keys",
-    "record[key] reads the value for that key",
-    ".items() supplies key/value pairs that can be unpacked",
-    ".get(key, default) handles a missing key without KeyError"
+    "A plain dictionary loop visits keys",
+    ".items() provides key/value pairs",
+    "Two loop variables can unpack each pair",
+    ".get(key, default) supplies an explicit fallback for an optional key",
+    "Direct lookup is clearer when a missing key should be treated as an error"
   ],
   "examples": [
     {
-      "title": "Visit labeled counts",
-      "code": "crate = {\"nail\": 4, \"hinge\": 2}\n\nfor label in crate:\n    print(label)\n\nfor label, amount in crate.items():\n    print(label, amount)",
-      "explanation": "The first loop prints keys only. The second unpacks each pair so both the label and the amount are available."
+      "title": "Keys only",
+      "code": "scores = {\"Ada\": 3, \"Bo\": 5}\nfor name in scores:\n    print(name)",
+      "explanation": "The loop variable receives each dictionary key."
     },
     {
-      "title": "Safe fallback read",
-      "code": "crate = {\"nail\": 4}\nprint(crate.get(\"latch\", 0))",
-      "explanation": "latch is absent, so .get returns the explicit default 0 instead of raising KeyError."
+      "title": "Key and value",
+      "code": "scores = {\"Ada\": 3, \"Bo\": 5}\nfor name, score in scores.items():\n    print(name, score)",
+      "explanation": ".items() supplies a key/value pair on each pass, which the two loop variables unpack."
+    },
+    {
+      "title": "Optional fallback",
+      "code": "scores = {\"Ada\": 3}\nprint(scores.get(\"Bo\", 0))",
+      "explanation": "Bo is absent, so get returns the explicit fallback 0."
+    },
+    {
+      "title": "Field stock",
+      "code": "stock = {\"rope\": 2, \"torch\": 1}\nfor item, count in stock.items():\n    print(f\"{item}: {count}\")\nantidotes = stock.get(\"antidote\", 0)\nprint(antidotes)",
+      "explanation": "The ledger is iterated as pairs, then an optional antidote count is read safely."
     }
   ],
   "common_mistakes": [
-    "Treating the loop variable as a value when a plain for stock loop yields keys",
-    "Using stock[entry] when entry is already a (key, value) pair from .items()",
-    "Calling .get(key) without a default when absence should become 0",
-    "Printing ledger lines instead of returning them from a function"
+    "Thinking a plain dictionary loop gives values instead of keys",
+    "Forgetting the parentheses in .items()",
+    "Treating the whole (key, value) pair as if it were a key",
+    "Using .get everywhere even when a missing required field should be an error",
+    "Using .get without the explicit fallback required by the program rule"
   ],
   "exercises": [
     {
       "id": "collections_14_ex1",
       "type": "predict_output",
       "title": "A key, not a value",
-      "prompt": "What does this print?",
-      "code_to_predict": "stock = {\"rope\": 2}\n\nfor item in stock:\n    print(item)",
+      "prompt": "What does this program print?",
+      "code_to_predict": "stock = {\"rope\": 2}\nfor item in stock:\n    print(item)",
       "expected_answer": "rope",
       "topics": [
-        "collections"
+        "dictionaries",
+        "loops"
       ],
       "hints": [
-        "A plain for loop over a dictionary visits keys.",
-        "stock has one key: the string rope.",
-        "The printed line is rope — the key, not the count 2."
+        "A plain loop over a dictionary does not automatically give you its values.",
+        "Ask what the loop variable receives when iterating a dictionary directly.",
+        "It receives the key, so the output is rope."
       ]
     },
     {
       "id": "collections_14_ex2",
       "type": "fill_blank",
-      "title": "Unpack the entry",
-      "prompt": "Complete the for-loop header so item and count unpack each dictionary pair. Print one \"item: count\" line per entry.",
-      "starter_code": "stock = {\"rope\": 2, \"torch\": 1}\n\nfor item, count in ______:\n    print(f\"{item}: {count}\")\n",
+      "title": "Unpack the pair",
+      "prompt": "Complete the loop so item and count receive each key/value pair. Replace the placeholder expression after `in`.",
+      "starter_code": "stock = {\"rope\": 2, \"torch\": 1}\nfor item, count in stock:\n    print(item, count)\n",
+      "reference_solution": "stock = {\"rope\": 2, \"torch\": 1}\nfor item, count in stock.items():\n    print(item, count)\n",
       "topics": [
-        "collections"
+        "dictionaries",
+        "loops"
       ],
       "hints": [
-        "You need key/value pairs, not keys alone.",
-        "Call the dictionary method that yields pairs.",
-        "Use stock.items() as the for-loop sequence."
+        "The loop needs pairs, not only keys.",
+        "Dictionary .items() provides the key and value together.",
+        "Use `for item, count in stock.items():`."
       ],
       "tests": [
         {
@@ -70,30 +87,83 @@
           "method": "items",
           "name": "stock",
           "inside": "for_iter",
-          "message": "Use stock.items() as the for-loop sequence, and print each entry from inside that same loop body.",
-          "body_calls_name": "print"
+          "message": "Use .items() to supply key/value pairs."
         },
         {
           "kind": "stdout_equals",
-          "expected": "rope: 2\ntorch: 1\n",
-          "message": "Print one \"item: count\" line per stock entry in order."
+          "expected": "rope 2\ntorch 1\n"
         }
       ]
     },
     {
       "id": "collections_14_ex3",
-      "type": "debug",
-      "title": "The pair is not a key",
-      "prompt": "This program crashes because entry is a whole (key, value) pair, not a key. Unpack item and count from stock.items(), then print both.",
-      "starter_code": "stock = {\"rope\": 2, \"torch\": 1}\n\nfor entry in stock.items():\n    print(f\"{entry}: {stock[entry]}\")\n",
+      "type": "predict_output",
+      "title": "Read a present key",
+      "prompt": "What prints?",
+      "code_to_predict": "data = {\"x\": 4}\nprint(data.get(\"x\", 0))",
+      "expected_answer": "4",
       "topics": [
-        "collections",
-        "debugging"
+        "dictionaries"
       ],
       "hints": [
-        "stock.items() already gives you each key with its value.",
-        "Unpack into two names in the for header.",
-        "for item, count in stock.items(): then print f\"{item}: {count}\"."
+        "Check whether the requested key exists.",
+        "When the key exists, .get returns the stored value rather than the fallback.",
+        "x exists with value 4, so the output is 4."
+      ]
+    },
+    {
+      "id": "collections_14_ex4",
+      "type": "predict_output",
+      "title": "Read a missing key",
+      "prompt": "What prints?",
+      "code_to_predict": "data = {\"x\": 4}\nprint(data.get(\"y\", 0))",
+      "expected_answer": "0",
+      "topics": [
+        "dictionaries"
+      ],
+      "hints": [
+        "Check whether y is a key in the dictionary.",
+        "When the key is missing, .get returns the second argument.",
+        "y is absent, so the fallback 0 is printed."
+      ]
+    },
+    {
+      "id": "collections_14_ex5",
+      "type": "architecture",
+      "title": "Required field or fallback?",
+      "prompt": "A record must fail loudly if required `name` is missing, but optional `bonus` should count as 0 when absent. Which pair of operations best matches those requirements?",
+      "choices": [
+        "name: record.get(\"name\", \"\") | bonus: record[\"bonus\"]",
+        "name: record[\"name\"] | bonus: record.get(\"bonus\", 0)",
+        "name: record.get(\"name\", 0) | bonus: record.get(\"bonus\", 0)"
+      ],
+      "expected_answer": "2",
+      "topics": [
+        "dictionaries"
+      ],
+      "hints": [
+        "Treat required and optional fields differently.",
+        "Direct lookup makes a missing required key visible; .get is appropriate when a fallback is part of the rule.",
+        "Choose direct lookup for name and `get(\"bonus\", 0)` for bonus."
+      ],
+      "success_message": "Right. Required data uses direct lookup; optional bonus data has an explicit numeric fallback."
+    },
+    {
+      "id": "collections_14_ex6",
+      "type": "debug",
+      "title": "The pair is not a key",
+      "prompt": "This code crashes because `entry` receives an entire (key, value) pair, then the program tries to use that pair as a dictionary key. Repair the loop by unpacking the pair and print exactly `item: count` for every entry.",
+      "starter_code": "stock = {\"rope\": 2, \"torch\": 1}\nfor entry in stock.items():\n    print(f\"{entry}: {stock[entry]}\")\n",
+      "reference_solution": "stock = {\"rope\": 2, \"torch\": 1}\nfor item, count in stock.items():\n    print(f\"{item}: {count}\")\n",
+      "topics": [
+        "dictionaries",
+        "loops",
+        "strings"
+      ],
+      "hints": [
+        "The source of the loop is already correct: .items() supplies pairs.",
+        "Instead of storing the pair in one variable, receive its two parts separately.",
+        "Use `for item, count in stock.items():` and print item and count directly."
       ],
       "tests": [
         {
@@ -101,31 +171,36 @@
           "feature": "method_call",
           "method": "items",
           "name": "stock",
-          "inside": "for_iter",
-          "message": "Keep a for loop driven by stock.items(), and print from inside that loop body.",
-          "body_calls_name": "print"
+          "inside": "for_iter"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "fstring"
         },
         {
           "kind": "stdout_equals",
-          "expected": "rope: 2\ntorch: 1\n",
-          "message": "After the fix, print one \"item: count\" line per entry."
+          "expected": "rope: 2\ntorch: 1\n"
         }
+      ],
+      "reasoning_targets": [
+        "diagnosis"
       ]
     },
     {
-      "id": "collections_14_ex4",
+      "id": "collections_14_ex7",
       "type": "write_code",
       "title": "Safe antidote count",
-      "prompt": "Write antidote_count(stock) that returns stock[\"antidote\"] when that key is present, and 0 when it is missing. Use .get with an explicit default so a missing key does not raise KeyError.",
-      "starter_code": "def antidote_count(stock):\n    # Return the antidote count, or 0 when the key is missing.\n    pass\n",
+      "prompt": "Write `antidote_count(stock)` so it returns the stored value for key `\"antidote\"`, or 0 when that key is absent. Use `.get()` with an explicit default.",
+      "starter_code": "def antidote_count(stock):\n    pass\n",
+      "reference_solution": "def antidote_count(stock):\n    return stock.get(\"antidote\", 0)\n",
       "topics": [
-        "collections",
+        "dictionaries",
         "functions"
       ],
       "hints": [
-        "Absence should become a safe number, not an error.",
-        "Dictionary .get can take the key and a fallback value.",
-        "Return stock.get(\"antidote\", 0)."
+        "The function should work whether or not the key exists.",
+        "Use the dictionary method that accepts both a key and a fallback value.",
+        "Return `stock.get(\"antidote\", 0)`."
       ],
       "tests": [
         {
@@ -135,33 +210,39 @@
           "name": "stock",
           "min_args": 2,
           "in_function": "antidote_count",
-          "message": "Return stock.get(\"antidote\", 0) — the .get call must provide the returned value.",
-          "arg_equals": {
-            "0": "antidote"
-          },
-          "contributes": "return"
+          "contributes": "return",
+          "message": "Use .get with an explicit fallback inside antidote_count."
         },
         {
           "kind": "function",
           "function": "antidote_count",
           "args": [
             {
-              "antidote": 3
+              "antidote": 3,
+              "rope": 1
             }
           ],
-          "expected": 3,
-          "message": "antidote_count({\"antidote\": 3}) should return 3."
+          "expected": 3
         },
         {
           "kind": "function",
           "function": "antidote_count",
           "args": [
             {
-              "rope": 2
+              "rope": 1
             }
           ],
-          "expected": 0,
-          "message": "When antidote is missing, return 0."
+          "expected": 0
+        },
+        {
+          "kind": "function",
+          "function": "antidote_count",
+          "args": [
+            {
+              "antidote": 0
+            }
+          ],
+          "expected": 0
         },
         {
           "kind": "function",
@@ -169,139 +250,91 @@
           "args": [
             {}
           ],
-          "expected": 0,
-          "message": "An empty stock should return 0."
-        },
-        {
-          "kind": "function",
-          "function": "antidote_count",
-          "args": [
-            {
-              "antidote": 0,
-              "torch": 1
-            }
-          ],
-          "expected": 0,
-          "message": "When antidote is present but 0, return 0."
+          "expected": 0
         }
+      ],
+      "success_message": "The function handles present, missing, zero-valued, and empty ledgers without hardcoding.",
+      "integration": [
+        "functions",
+        "parameters",
+        "dictionaries",
+        "dict_get",
+        "return"
+      ],
+      "reasoning_targets": [
+        "boundaries"
       ]
     },
     {
-      "id": "collections_14_ex5",
+      "id": "collections_14_ex8",
       "type": "mini_project",
-      "title": "Field ledger",
-      "prompt": "Write field_ledger(stock) that returns a list of lines (do not print them).\n\n1. Visit every item/count pair with .items().\n2. Append one line per entry: \"<item>: <count>\".\n3. Use .get(\"antidote\", 0).\n4. Append \"Antidote ready\" when that count is greater than zero.\n5. Otherwise append \"Antidote missing\".\n6. Return the list of lines.",
-      "starter_code": "def field_ledger(stock):\n    # Build and return the ledger lines for this stock.\n    pass\n",
+      "title": "Field Ledger",
+      "prompt": "A stock ledger is supplied. Loop over `stock.items()` and print one `item: count` line for every entry. Then read `stock.get(\"antidote\", 0)`. Print `Antidote ready` when that count is greater than 0; otherwise print `Antidote missing`. Do not build or return a result collection yet.",
+      "starter_code": "stock = {\"rope\": 2, \"torch\": 1, \"antidote\": 2}\n\n# Print every ledger entry, then report antidote readiness.\n",
+      "reference_solution": "stock = {\"rope\": 2, \"torch\": 1, \"antidote\": 2}\n\nfor item, count in stock.items():\n    print(f\"{item}: {count}\")\n\nantidote_count = stock.get(\"antidote\", 0)\nif antidote_count > 0:\n    print(\"Antidote ready\")\nelse:\n    print(\"Antidote missing\")\n",
       "topics": [
-        "collections",
-        "functions"
+        "dictionaries",
+        "loops",
+        "conditionals",
+        "strings"
       ],
-      "success_message": "Ledger complete. Every entry is listed, and the antidote line is decided safely.",
       "hints": [
-        "Start an empty list, then loop over stock.items() to append each \"item: count\" line.",
-        "After the loop, ask stock.get(\"antidote\", 0) whether the count is greater than zero.",
-        "Append \"Antidote ready\" or \"Antidote missing\", then return the list."
+        "Solve the project in two passes: first visit every entry; then separately ask for the optional antidote count.",
+        "Use `for item, count in stock.items()` for the ledger and `stock.get(\"antidote\", 0)` for the readiness check.",
+        "After storing the .get result, compare it with 0 in an if/else and print the required readiness line."
       ],
       "tests": [
-        {
-          "kind": "source_uses",
-          "feature": "for_loop",
-          "in_function": "field_ledger",
-          "message": "Inside field_ledger, use a for loop to visit each entry."
-        },
         {
           "kind": "source_uses",
           "feature": "method_call",
           "method": "items",
           "name": "stock",
-          "inside": "for_iter",
-          "in_function": "field_ledger",
-          "message": "Drive the loop with stock.items(), and append each ledger line inside that same loop.",
-          "body_method": "append"
+          "inside": "for_iter"
         },
         {
           "kind": "source_uses",
           "feature": "method_call",
           "method": "get",
           "name": "stock",
-          "min_args": 2,
-          "in_function": "field_ledger",
-          "message": "Use stock.get(\"antidote\", 0) in the if/else that appends \"Antidote ready\" or \"Antidote missing\".",
-          "arg_equals": {
-            "0": "antidote"
-          },
-          "contributes": "antidote_status"
+          "min_args": 2
         },
         {
           "kind": "source_uses",
-          "feature": "if_statement",
-          "in_function": "field_ledger",
-          "message": "Use a conditional to choose Antidote ready or Antidote missing."
+          "feature": "for_loop"
         },
         {
           "kind": "source_uses",
-          "feature": "fstring",
-          "in_function": "field_ledger",
-          "message": "Build each item line with an f-string."
+          "feature": "if_statement"
         },
         {
-          "kind": "function",
-          "function": "field_ledger",
-          "args": [
-            {
-              "rope": 2,
-              "torch": 1
-            }
-          ],
-          "expected": [
-            "rope: 2",
-            "torch: 1",
-            "Antidote missing"
-          ],
-          "message": "field_ledger should list each pair, then Antidote missing when antidote is absent."
+          "kind": "source_uses",
+          "feature": "fstring"
         },
         {
-          "kind": "function",
-          "function": "field_ledger",
-          "args": [
-            {
-              "torch": 1,
-              "antidote": 2
-            }
-          ],
-          "expected": [
-            "torch: 1",
-            "antidote: 2",
-            "Antidote ready"
-          ],
-          "message": "When antidote count is greater than zero, append Antidote ready."
-        },
-        {
-          "kind": "function",
-          "function": "field_ledger",
-          "args": [
-            {
-              "antidote": 0
-            }
-          ],
-          "expected": [
-            "antidote: 0",
-            "Antidote missing"
-          ],
-          "message": "antidote present at 0 still means Antidote missing."
-        },
-        {
-          "kind": "function",
-          "function": "field_ledger",
-          "args": [
-            {}
-          ],
-          "expected": [
-            "Antidote missing"
-          ],
-          "message": "An empty stock should return only Antidote missing."
+          "kind": "stdout_equals",
+          "expected": "rope: 2\ntorch: 1\nantidote: 2\nAntidote ready\n"
         }
+      ],
+      "success_message": "Field ledger complete: you processed every entry and handled optional stock without introducing structured returns early.",
+      "integration": [
+        "dictionaries",
+        "dictionary_iteration",
+        "dict_items",
+        "dict_get",
+        "comparisons",
+        "if_else",
+        "f_strings",
+        "print"
+      ],
+      "project_role": "lesson_synthesis",
+      "criteria": [
+        "visit_every_entry",
+        "print_key_value_lines",
+        "use_antidote_fallback",
+        "print_readiness_result"
       ]
     }
-  ]
+  ],
+  "lesson_number": 14,
+  "production_contract_version": 1
 }

@@ -1,99 +1,225 @@
 {
+  "curriculum_revision": "3.2",
   "id": "fundamentals_03_fstrings",
   "section": "Python Fundamentals",
   "section_order": 1,
   "order": 3,
   "title": "Assemble the Report",
-  "topics": ["strings"],
-  "content": "What problem does this solve?\nLesson 2 created named data. Now you turn changing values into a readable field report. An f-string keeps the sentence shape fixed while the numbers and names inside it update.\n\nBasic syntax\n  f\"Expedition {expedition}: {days_overdue} days overdue\"\n\nWhat actually happens\nAn f-string is a string with f before the opening quote. At runtime Python finds each {expression}, evaluates it, converts the result to text, and inserts it into the surrounding string. Braces can hold a single name or a small expression.\n\nLast lesson you printed values on separate lines. An f-string builds one coherent message: f\"Party registered: {registered}\". That is clearer than gluing pieces with + or relying only on print's multiple arguments.\n\nWhen this is useful\nUse an f-string when the message has a fixed shape and the values inside it change.",
+  "topics": [
+    "strings",
+    "f_strings"
+  ],
+  "concept_ids": [
+    "f_strings",
+    "variables",
+    "expressions",
+    "print"
+  ],
+  "content": "What problem does this solve?\nA program often needs to combine fixed words with values that can change. An f-string lets Python build one readable string from both.\n\nStart with the behavior\n  name = \"Ada\"\n  print(f\"Hello, {name}\")\nThe f before the opening quote tells Python to evaluate what appears inside { } and insert the result into the text.\n\nYou can insert more than one value\n  item = \"torch\"\n  count = 4\n  print(f\"{item}: {count}\")\n\nVocabulary after the behavior\nThe f-string is one string value. The braces mark expressions Python should evaluate and place into that string.\n\nWhy this matters\nIf a stored value changes, the report can change with it. You do not need to rewrite the surrounding sentence by hand.",
   "concepts": [
-    "A string is text in quotes",
-    "f-strings start with f before the opening quote",
-    "Expressions inside {} are evaluated and embedded",
-    "Prefer f-strings for formatted messages once you know the values' names"
+    "An f before the opening quote enables { } replacement fields",
+    "Names inside braces are evaluated and inserted into the string",
+    "Several changing values can be combined into one readable line"
   ],
   "examples": [
     {
-      "title": "Report",
-      "code": "expedition = 17\ndays_overdue = 3\nprint(f\"Expedition {expedition}: {days_overdue} days overdue\")",
-      "explanation": "Python substitutes the current values of expedition and days_overdue into one readable line."
+      "title": "One inserted value",
+      "code": "name = \"Ada\"\nprint(f\"Hello, {name}\")",
+      "explanation": "The value stored in name is inserted where {name} appears."
     },
     {
-      "title": "Forgot the leading f",
-      "code": "status = \"OVERDUE\"\nprint(\"Status: {status}\")",
-      "explanation": "Without the f, braces print literally. The output is Status: {status}, not Status: OVERDUE."
+      "title": "Two values",
+      "code": "item = \"torch\"\ncount = 4\nprint(f\"{item}: {count}\")",
+      "explanation": "Both variables contribute to one output line."
+    },
+    {
+      "title": "Expedition report",
+      "code": "expedition = 17\ndays_overdue = 3\nprint(f\"Expedition {expedition}: {days_overdue} days overdue\")",
+      "explanation": "The sentence stays readable while the data can change."
     }
   ],
   "common_mistakes": [
-    "Forgetting the leading f — then {status} prints literally",
-    "Putting quotes incorrectly inside the braces",
-    "Hardcoding numbers into the message instead of inserting the variable names"
+    "Forgetting the f prefix and seeing {name} printed literally",
+    "Putting quotes around the variable name inside braces",
+    "Hardcoding the value into the sentence instead of using the stored variable"
   ],
   "exercises": [
     {
       "id": "fundamentals_03_ex1",
       "type": "predict_output",
-      "title": "Predict the report",
-      "prompt": "What does this print?",
-      "code_to_predict": "registered = 4\nprint(f\"Party registered: {registered}\")",
-      "expected_answer": "Party registered: 4",
-      "topics": ["strings"],
+      "title": "One inserted value",
+      "prompt": "What prints?",
+      "code_to_predict": "name = \"Ada\"\nprint(f\"Hello, {name}\")",
+      "expected_answer": "Hello, Ada",
+      "topics": [
+        "f_strings"
+      ],
       "hints": [
-        "Substitute the braced expression with its value.",
-        "Keep the surrounding words and spaces exactly.",
-        "registered becomes 4 inside the finished string."
+        "Find the value stored in name first.",
+        "{name} is replaced by the current value of name.",
+        "The line becomes Hello, Ada."
       ]
     },
     {
       "id": "fundamentals_03_ex2",
-      "type": "debug",
-      "title": "Repair the template",
-      "prompt": "This program is supposed to print:\nStatus: OVERDUE\n\nIt currently prints the braces literally. Fix it.",
-      "starter_code": "status = \"OVERDUE\"\nprint(\"Status: {status}\")\n",
-      "topics": ["strings"],
+      "type": "fill_blank",
+      "title": "Insert the count",
+      "prompt": "Change the expression inside the braces so the output is exactly:\nCount: 3",
+      "starter_code": "count = 3\nprint(f\"Count: {0}\")\n",
+      "reference_solution": "count = 3\nprint(f\"Count: {count}\")\n",
+      "topics": [
+        "f_strings"
+      ],
       "hints": [
-        "An f-string starts with f immediately before the quote.",
-        "The braces should contain the variable name, not extra quotes.",
-        "Turn the printed string into an f-string so {status} is replaced."
+        "The value you need is already stored in count.",
+        "Replace the 0 inside { } with the variable name.",
+        "Use print(f\"Count: {count}\")."
       ],
       "tests": [
         {
           "kind": "source_uses",
           "feature": "fstring",
-          "names": ["status"],
-          "message": "Use an f-string that includes status inside braces — do not hardcode OVERDUE in the print."
+          "message": "Use an f-string."
         },
         {
           "kind": "stdout_equals",
-          "expected": "Status: OVERDUE\n"
+          "expected": "Count: 3\n"
         }
       ]
     },
     {
       "id": "fundamentals_03_ex3",
       "type": "write_code",
-      "title": "Build the dispatch line",
-      "prompt": "The variables are already created. Print exactly one line:\nExpedition 17 | Party 4 | 3 days overdue\n\nBuild that line with an f-string so expedition, registered, and days_overdue come from the variables — do not hardcode those numbers in the printed string.",
-      "starter_code": "expedition = 17\nregistered = 4\ndays_overdue = 3\n# Print the dispatch line\n",
-      "topics": ["strings"],
+      "title": "Two values",
+      "prompt": "The starter variables are already provided. Print exactly:\ntorch: 4\n\nUse one f-string and both variables.",
+      "starter_code": "item = \"torch\"\ncount = 4\n\n# Print one formatted line\n",
+      "reference_solution": "item = \"torch\"\ncount = 4\nprint(f\"{item}: {count}\")\n",
+      "topics": [
+        "f_strings",
+        "variables"
+      ],
       "hints": [
-        "Start your string with f and put expressions in braces.",
-        "Keep the pipes, spaces, and wording exactly as shown.",
-        "The f-string should mention expedition, registered, and days_overdue inside braces."
+        "The fixed punctuation is just : and a space; the changing parts come from the variables.",
+        "Place item and count in separate { } fields inside one f-string.",
+        "Use print(f\"{item}: {count}\")."
       ],
       "tests": [
         {
           "kind": "source_uses",
           "feature": "fstring",
-          "names": ["expedition", "registered", "days_overdue"],
-          "message": "Use an f-string that includes expedition, registered, and days_overdue in braces."
+          "message": "Use an f-string for the line."
         },
         {
           "kind": "stdout_equals",
-          "expected": "Expedition 17 | Party 4 | 3 days overdue\n"
+          "expected": "torch: 4\n"
         }
       ],
-      "success_message": "Dispatch line assembled. Variables, a string template, and print now work as one small program."
+      "integration": [
+        "variables",
+        "f_strings",
+        "print"
+      ]
+    },
+    {
+      "id": "fundamentals_03_ex4",
+      "type": "debug",
+      "title": "Missing f",
+      "prompt": "The program should print Status: READY, but it prints the braces literally. Repair the print line.",
+      "starter_code": "status = \"READY\"\nprint(\"Status: {status}\")\n",
+      "reference_solution": "status = \"READY\"\nprint(f\"Status: {status}\")\n",
+      "topics": [
+        "f_strings"
+      ],
+      "hints": [
+        "The braces are currently inside an ordinary string.",
+        "Python only replaces {status} when the string is marked as an f-string.",
+        "Add f immediately before the opening quote."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "fstring",
+          "message": "Make the message an f-string."
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "Status: READY\n"
+        }
+      ]
+    },
+    {
+      "id": "fundamentals_03_ex5",
+      "type": "mini_project",
+      "title": "Field Dispatch Card",
+      "prompt": "Build a four-line dispatch card from the supplied variables.\n\nRequired output:\nEXPEDITION DISPATCH\nExpedition: 17\nRegistered: 4\n3 days overdue | OVERDUE\n\nRequirements:\n- keep the supplied variables\n- include one useful # comment\n- use the variables to build the changing report lines\n- use f-strings for at least the report lines that combine labels or values\n\nThe point is that the report is assembled from stored data rather than copied as one fixed block of text.",
+      "starter_code": "expedition = 17\nregistered = 4\ndays_overdue = 3\nstatus = \"OVERDUE\"\n\n# Build the dispatch card below\n",
+      "reference_solution": "expedition = 17\nregistered = 4\ndays_overdue = 3\nstatus = \"OVERDUE\"\n\n# These lines are built from the stored expedition data\nprint(\"EXPEDITION DISPATCH\")\nprint(f\"Expedition: {expedition}\")\nprint(f\"Registered: {registered}\")\nprint(f\"{days_overdue} days overdue | {status}\")\n",
+      "topics": [
+        "f_strings",
+        "variables",
+        "print"
+      ],
+      "hints": [
+        "Separate the fixed heading from the lines that depend on stored values.",
+        "Use expedition, registered, days_overdue, and status inside f-strings instead of typing their values again in the report lines.",
+        "A working structure is one heading print followed by three f-string prints built from the four variables, plus a # comment."
+      ],
+      "tests": [
+        {
+          "kind": "globals",
+          "name": "expedition",
+          "expected": 17,
+          "type_name": "int"
+        },
+        {
+          "kind": "globals",
+          "name": "registered",
+          "expected": 4,
+          "type_name": "int"
+        },
+        {
+          "kind": "globals",
+          "name": "days_overdue",
+          "expected": 3,
+          "type_name": "int"
+        },
+        {
+          "kind": "globals",
+          "name": "status",
+          "expected": "OVERDUE",
+          "type_name": "str"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "comment",
+          "message": "Include one useful comment."
+        },
+        {
+          "kind": "source_uses",
+          "feature": "fstring",
+          "message": "Use f-strings to assemble the report from variables."
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "EXPEDITION DISPATCH\nExpedition: 17\nRegistered: 4\n3 days overdue | OVERDUE\n"
+        }
+      ],
+      "success_message": "The dispatch is now assembled from stored data instead of being one hardcoded message.",
+      "integration": [
+        "print",
+        "comments",
+        "variables",
+        "assignment",
+        "f_strings"
+      ],
+      "project_role": "bridge_project",
+      "criteria": [
+        "store_changing_values",
+        "format_from_variables",
+        "produce_required_card"
+      ]
     }
-  ]
+  ],
+  "lesson_number": 3,
+  "production_contract_version": 1
 }

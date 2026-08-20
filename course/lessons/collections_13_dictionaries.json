@@ -1,70 +1,162 @@
 {
+  "curriculum_revision": "3.2",
   "id": "collections_13_dictionaries",
-  "section": "Expedition Intake \u2014 Collections",
-  "section_order": 6,
-  "order": 6,
+  "section": "Expedition Intake",
+  "section_order": 5,
+  "order": 5,
   "title": "One Record, Many Facts",
   "topics": [
-    "collections"
+    "collections",
+    "dictionaries"
   ],
-  "content": "What problem does this solve?\nLists are good when position is meaningful. An expedition record contains named facts: destination, guide status, party, supplies, and clearance. A dictionary lets the program retrieve each fact by its label instead of memorizing a position. The intake desk still routes parties toward Gloamfen.\n\nPreviously in your program\nGiven supplies = [\"rope\", \"torch\"], which method adds \"antidote\" without replacing the list? Call supplies.append(\"antidote\") \u2014 do not assign the return value back to supplies.\n\nClearance rule note\nIntake System v1 uses a different clearance bar than the Lesson 9 supply desk: after safety checks pass, Cleared means five or more supply items (not ten). Rules are defined by the program you write.\n\nBasic syntax\n  expedition = {\n      \"destination\": \"Gloamfen\",\n      \"has_guide\": True,\n      \"party\": [\"Mara\", \"Tovin\", \"Sable\"],\n      \"supplies\": [\"rope\", \"torch\", \"antidote\"]\n  }\n  expedition[\"status\"] = \"Cleared\"\n  print(expedition[\"destination\"])\n\nWhat actually happens\nA dictionary stores key-value pairs. Keys are labels; values are the associated data. Retrieve with square brackets: record[\"destination\"]. Change an existing value with assignment, or add a new key with the same syntax. A dictionary can contain lists as values. Contrast list indexing (party[0]) with dictionary lookup (record[\"party\"]).\n\nWhen this is useful\nUse a dictionary when each piece of data has a meaningful name rather than only a position.",
+  "content": "What problem does this solve?\nLists are excellent when order and position matter. A record such as one expedition has different named facts: destination, party, supplies, guide status, and clearance. A dictionary stores values under meaningful keys instead of numeric positions.\n\nStart with the behavior\n  record = {\"destination\": \"Gloamfen\", \"members\": 3}\n  print(record[\"destination\"])\nThe key \"destination\" names the field. Square brackets retrieve the value associated with that key.\n\nUpdate and add fields\n  record[\"status\"] = \"ready\"\nThe same assignment shape can replace an existing value or add a new key.\n\nDictionary values can be collections\nA value may itself be a list, so one record can contain a party or supply list without introducing nested dictionaries yet.\n\nVocabulary after the behavior\nA dictionary stores key-value pairs. The key is the label used for lookup; the value is the data associated with that label.",
   "concepts": [
-    "Dictionaries store key-value pairs",
-    "Look up and update values with record[\"key\"]",
-    "Assignment can change an existing key or add a new one",
-    "Dictionary values can be lists or other data"
+    "A dictionary stores key-value pairs",
+    "String keys provide meaningful labels for record fields",
+    "record[key] retrieves a value",
+    "Assignment to record[key] updates or adds a field",
+    "Dictionary values can include lists"
   ],
   "examples": [
     {
-      "title": "Field record",
-      "code": "expedition = {\n    \"destination\": \"Gloamfen\",\n    \"has_guide\": True,\n    \"party\": [\"Mara\", \"Tovin\", \"Sable\"],\n    \"supplies\": [\"rope\", \"torch\", \"antidote\"]\n}\n\nexpedition[\"status\"] = \"Cleared\"\nprint(expedition[\"destination\"])\nprint(len(expedition[\"party\"]))",
-      "explanation": "Keys label each fact. status is added with assignment; destination and party are read by key."
+      "title": "Read named fields",
+      "code": "record = {\"destination\": \"Gloamfen\", \"members\": 3}\nprint(record[\"destination\"])\nprint(record[\"members\"])",
+      "explanation": "The fields are retrieved by labels rather than positions."
+    },
+    {
+      "title": "Add a status",
+      "code": "record = {\"destination\": \"Gloamfen\"}\nrecord[\"status\"] = \"Cleared\"\nprint(record)",
+      "explanation": "Assignment adds the new named field."
+    },
+    {
+      "title": "List-valued field",
+      "code": "record = {\"party\": [\"Mara\", \"Tovin\"]}\nprint(len(record[\"party\"]))",
+      "explanation": "The dictionary field can hold a list learned earlier."
     }
   ],
   "common_mistakes": [
-    "Looking up expedition[destination] without quotes around the key",
-    "Using parentheses instead of curly braces for the literal",
-    "Confusing = inside a dictionary literal with : between key and value",
-    "Assuming keys use numeric positions like a list"
+    "Writing record[destination] when the key should be the string \"destination\"",
+    "Using parentheses instead of square brackets for lookup",
+    "Using = instead of : inside a dictionary literal",
+    "Treating dictionary fields as numeric positions",
+    "Expecting duplicate keys to preserve multiple separate values"
   ],
   "exercises": [
     {
       "id": "collections_13_ex1",
       "type": "predict_output",
       "title": "Read the record",
-      "prompt": "What does this print? Type each line of output.",
-      "code_to_predict": "record = {\n    \"destination\": \"Gloamfen\",\n    \"members\": 3,\n    \"cleared\": False\n}\n\nprint(record[\"destination\"])\nprint(record[\"members\"])",
+      "prompt": "What prints?",
+      "code_to_predict": "record = {\"destination\": \"Gloamfen\", \"members\": 3}\nprint(record[\"destination\"])\nprint(record[\"members\"])",
       "expected_answer": "Gloamfen\n3",
       "topics": [
-        "collections"
+        "dictionaries"
       ],
       "hints": [
-        "Square brackets with a string key retrieve that value.",
-        "destination maps to the string Gloamfen; members maps to the integer 3.",
-        "Two print calls mean two lines: Gloamfen, then 3."
+        "Read each key inside square brackets.",
+        "destination maps to Gloamfen and members maps to 3.",
+        "The lines are Gloamfen and 3."
       ]
     },
     {
       "id": "collections_13_ex2",
-      "type": "debug",
-      "title": "Quote the key",
-      "prompt": "Python treats destination as a variable name and raises NameError. Retrieve the value using the dictionary\u2019s string key.",
-      "starter_code": "record = {\"destination\": \"Gloamfen\"}\nprint(record[destination])\n",
+      "type": "fill_blank",
+      "title": "Read one field",
+      "prompt": "Change the key inside the lookup so the program prints 7.",
+      "starter_code": "stats = {\"health\": 7}\nprint(stats[\"change me\"])\n",
+      "reference_solution": "stats = {\"health\": 7}\nprint(stats[\"health\"])\n",
       "topics": [
-        "collections",
-        "debugging"
+        "dictionaries"
       ],
       "hints": [
-        "Dictionary keys that are text need quotes.",
-        "destination without quotes looks for a variable named destination.",
-        "Use record[\"destination\"] so the key is the string destination."
+        "Look at the exact key stored in the dictionary literal.",
+        "Keys used for lookup must match, including quotes and spelling.",
+        "Use stats[\"health\"]."
       ],
       "tests": [
         {
           "kind": "source_uses",
-          "feature": "subscript",
+          "feature": "subscript"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "7\n"
+        }
+      ]
+    },
+    {
+      "id": "collections_13_ex3",
+      "type": "write_code",
+      "title": "Update a field",
+      "prompt": "Change record[\"status\"] from \"waiting\" to \"ready\", then print the dictionary.",
+      "starter_code": "record = {\"status\": \"waiting\"}\n\n# Update the status, then print record\n",
+      "reference_solution": "record = {\"status\": \"waiting\"}\nrecord[\"status\"] = \"ready\"\nprint(record)\n",
+      "topics": [
+        "dictionaries"
+      ],
+      "hints": [
+        "Use the same square-bracket key lookup on the left side of an assignment.",
+        "Assign the new string \"ready\" to record[\"status\"].",
+        "Use record[\"status\"] = \"ready\", then print(record)."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "subscript"
+        },
+        {
+          "kind": "globals",
           "name": "record",
-          "message": "Look up the value with record[\"destination\"]."
+          "expected": {
+            "status": "ready"
+          },
+          "type_name": "dict"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "{'status': 'ready'}\n"
+        }
+      ]
+    },
+    {
+      "id": "collections_13_ex4",
+      "type": "architecture",
+      "title": "List or dictionary?",
+      "prompt": "Which structure better represents one expedition with named facts such as destination, guide status, and clearance?",
+      "choices": [
+        "A list, because each fact should be remembered by numeric position",
+        "A dictionary, because each fact has a meaningful label"
+      ],
+      "expected_answer": "2",
+      "topics": [
+        "dictionaries"
+      ],
+      "hints": [
+        "Ask whether the field names themselves are important to the model.",
+        "A reader should be able to ask for destination by name rather than remember that it is position 0.",
+        "Choose a dictionary."
+      ],
+      "success_message": "Correct. The labels are part of the data model, so keys make the record clearer."
+    },
+    {
+      "id": "collections_13_ex5",
+      "type": "debug",
+      "title": "Quote the key",
+      "prompt": "This raises NameError because Python treats destination as a variable name. Repair only the lookup.",
+      "starter_code": "record = {\"destination\": \"Gloamfen\"}\nprint(record[destination])\n",
+      "reference_solution": "record = {\"destination\": \"Gloamfen\"}\nprint(record[\"destination\"])\n",
+      "topics": [
+        "dictionaries"
+      ],
+      "hints": [
+        "The dictionary contains a string key.",
+        "A string key must be written in quotes during lookup.",
+        "Use record[\"destination\"]."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "subscript"
         },
         {
           "kind": "stdout_equals",
@@ -73,438 +165,141 @@
       ]
     },
     {
-      "id": "collections_13_ex3",
-      "type": "architecture",
-      "title": "List or dictionary?",
-      "prompt": "Which structure better represents one expedition with named facts such as destination, guide status, and clearance status?",
-      "choices": [
-        "A list, because every value should be found by position",
-        "A dictionary, because each value has a meaningful label",
-        "A string, because the whole record can be one sentence"
-      ],
-      "expected_answer": "2",
-      "topics": [
-        "collections"
-      ],
-      "success_message": "Exactly. The labels are part of the model, so dictionary keys make the record readable.",
-      "failure_message": "Think about whether position or a named label best matches destination and clearance status.",
-      "hints": [
-        "The facts already have names in English.",
-        "Lists shine when order is the main idea.",
-        "Choose the dictionary option."
-      ]
-    },
-    {
-      "id": "collections_13_ex4",
+      "id": "collections_13_ex6",
       "type": "write_code",
       "title": "Create a field record",
-      "prompt": "Write make_record(destination, party, supplies) that returns a dictionary with exactly these keys:\n- \"destination\"\n- \"party\"\n- \"supplies\"\n- \"member_count\"\n\nThe value of \"member_count\" must be calculated with len(party), not hardcoded.",
-      "starter_code": "def make_record(destination, party, supplies):\n    # Return a dictionary with destination, party, supplies, and member_count.\n    pass\n",
+      "prompt": "Using the supplied destination, party, and supplies variables, create a dictionary named record with exactly these keys: destination, party, supplies, member_count. Calculate member_count with len(party), then print record.",
+      "starter_code": "destination = \"Gloamfen\"\nparty = [\"Mara\", \"Tovin\"]\nsupplies = [\"rope\"]\n\n# Build record, then print it\n",
+      "reference_solution": "destination = \"Gloamfen\"\nparty = [\"Mara\", \"Tovin\"]\nsupplies = [\"rope\"]\nrecord = {\n    \"destination\": destination,\n    \"party\": party,\n    \"supplies\": supplies,\n    \"member_count\": len(party),\n}\nprint(record)\n",
       "topics": [
-        "collections",
-        "functions"
+        "dictionaries",
+        "collections"
       ],
       "hints": [
-        "Build a dictionary literal that stores the three inputs under matching keys.",
-        "member_count should call len on the party list.",
-        "Return {\"destination\": destination, \"party\": party, \"supplies\": supplies, \"member_count\": len(party)}."
+        "Use the variable names as values in the dictionary; the field labels themselves are strings.",
+        "The member_count field should calculate len(party) rather than repeat the number 2.",
+        "Build record = {\"destination\": destination, \"party\": party, \"supplies\": supplies, \"member_count\": len(party)} and print it."
       ],
       "tests": [
         {
           "kind": "source_uses",
-          "feature": "len_call",
-          "names": [
-            "party"
-          ],
-          "in_function": "make_record",
-          "message": "Inside make_record, set member_count with len(party)."
+          "feature": "len_call"
         },
         {
-          "kind": "expression",
-          "expression": "make_record(\"Gloamfen\", [\"Mara\", \"Tovin\"], [\"rope\"])[\"member_count\"]",
-          "expected": 2
-        },
-        {
-          "kind": "expression",
-          "expression": "make_record(\"Ash Ford\", [\"Sable\"], [\"torch\", \"chalk\"])[\"destination\"]",
-          "expected": "Ash Ford"
-        },
-        {
-          "kind": "expression",
-          "expression": "make_record(\"Ash Ford\", [\"Sable\"], [\"torch\", \"chalk\"])[\"party\"]",
-          "expected": [
-            "Sable"
-          ]
-        },
-        {
-          "kind": "expression",
-          "expression": "make_record(\"Ash Ford\", [\"Sable\"], [\"torch\", \"chalk\"])[\"supplies\"]",
-          "expected": [
-            "torch",
-            "chalk"
-          ]
-        },
-        {
-          "kind": "expression",
-          "expression": "sorted(make_record(\"Gloamfen\", [\"Mara\", \"Tovin\"], [\"rope\"]).keys())",
-          "expected": [
-            "destination",
-            "member_count",
-            "party",
-            "supplies"
-          ]
-        },
-        {
-          "kind": "expression",
-          "expression": "type(make_record(\"Gloamfen\", [\"Mara\"], [])).__name__",
-          "expected": "dict"
-        },
-        {
-          "kind": "function",
-          "function": "make_record",
-          "args": [
-            "Marsh Road",
-            [
-              "Aria",
-              "Rook",
-              "Mira"
-            ],
-            [
-              "map"
-            ]
-          ],
+          "kind": "globals",
+          "name": "record",
           "expected": {
-            "destination": "Marsh Road",
+            "destination": "Gloamfen",
             "party": [
-              "Aria",
-              "Rook",
-              "Mira"
+              "Mara",
+              "Tovin"
             ],
             "supplies": [
-              "map"
+              "rope"
             ],
-            "member_count": 3
-          }
+            "member_count": 2
+          },
+          "type_name": "dict"
         }
+      ],
+      "success_message": "The expedition facts now live in one record whose fields explain themselves.",
+      "integration": [
+        "variables",
+        "lists",
+        "len",
+        "dictionaries",
+        "assignment",
+        "print"
       ]
     },
     {
-      "id": "collections_13_ex5",
-      "type": "write_code",
-      "title": "Update clearance",
-      "prompt": "Write set_clearance(record, status) that changes the record\u2019s \"status\" value and returns the record. The key might be new or might already exist.",
-      "starter_code": "def set_clearance(record, status):\n    # Set record[\"status\"] and return the record.\n    pass\n",
-      "topics": [
-        "collections",
-        "functions"
-      ],
-      "hints": [
-        "Assignment with square brackets both updates and creates keys.",
-        "Write to record[\"status\"], then return the same dictionary.",
-        "return the record after record[\"status\"] = status."
-      ],
-      "tests": [
-        {
-          "kind": "source_uses",
-          "feature": "subscript",
-          "name": "record",
-          "message": "Assign through record[\"status\"]."
-        },
-        {
-          "kind": "expression",
-          "expression": "set_clearance({\"destination\": \"Gloamfen\"}, \"Cleared\")[\"status\"]",
-          "expected": "Cleared"
-        },
-        {
-          "kind": "expression",
-          "expression": "set_clearance({\"status\": \"Review\", \"party\": [\"Mara\"]}, \"Denied\")[\"status\"]",
-          "expected": "Denied"
-        },
-        {
-          "kind": "expression",
-          "expression": "set_clearance({\"destination\": \"Ash Ford\", \"status\": \"Review\"}, \"Cleared\")[\"destination\"]",
-          "expected": "Ash Ford"
-        },
-        {
-          "kind": "expression",
-          "expression": "set_clearance({\"destination\": \"Gloamfen\"}, \"Review\")[\"status\"]",
-          "expected": "Review"
-        }
-      ]
-    },
-    {
-      "id": "collections_13_ex6",
+      "id": "collections_13_ex7",
       "type": "mini_project",
       "title": "Expedition Intake System v1",
-      "prompt": "Create build_expedition_record(destination, party, supplies, has_guide, warning_active).\n\nIt must:\n1. Create a dictionary containing the original five inputs under keys \"destination\", \"party\", \"supplies\", \"has_guide\", and \"warning_active\".\n2. Add \"member_count\" using len(party).\n3. Add \"supply_count\" using len(supplies).\n4. Add a \"status\" value:\n   - \"Denied\" if there is no guide or a warning is active\n   - otherwise \"Cleared\" for 5 or more supply items\n   - otherwise \"Review\"\n5. Return the completed dictionary.\n\nDo not hardcode destinations, names, or counts.",
-      "starter_code": "def build_expedition_record(destination, party, supplies, has_guide, warning_active):\n    # 1. Store the five inputs in a dictionary.\n    # 2. Add member_count and supply_count with len.\n    # 3. Set status: Denied if no guide or warning; else Cleared if supplies >= 5; else Review.\n    # 4. Return the record.\n    pass\n",
+      "prompt": "Build a dictionary named expedition from the supplied variables.\n\nPreserve these fields: destination, party, supplies, has_guide, warning_active.\nAdd:\n- member_count = len(party)\n- supply_count = len(supplies)\n- status = Denied if there is no guide OR a warning is active; otherwise Cleared for 5 or more supplies; otherwise Review\n\nPrint the completed dictionary. After it passes, manually test a no-guide case, warning case, 4-supply case, and exact 5-supply boundary. No multi-parameter function is required yet.",
+      "starter_code": "destination = \"Gloamfen\"\nparty = [\"Mara\", \"Tovin\"]\nsupplies = [\"rope\", \"torch\", \"map\", \"chalk\", \"antidote\"]\nhas_guide = True\nwarning_active = False\n\n# Build and complete expedition\n",
+      "reference_solution": "destination = \"Gloamfen\"\nparty = [\"Mara\", \"Tovin\"]\nsupplies = [\"rope\", \"torch\", \"map\", \"chalk\", \"antidote\"]\nhas_guide = True\nwarning_active = False\n\nexpedition = {\n    \"destination\": destination,\n    \"party\": party,\n    \"supplies\": supplies,\n    \"has_guide\": has_guide,\n    \"warning_active\": warning_active,\n}\nexpedition[\"member_count\"] = len(party)\nexpedition[\"supply_count\"] = len(supplies)\nif not has_guide or warning_active:\n    expedition[\"status\"] = \"Denied\"\nelif len(supplies) >= 5:\n    expedition[\"status\"] = \"Cleared\"\nelse:\n    expedition[\"status\"] = \"Review\"\nprint(expedition)\n",
       "topics": [
-        "collections",
+        "dictionaries",
         "conditionals",
-        "functions"
+        "collections"
       ],
-      "success_message": "Intake record complete. You combined decisions, Boolean logic, counting, collections, and functions into one program. In a damaged margin beside the old route, someone wrote: \"Do not trust the statues.\"",
       "hints": [
-        "Build the dictionary from the inputs first. Then add calculated keys one at a time.",
-        "Check denial conditions before clearance. Either blocker should deny the expedition.",
-        "Use if not has_guide or warning_active, then elif len(supplies) >= 5, then else."
+        "Build the basic dictionary first, then add the calculated fields and status one step at a time.",
+        "Handle denial first with not has_guide or warning_active. Only if that is false should supplies determine Cleared versus Review.",
+        "Create expedition from the five inputs, add member_count and supply_count with len, then use if not has_guide or warning_active / elif len(supplies) >= 5 / else to assign expedition[\"status\"]."
       ],
       "tests": [
         {
           "kind": "source_uses",
-          "feature": "len_call",
-          "names": ["party"],
-          "in_function": "build_expedition_record",
-          "message": "Inside build_expedition_record, use len(party) for member_count."
+          "feature": "len_call"
         },
         {
           "kind": "source_uses",
-          "feature": "len_call",
-          "names": ["supplies"],
-          "in_function": "build_expedition_record",
-          "message": "Inside build_expedition_record, use len(supplies) for supply_count."
+          "feature": "boolean_or"
         },
         {
           "kind": "source_uses",
-          "feature": "elif_branch",
-          "in_function": "build_expedition_record",
-          "message": "Use if / elif / else inside build_expedition_record to choose Denied, Cleared, or Review."
+          "feature": "unary_not"
         },
         {
-          "kind": "function",
-          "function": "build_expedition_record",
-          "args": [
-            "Gloamfen",
-            [
-              "Mara",
-              "Tovin",
-              "Sable"
-            ],
-            [
-              "rope",
-              "torch",
-              "chalk",
-              "map",
-              "antidote"
-            ],
-            true,
-            false
-          ],
+          "kind": "source_uses",
+          "feature": "elif_branch"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "subscript"
+        },
+        {
+          "kind": "globals",
+          "name": "expedition",
           "expected": {
             "destination": "Gloamfen",
             "party": [
               "Mara",
-              "Tovin",
-              "Sable"
+              "Tovin"
             ],
             "supplies": [
               "rope",
               "torch",
-              "chalk",
               "map",
+              "chalk",
               "antidote"
             ],
             "has_guide": true,
             "warning_active": false,
-            "member_count": 3,
+            "member_count": 2,
             "supply_count": 5,
             "status": "Cleared"
-          }
-        },
-        {
-          "kind": "function",
-          "function": "build_expedition_record",
-          "args": [
-            "Ash Ford",
-            [
-              "Aria"
-            ],
-            [
-              "a",
-              "b",
-              "c",
-              "d",
-              "e",
-              "f",
-              "g"
-            ],
-            true,
-            false
-          ],
-          "expected": {
-            "destination": "Ash Ford",
-            "party": [
-              "Aria"
-            ],
-            "supplies": [
-              "a",
-              "b",
-              "c",
-              "d",
-              "e",
-              "f",
-              "g"
-            ],
-            "has_guide": true,
-            "warning_active": false,
-            "member_count": 1,
-            "supply_count": 7,
-            "status": "Cleared"
-          }
-        },
-        {
-          "kind": "function",
-          "function": "build_expedition_record",
-          "args": [
-            "Marsh Road",
-            [
-              "Rook",
-              "Mira"
-            ],
-            [
-              "rope",
-              "torch",
-              "chalk",
-              "map"
-            ],
-            true,
-            false
-          ],
-          "expected": {
-            "destination": "Marsh Road",
-            "party": [
-              "Rook",
-              "Mira"
-            ],
-            "supplies": [
-              "rope",
-              "torch",
-              "chalk",
-              "map"
-            ],
-            "has_guide": true,
-            "warning_active": false,
-            "member_count": 2,
-            "supply_count": 4,
-            "status": "Review"
-          }
-        },
-        {
-          "kind": "function",
-          "function": "build_expedition_record",
-          "args": [
-            "Gloamfen",
-            [
-              "Sable"
-            ],
-            [
-              "a",
-              "b",
-              "c",
-              "d",
-              "e",
-              "f",
-              "g"
-            ],
-            false,
-            false
-          ],
-          "expected": {
-            "destination": "Gloamfen",
-            "party": [
-              "Sable"
-            ],
-            "supplies": [
-              "a",
-              "b",
-              "c",
-              "d",
-              "e",
-              "f",
-              "g"
-            ],
-            "has_guide": false,
-            "warning_active": false,
-            "member_count": 1,
-            "supply_count": 7,
-            "status": "Denied"
-          }
-        },
-        {
-          "kind": "function",
-          "function": "build_expedition_record",
-          "args": [
-            "Gloamfen",
-            [
-              "Mara",
-              "Tovin"
-            ],
-            [
-              "a",
-              "b",
-              "c",
-              "d",
-              "e",
-              "f",
-              "g"
-            ],
-            true,
-            true
-          ],
-          "expected": {
-            "destination": "Gloamfen",
-            "party": [
-              "Mara",
-              "Tovin"
-            ],
-            "supplies": [
-              "a",
-              "b",
-              "c",
-              "d",
-              "e",
-              "f",
-              "g"
-            ],
-            "has_guide": true,
-            "warning_active": true,
-            "member_count": 2,
-            "supply_count": 7,
-            "status": "Denied"
-          }
-        },
-        {
-          "kind": "function",
-          "function": "build_expedition_record",
-          "args": [
-            "Old Causeway",
-            [
-              "Bren"
-            ],
-            [
-              "x",
-              "y"
-            ],
-            false,
-            true
-          ],
-          "expected": {
-            "destination": "Old Causeway",
-            "party": [
-              "Bren"
-            ],
-            "supplies": [
-              "x",
-              "y"
-            ],
-            "has_guide": false,
-            "warning_active": true,
-            "member_count": 1,
-            "supply_count": 2,
-            "status": "Denied"
-          }
+          },
+          "type_name": "dict"
         }
+      ],
+      "success_message": "Checkpoint complete: the intake system now combines named data, calculated fields, Boolean blockers, and threshold decisions.",
+      "integration": [
+        "dictionaries",
+        "dictionary_update",
+        "lists",
+        "len",
+        "boolean_logic",
+        "elif",
+        "comparisons",
+        "variables",
+        "assignment",
+        "print"
+      ],
+      "reasoning_targets": [
+        "boundaries"
+      ],
+      "project_role": "checkpoint",
+      "criteria": [
+        "preserve_input_fields",
+        "calculate_counts",
+        "apply_denial_rule_first",
+        "produce_complete_record"
       ]
     }
-  ]
+  ],
+  "lesson_number": 13,
+  "production_contract_version": 1
 }

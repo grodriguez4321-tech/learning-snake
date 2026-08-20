@@ -1,0 +1,351 @@
+{
+  "curriculum_revision": "3.2",
+  "id": "oop_26_init_self",
+  "section": "Data & Objects",
+  "section_order": 8,
+  "order": 3,
+  "title": "Set Up Each Object",
+  "topics": [
+    "oop",
+    "classes"
+  ],
+  "content": "What problem does this solve?\nAssigning every attribute manually after object creation is repetitive. Python calls `__init__` when a new instance is created so the object can be set up immediately.\n\nStore constructor inputs\n  class Player:\n      def __init__(self, name, score):\n          self.name = name\n          self.score = score\n`name` and `score` are local parameters for this call. `self.name` and `self.score` are attributes stored on the particular instance.\n\nself means this instance\nWhen `Player(\"Ada\", 3)` creates an object, that object is the value received by the method's `self` parameter. self is conventional Python naming, not a magic global variable.\n\nFresh mutable state per instance\nIf each object needs its own list, create `self.inventory = []` inside `__init__`. Since __init__ runs for every new object, each instance receives a fresh list.\n\nVocabulary after the behavior\nInitialization is the setup performed for a new object. `__init__` is the initialization method; self is the parameter referring to the instance receiving that method call.",
+  "concepts": [
+    "Python calls __init__ during ordinary ClassName(...) construction",
+    "self is the instance receiving the method call",
+    "Constructor parameters are local names; self attributes remain stored on the object",
+    "self.name = name stores an input on this instance",
+    "Fresh mutable per-instance state should be created inside __init__"
+  ],
+  "examples": [
+    {
+      "title": "Automatic setup",
+      "code": "class Player:\n    def __init__(self, name, score):\n        self.name = name\n        self.score = score\n\na = Player(\"Ada\", 3)\nprint(a.name, a.score)",
+      "explanation": "The constructor arguments become stored instance attributes."
+    },
+    {
+      "title": "Two separate instances",
+      "code": "class Player:\n    def __init__(self, name):\n        self.name = name\na = Player(\"Ada\")\nb = Player(\"Bo\")\nprint(a.name)\nprint(b.name)",
+      "explanation": "The same setup method stores different values on different instances."
+    },
+    {
+      "title": "Fresh list per instance",
+      "code": "class Bag:\n    def __init__(self):\n        self.items = []",
+      "explanation": "The list expression runs for every new Bag, so each object gets its own list."
+    }
+  ],
+  "common_mistakes": [
+    "Forgetting self in the method parameter list",
+    "Writing name = name instead of self.name = name",
+    "Thinking self is magic rather than the instance parameter",
+    "Creating a mutable class-level list when each instance needs its own",
+    "Calling __init__ directly instead of using normal construction"
+  ],
+  "exercises": [
+    {
+      "id": "oop_26_ex1",
+      "type": "predict_output",
+      "title": "Constructor arguments become attributes",
+      "prompt": "What prints?",
+      "code_to_predict": "class Player:\n    def __init__(self, name):\n        self.name = name\np = Player(\"Ada\")\nprint(p.name)",
+      "expected_answer": "Ada",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "The value Ada is passed into the name parameter during construction.",
+        "self.name stores that value on p.",
+        "p.name therefore prints Ada."
+      ]
+    },
+    {
+      "id": "oop_26_ex2",
+      "type": "fill_blank",
+      "title": "Store the attribute",
+      "prompt": "Complete the constructor assignment so the new Player stores its name.",
+      "starter_code": "class Player:\n    def __init__(self, name):\n        pass\n",
+      "reference_solution": "class Player:\n    def __init__(self, name):\n        self.name = name\n",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "The right side is the local constructor parameter.",
+        "The left side must be the attribute on this instance.",
+        "Use `self.name = name`."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Player"
+        },
+        {
+          "kind": "expression",
+          "expression": "Player(\"Ada\").name",
+          "expected": "Ada"
+        },
+        {
+          "kind": "expression",
+          "expression": "Player(\"Bo\").name",
+          "expected": "Bo"
+        }
+      ]
+    },
+    {
+      "id": "oop_26_ex3",
+      "type": "write_code",
+      "title": "Store two attributes",
+      "prompt": "Complete Player so `Player(name, score)` stores both `self.name` and `self.score`.",
+      "starter_code": "class Player:\n    def __init__(self, name, score):\n        pass\n",
+      "reference_solution": "class Player:\n    def __init__(self, name, score):\n        self.name = name\n        self.score = score\n",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "Each constructor input should be saved on the particular instance.",
+        "Use two self attributes, one for each parameter.",
+        "Assign `self.name = name` and `self.score = score`."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Player"
+        },
+        {
+          "kind": "expression",
+          "expression": "Player(\"Ada\",3).name",
+          "expected": "Ada"
+        },
+        {
+          "kind": "expression",
+          "expression": "Player(\"Ada\",3).score",
+          "expected": 3
+        },
+        {
+          "kind": "expression",
+          "expression": "Player(\"Bo\",7).score",
+          "expected": 7
+        }
+      ],
+      "integration": [
+        "classes",
+        "init",
+        "self",
+        "parameters",
+        "attributes",
+        "instance_state"
+      ]
+    },
+    {
+      "id": "oop_26_ex4",
+      "type": "predict_output",
+      "title": "Two separate instances",
+      "prompt": "What prints?",
+      "code_to_predict": "class Player:\n    def __init__(self, name):\n        self.name = name\na = Player(\"Ada\")\nb = Player(\"Bo\")\na.name = \"Changed\"\nprint(b.name)",
+      "expected_answer": "Bo",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "Construction created two separate instances.",
+        "Changing an attribute on a changes a only.",
+        "b.name remains Bo."
+      ]
+    },
+    {
+      "id": "oop_26_ex5",
+      "type": "architecture",
+      "title": "Where should the list be created?",
+      "prompt": "Every Character needs a separate inventory. Which design matches that requirement?",
+      "choices": [
+        "One class attribute: `inventory = []` shared by all instances.",
+        "Inside `__init__`: `self.inventory = []` so every construction creates a fresh list."
+      ],
+      "expected_answer": "2",
+      "topics": [
+        "oop",
+        "references"
+      ],
+      "hints": [
+        "Recall the shared-reference lesson: one list object shared by every instance is not independent state.",
+        "__init__ runs each time a new object is constructed.",
+        "Create `self.inventory = []` inside __init__."
+      ],
+      "reasoning_targets": [
+        "reference_independence"
+      ]
+    },
+    {
+      "id": "oop_26_ex6",
+      "type": "debug",
+      "title": "Missing self",
+      "prompt": "Repair the constructor so it accepts the instance parameter and stores the provided name on that instance.",
+      "starter_code": "class Player:\n    def __init__(name):\n        name = name\n",
+      "reference_solution": "class Player:\n    def __init__(self, name):\n        self.name = name\n",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "The initialization method needs both the instance and the caller-provided name.",
+        "Add self as the first parameter, then store the local name parameter on self.",
+        "Use `def __init__(self, name): self.name = name`."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Player"
+        },
+        {
+          "kind": "expression",
+          "expression": "Player(\"Ada\").name",
+          "expected": "Ada"
+        },
+        {
+          "kind": "expression",
+          "expression": "Player(\"Bo\").name",
+          "expected": "Bo"
+        }
+      ],
+      "reasoning_targets": [
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "oop_26_ex7",
+      "type": "debug",
+      "title": "Shared inventory",
+      "prompt": "Both characters currently share one class-level inventory. Move inventory creation into per-instance setup so each Character has its own list.",
+      "starter_code": "class Character:\n    inventory = []\n    def __init__(self, name):\n        self.name = name\n",
+      "reference_solution": "class Character:\n    def __init__(self, name):\n        self.name = name\n        self.inventory = []\n",
+      "topics": [
+        "oop",
+        "references"
+      ],
+      "hints": [
+        "The problem is that the list is created once on the class instead of once per object.",
+        "Move the list expression into __init__ and store it through self.",
+        "Remove the class-level list and add `self.inventory = []` inside __init__."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Character"
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda pair: pair[0].inventory is not pair[1].inventory)([Character(\"A\"), Character(\"B\")])",
+          "expected": true
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda pair: (pair[0].inventory.append(\"x\"), pair[1].inventory)[1])([Character(\"A\"), Character(\"B\")])",
+          "expected": []
+        }
+      ],
+      "integration": [
+        "classes",
+        "init",
+        "self",
+        "instance_state",
+        "lists",
+        "shared_references"
+      ],
+      "reasoning_targets": [
+        "diagnosis",
+        "reference_independence"
+      ]
+    },
+    {
+      "id": "oop_26_ex8",
+      "type": "architecture",
+      "title": "Local name or stored attribute?",
+      "prompt": "In `def __init__(self, name): self.name = name`, which statement is correct?",
+      "choices": [
+        "Both occurrences of name are global variables.",
+        "The parameter `name` is local to the constructor call; `self.name` is the attribute that remains stored on the instance.",
+        "self.name disappears when the constructor returns."
+      ],
+      "expected_answer": "2",
+      "topics": [
+        "oop",
+        "scope"
+      ],
+      "hints": [
+        "Use what you learned about function scope.",
+        "The bare parameter name belongs to this method call; the dotted attribute belongs to the object.",
+        "The local parameter disappears after the call, but self.name remains on the instance."
+      ],
+      "integration": [
+        "local_scope",
+        "parameters",
+        "self",
+        "attributes"
+      ]
+    },
+    {
+      "id": "oop_26_ex9",
+      "type": "mini_project",
+      "title": "Character Setup",
+      "prompt": "Define `Character(name, health)` storing name and health and creating a fresh empty inventory for every instance. Hidden checks will construct several characters and mutate one inventory to prove the state is independent.",
+      "starter_code": "class Character:\n    pass\n",
+      "reference_solution": "class Character:\n    def __init__(self, name, health):\n        self.name = name\n        self.health = health\n        self.inventory = []\n",
+      "topics": [
+        "oop",
+        "references",
+        "lists"
+      ],
+      "hints": [
+        "Turn the repeated post-construction setup from Lesson 25 into one __init__ method.",
+        "Store both inputs through self and create the inventory list inside __init__.",
+        "Define `__init__(self, name, health)` with self.name, self.health, and `self.inventory = []`."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Character"
+        },
+        {
+          "kind": "expression",
+          "expression": "Character(\"Aria\",10).name",
+          "expected": "Aria"
+        },
+        {
+          "kind": "expression",
+          "expression": "Character(\"Rook\",14).health",
+          "expected": 14
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda pair: pair[0].inventory is not pair[1].inventory)([Character(\"Aria\",10), Character(\"Rook\",14)])",
+          "expected": true
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda pair: (pair[0].inventory.append(\"rope\"), pair[1].inventory)[1])([Character(\"Aria\",10), Character(\"Rook\",14)])",
+          "expected": []
+        }
+      ],
+      "integration": [
+        "classes",
+        "init",
+        "self",
+        "parameters",
+        "attributes",
+        "instance_state",
+        "lists"
+      ],
+      "reasoning_targets": [
+        "reference_independence"
+      ],
+      "project_role": "bridge_project",
+      "criteria": [
+        "store_constructor_inputs",
+        "create_fresh_inventory_per_instance",
+        "construct_multiple_characters",
+        "verify_state_independence"
+      ],
+      "success_message": "Construction now produces fully initialized characters with fresh mutable state per instance."
+    }
+  ],
+  "lesson_number": 26,
+  "production_contract_version": 1
+}

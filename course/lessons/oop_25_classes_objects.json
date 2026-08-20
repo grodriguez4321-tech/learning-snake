@@ -1,0 +1,349 @@
+{
+  "curriculum_revision": "3.2",
+  "id": "oop_25_classes_objects",
+  "section": "Data & Objects",
+  "section_order": 8,
+  "order": 2,
+  "title": "A New Kind of Value",
+  "topics": [
+    "oop",
+    "classes"
+  ],
+  "content": "What problem does this solve?\nA class describes a kind of object your program can create. An instance is one actual object made from that class. For this first lesson, think of a class as defining a new category of value and each instance as its own record.\n\nCreate two separate objects\n  class Note:\n      pass\n  first = Note()\n  second = Note()\nNote is the class. first and second are separate instances.\n\nPer-instance attributes\n  first.text = \"hello\"\n  second.text = \"goodbye\"\nEach object can store different attribute values.\n\nOne-lesson microscope\nThis lesson assigns attributes after object creation only to isolate class-versus-instance thinking. It is not the final setup pattern. Lesson 26 immediately replaces this repetition with `__init__`.\n\nVocabulary after the behavior\nA class describes a type of object. An instance (or object) is one value created from the class. An attribute is data stored on an object and accessed with dot syntax.",
+  "concepts": [
+    "A class describes a kind of object",
+    "An instance is one separate object created from a class",
+    "Different instances can store different attribute values",
+    "Attributes are read/written through the instance with dot syntax",
+    "Classes are modeling tools, not mandatory replacements for simple dictionaries"
+  ],
+  "examples": [
+    {
+      "title": "Create two instances",
+      "code": "class Note:\n    pass\n\nfirst = Note()\nsecond = Note()",
+      "explanation": "One class can create many separate instances."
+    },
+    {
+      "title": "Different instance data",
+      "code": "class Note:\n    pass\nfirst = Note()\nsecond = Note()\nfirst.text = \"hello\"\nsecond.text = \"goodbye\"\nprint(first.text)\nprint(second.text)",
+      "explanation": "Each object stores its own text attribute."
+    }
+  ],
+  "common_mistakes": [
+    "Calling the class itself one individual character",
+    "Assuming instances share attribute values simply because they share a class",
+    "Putting per-object state on the class itself",
+    "Assuming classes are automatically better than dictionaries",
+    "Trying to introduce inheritance before basic object state is understood"
+  ],
+  "exercises": [
+    {
+      "id": "oop_25_ex1",
+      "type": "architecture",
+      "title": "Class or instance?",
+      "prompt": "In `class Note: ...` followed by `first = Note()`, which statement is correct?",
+      "choices": [
+        "Note is the class; first is an instance.",
+        "first is the class; Note is an instance.",
+        "Both names refer to the same object."
+      ],
+      "expected_answer": "1",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "Look at which name appears after the `class` keyword.",
+        "Calling that class with parentheses creates an instance.",
+        "Note is the class; first is an instance."
+      ]
+    },
+    {
+      "id": "oop_25_ex2",
+      "type": "write_code",
+      "title": "Create two objects",
+      "prompt": "Define an empty `Marker` class and create two instances named `first` and `second`. Do not use `__init__` yet.",
+      "starter_code": "class Marker:\n    pass\n\n# Create first and second.\n",
+      "reference_solution": "class Marker:\n    pass\n\nfirst = Marker()\nsecond = Marker()\n",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "The class definition is already enough to make instances in this lesson.",
+        "Call Marker() twice and store each result under a different name.",
+        "Use `first = Marker()` and `second = Marker()`."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Marker"
+        },
+        {
+          "kind": "expression",
+          "expression": "type(first) is Marker",
+          "expected": true
+        },
+        {
+          "kind": "expression",
+          "expression": "type(second) is Marker",
+          "expected": true
+        },
+        {
+          "kind": "expression",
+          "expression": "first is second",
+          "expected": false
+        }
+      ]
+    },
+    {
+      "id": "oop_25_ex3",
+      "type": "write_code",
+      "title": "Give each object a value",
+      "prompt": "Set `first.value = 1` and `second.value = 2`, then print both values on separate lines.",
+      "starter_code": "class Marker:\n    pass\nfirst = Marker()\nsecond = Marker()\n\n# Assign different value attributes.\n",
+      "reference_solution": "class Marker:\n    pass\nfirst = Marker()\nsecond = Marker()\nfirst.value = 1\nsecond.value = 2\nprint(first.value)\nprint(second.value)\n",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "Attributes belong to a specific instance, so use the object name before the dot.",
+        "Assign one value through first and the other through second.",
+        "Use `first.value = 1` and `second.value = 2`, then print them."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Marker"
+        },
+        {
+          "kind": "attribute",
+          "expression": "first.value",
+          "expected": 1
+        },
+        {
+          "kind": "attribute",
+          "expression": "second.value",
+          "expected": 2
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "1\n2\n"
+        }
+      ]
+    },
+    {
+      "id": "oop_25_ex4",
+      "type": "predict_output",
+      "title": "Independent attributes",
+      "prompt": "What prints?",
+      "code_to_predict": "class Box:\n    pass\na = Box()\nb = Box()\na.label = \"A\"\nb.label = \"B\"\na.label = \"Changed\"\nprint(b.label)",
+      "expected_answer": "B",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "a and b are separate instances.",
+        "The later assignment changes only a.label.",
+        "b.label remains B."
+      ]
+    },
+    {
+      "id": "oop_25_ex5",
+      "type": "architecture",
+      "title": "Dictionary or object?",
+      "prompt": "You have one simple dictionary record used only for key lookup. Must it be converted to a class immediately?",
+      "choices": [
+        "Yes; classes always replace dictionaries once learned.",
+        "No; a dictionary can remain clearer when object behavior/responsibility is not needed."
+      ],
+      "expected_answer": "2",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "New syntax is not automatically a better model.",
+        "Ask whether the record benefits from object identity or related behavior.",
+        "A plain dictionary can still be the clearer choice."
+      ],
+      "reasoning_targets": [
+        "responsibility_design"
+      ]
+    },
+    {
+      "id": "oop_25_ex6",
+      "type": "debug",
+      "title": "Change the intended instance",
+      "prompt": "The goal is for only `second.health` to become 7. Repair the final assignment and keep first.health at 10.",
+      "starter_code": "class Unit:\n    pass\nfirst = Unit()\nsecond = Unit()\nfirst.health = 10\nsecond.health = 10\nfirst.health = 7\n",
+      "reference_solution": "class Unit:\n    pass\nfirst = Unit()\nsecond = Unit()\nfirst.health = 10\nsecond.health = 10\nsecond.health = 7\n",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "The class is not the problem; trace which instance the final line targets.",
+        "The requirement says only second should change.",
+        "Change the final assignment to `second.health = 7`."
+      ],
+      "tests": [
+        {
+          "kind": "attribute",
+          "expression": "first.health",
+          "expected": 10
+        },
+        {
+          "kind": "attribute",
+          "expression": "second.health",
+          "expected": 7
+        },
+        {
+          "kind": "expression",
+          "expression": "first is second",
+          "expected": false
+        }
+      ],
+      "reasoning_targets": [
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "oop_25_ex7",
+      "type": "write_code",
+      "title": "Neutral record objects",
+      "prompt": "Define an empty `Player` class. In `build_players()`, create two Player instances with different `name` and `score` attributes and return them in a list. Use names `Ada`/`Bo` and scores 3/7. Do not use `__init__` yet.",
+      "starter_code": "class Player:\n    pass\n\ndef build_players():\n    pass\n",
+      "reference_solution": "class Player:\n    pass\n\ndef build_players():\n    first = Player()\n    first.name = \"Ada\"\n    first.score = 3\n    second = Player()\n    second.name = \"Bo\"\n    second.score = 7\n    return [first, second]\n",
+      "topics": [
+        "oop",
+        "functions",
+        "lists"
+      ],
+      "hints": [
+        "Create each Player separately inside the function before assigning its attributes.",
+        "Give the two instances different name/score values, then put the objects themselves in a list.",
+        "Return `[first, second]` after assigning Ada/3 and Bo/7."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Player"
+        },
+        {
+          "kind": "expression",
+          "expression": "len(build_players())",
+          "expected": 2
+        },
+        {
+          "kind": "expression",
+          "expression": "build_players()[0].name",
+          "expected": "Ada"
+        },
+        {
+          "kind": "expression",
+          "expression": "build_players()[0].score",
+          "expected": 3
+        },
+        {
+          "kind": "expression",
+          "expression": "build_players()[1].name",
+          "expected": "Bo"
+        },
+        {
+          "kind": "expression",
+          "expression": "build_players()[1].score",
+          "expected": 7
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda p: p[0] is not p[1])(build_players())",
+          "expected": true
+        }
+      ],
+      "integration": [
+        "classes",
+        "attributes",
+        "lists",
+        "functions",
+        "return"
+      ]
+    },
+    {
+      "id": "oop_25_ex8",
+      "type": "mini_project",
+      "title": "First Character Objects",
+      "prompt": "Define an empty `Character` class. `make_party()` must create separate Aria and Rook instances with `name`, `health`, and `inventory`: Aria/10/[] and Rook/14/[]. Then mutate Aria before returning: set aria.health to 8 and append `\"rope\"` to aria.inventory. Return `[aria, rook]`. Rook must remain health 14 with an empty, separate inventory. Do not use `__init__` yet.",
+      "starter_code": "class Character:\n    pass\n\ndef make_party():\n    pass\n",
+      "reference_solution": "class Character:\n    pass\n\ndef make_party():\n    aria = Character()\n    aria.name = \"Aria\"\n    aria.health = 10\n    aria.inventory = []\n\n    rook = Character()\n    rook.name = \"Rook\"\n    rook.health = 14\n    rook.inventory = []\n\n    aria.health = 8\n    aria.inventory.append(\"rope\")\n    return [aria, rook]\n",
+      "topics": [
+        "oop",
+        "references",
+        "lists"
+      ],
+      "hints": [
+        "Create two Character() calls, not one object stored under two names.",
+        "Give each instance its own literal `[]` inventory before mutating Aria.",
+        "After Aria receives rope and health 8, return both objects. Hidden checks will verify Rook stayed unchanged and the inventories are different objects."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Character"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "append_call",
+          "in_function": "make_party"
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda p: [p[0].name, p[0].health, p[0].inventory, p[1].name, p[1].health, p[1].inventory])(make_party())",
+          "expected": [
+            "Aria",
+            8,
+            [
+              "rope"
+            ],
+            "Rook",
+            14,
+            []
+          ]
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda p: p[0] is not p[1])(make_party())",
+          "expected": true
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda p: p[0].inventory is not p[1].inventory)(make_party())",
+          "expected": true
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda p: (p[0].inventory.append(\"x\"), p[1].inventory)[1])(make_party())",
+          "expected": []
+        }
+      ],
+      "integration": [
+        "classes",
+        "attributes",
+        "lists",
+        "shared_references",
+        "append",
+        "functions",
+        "return"
+      ],
+      "reasoning_targets": [
+        "reference_independence"
+      ],
+      "project_role": "bridge_project",
+      "criteria": [
+        "create_separate_instances",
+        "assign_required_attributes",
+        "use_separate_inventories",
+        "verify_instance_independence"
+      ],
+      "success_message": "Aria and Rook are separate Character instances with independent mutable inventory state."
+    }
+  ],
+  "lesson_number": 25,
+  "production_contract_version": 1
+}

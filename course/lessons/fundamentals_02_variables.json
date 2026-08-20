@@ -1,4 +1,5 @@
 {
+  "curriculum_revision": "3.2",
   "id": "fundamentals_02_variables",
   "section": "Python Fundamentals",
   "section_order": 1,
@@ -7,102 +8,152 @@
   "topics": [
     "variables"
   ],
-  "content": "What problem does this solve?\nA static log is not enough. If the program must rewrite every sentence as the overdue count changes, it is not modeling the expedition. Variables let you name information, change it, and reuse it later.\n\nBasic syntax\n  name = expression\n\nWhat actually happens\nThe right-hand side is evaluated first. Then Python attaches that resulting value to the name on the left. A variable is a label pointing at a value, not a fixed box that permanently owns one type.\n\nA string is text in quotes, such as \"OVERDUE\". An integer is a whole number without quotes, such as 17. An expression is anything Python can evaluate, including a name, a number, or days_overdue + 1. Reassignment makes the same name point at a new value.\n\nWhen this is useful\nUse named values whenever a fact may change \u2014 days overdue, party size, or status \u2014 so print() can reuse the current values without rewriting the whole program. You already know print() from the last lesson; now print named values instead of only literals.",
+  "concept_ids": [
+    "variables",
+    "assignment",
+    "reassignment",
+    "expressions",
+    "basic_types"
+  ],
+  "content": "What problem does this solve?\nPrograms become useful when information has names. A variable lets you store a value, use it later, and replace it when the situation changes.\n\nStart with the behavior\n  count = 4\n  print(count)\nThe first line stores 4 under the name count. The second line asks for the value currently stored there.\n\nValues can change\n  count = 2\n  count = count + 3\nAfter the second assignment, count stores 5. Python evaluates the right side first, then stores the result on the left.\n\nNumbers and text are different values\n  days = 3\n  status = \"OVERDUE\"\nQuotes make OVERDUE text. Without quotes, Python would look for a variable with that name.\n\nVocabulary after the behavior\nThe = in these examples is assignment. Using a variable's current value to calculate a new value is an expression. Assigning a new value to an existing name is reassignment.",
   "concepts": [
-    "Assignment evaluates the right side, then binds the name on the left",
-    "Strings are quoted text; integers are whole numbers without quotes",
-    "Variable names should describe meaning (days_overdue, not x)",
-    "Reassigning a name makes it point at a new value",
-    "Expressions can combine named values with arithmetic"
+    "Assignment stores a value under a name",
+    "Using a variable reads its current value",
+    "The right side of an assignment is evaluated before the result is stored",
+    "Quoted text and numbers are different kinds of values"
   ],
   "examples": [
     {
-      "title": "Changing record",
-      "code": "expedition = 17\ndays_overdue = 2\nprint(expedition)\nprint(days_overdue)\ndays_overdue = days_overdue + 1\nprint(days_overdue)",
-      "explanation": "days_overdue starts at 2. After reassignment with days_overdue + 1, the same name refers to 3."
+      "title": "Store and read",
+      "code": "count = 4\nprint(count)",
+      "explanation": "count stores 4, then print reads that stored value."
+    },
+    {
+      "title": "Change a value",
+      "code": "count = 2\ncount = count + 3\nprint(count)",
+      "explanation": "Python calculates 2 + 3 first, then stores 5 back in count."
+    },
+    {
+      "title": "Expedition record",
+      "code": "expedition = 17\ndays_overdue = 3\nstatus = \"OVERDUE\"\nprint(expedition)\nprint(status)",
+      "explanation": "Names make the changing facts reusable."
     }
   ],
   "common_mistakes": [
-    "Writing status == \"OVERDUE\" when you meant to assign ( == compares; = assigns )",
-    "Using a variable before assigning it \u2014 that raises NameError",
-    "Forgetting quotes around literal text: OVERDUE without quotes looks like a variable name",
-    "Hardcoding a calculated result instead of building it from the named values"
+    "Reading = as 'is equal to' instead of 'store this value in this name'",
+    "Forgetting quotes around text values",
+    "Copying a literal into print() instead of using the variable the exercise asks you to practice"
   ],
   "exercises": [
     {
       "id": "fundamentals_02_ex1",
       "type": "predict_output",
-      "title": "Predict the changing record",
-      "prompt": "What does this program print? Type each line of output.",
-      "code_to_predict": "days_overdue = 2\nprint(days_overdue)\ndays_overdue = days_overdue + 1\nprint(days_overdue)",
-      "expected_answer": "2\n3",
+      "title": "Read a variable",
+      "prompt": "What prints?",
+      "code_to_predict": "count = 4\nprint(count)",
+      "expected_answer": "4",
       "topics": [
         "variables"
       ],
       "hints": [
-        "Trace the value of days_overdue from top to bottom.",
-        "The second assignment uses the current value of days_overdue on the right-hand side.",
-        "First print shows 2; after adding 1, the second print shows 3."
-      ],
-      "failure_message": "Re-read the reassignment line carefully \u2014 the name on the right still holds the old value when that expression is evaluated."
+        "Follow the assignment first.",
+        "count stores the number 4 before print(count) runs.",
+        "The output is 4."
+      ]
     },
     {
       "id": "fundamentals_02_ex2",
       "type": "fill_blank",
-      "title": "Complete the calculation",
-      "prompt": "Replace the placeholder so evidence_count is the sum of tracks_found and damaged_items. Build the value from both variable names \u2014 do not hardcode the result.",
-      "starter_code": "tracks_found = 2\ndamaged_items = 3\nevidence_count = 0  # TODO: replace 0 with an expression using both variables\nprint(evidence_count)\n",
+      "title": "Store a number",
+      "prompt": "Change the assigned number so the program prints exactly 7.",
+      "starter_code": "steps = 0\nprint(steps)\n",
+      "reference_solution": "steps = 7\nprint(steps)\n",
       "topics": [
         "variables"
       ],
       "hints": [
-        "evidence_count should be calculated from the two named values above it.",
-        "Use + to combine the integers those names refer to.",
-        "Replace None with an expression that mentions tracks_found and damaged_items."
+        "The printed value comes from steps.",
+        "Change what is stored in steps; do not change print(steps).",
+        "Use steps = 7."
       ],
       "tests": [
         {
-          "kind": "source_uses",
-          "feature": "binop_names",
-          "name": "evidence_count",
-          "names": [
-            "tracks_found",
-            "damaged_items"
-          ],
-          "message": "Build evidence_count from tracks_found and damaged_items, not a hardcoded number."
-        },
-        {
           "kind": "globals",
-          "name": "evidence_count",
-          "type_name": "int",
-          "expected": 5
+          "name": "steps",
+          "expected": 7,
+          "type_name": "int"
         },
         {
           "kind": "stdout_equals",
-          "expected": "5\n"
+          "expected": "7\n"
         }
       ]
     },
     {
       "id": "fundamentals_02_ex3",
-      "type": "debug",
-      "title": "Repair the status",
-      "prompt": "This program should store the word OVERDUE as literal text in status, then print it. Fix the assignment.",
-      "starter_code": "status = OVERDUE\nprint(status)\n",
+      "type": "write_code",
+      "title": "Store text",
+      "prompt": "Create a variable named status containing the text ready, then print the variable. The output should be exactly:\nready",
+      "starter_code": "# Create status, then print it\n",
+      "reference_solution": "status = \"ready\"\nprint(status)\n",
       "topics": [
         "variables"
       ],
       "hints": [
-        "Without quotes, Python treats OVERDUE as a variable name.",
-        "Literal text must be a string.",
-        "Assign status = \"OVERDUE\" (quotes included)."
+        "status needs to store text, not a bare name.",
+        "Put ready inside quotes when you assign it.",
+        "Use status = \"ready\" and then print(status)."
       ],
       "tests": [
         {
           "kind": "globals",
           "name": "status",
-          "type_name": "str",
-          "expected": "OVERDUE"
+          "expected": "ready",
+          "type_name": "str"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "ready\n"
+        }
+      ]
+    },
+    {
+      "id": "fundamentals_02_ex4",
+      "type": "predict_output",
+      "title": "Follow reassignment",
+      "prompt": "What prints?",
+      "code_to_predict": "count = 2\ncount = count + 3\nprint(count)",
+      "expected_answer": "5",
+      "topics": [
+        "variables"
+      ],
+      "hints": [
+        "Read the lines from top to bottom.",
+        "On the second line, the old value of count is 2, so the right side becomes 2 + 3.",
+        "Python stores 5 back in count, so print(count) shows 5."
+      ]
+    },
+    {
+      "id": "fundamentals_02_ex5",
+      "type": "debug",
+      "title": "Literal text needs quotes",
+      "prompt": "Repair the program so status stores text and the output is exactly OVERDUE.",
+      "starter_code": "status = OVERDUE\nprint(status)\n",
+      "reference_solution": "status = \"OVERDUE\"\nprint(status)\n",
+      "topics": [
+        "variables"
+      ],
+      "hints": [
+        "Python is looking for a variable named OVERDUE.",
+        "The intended value is literal text.",
+        "Put quotes around OVERDUE in the assignment."
+      ],
+      "tests": [
+        {
+          "kind": "globals",
+          "name": "status",
+          "expected": "OVERDUE",
+          "type_name": "str"
         },
         {
           "kind": "stdout_equals",
@@ -111,43 +162,45 @@
       ]
     },
     {
-      "id": "fundamentals_02_ex4",
+      "id": "fundamentals_02_ex6",
       "type": "write_code",
-      "title": "Build an expedition record",
-      "prompt": "Create these variables:\n  expedition -> the integer 17\n  registered -> the integer 4\n  days_overdue -> the integer 3\n  status -> the string \"OVERDUE\"\n\nThen print each value on its own line in that order, using the variable names \u2014 do not copy-paste the values into print().",
-      "starter_code": "# Create the expedition record, then print each value\n",
+      "title": "Expedition record",
+      "prompt": "Create these variables exactly:\nexpedition = 17\nregistered = 4\ndays_overdue = 3\nstatus = \"OVERDUE\"\n\nThen print the four values in that order by using the variable names. Do not copy the literal values into the print() calls.",
+      "starter_code": "# Store the four facts, then print the variables\n",
+      "reference_solution": "expedition = 17\nregistered = 4\ndays_overdue = 3\nstatus = \"OVERDUE\"\n\nprint(expedition)\nprint(registered)\nprint(days_overdue)\nprint(status)\n",
       "topics": [
-        "variables"
+        "variables",
+        "print"
       ],
       "hints": [
-        "Strings need quotes; integers do not.",
-        "Assign all four names first, then call print four times with those names.",
-        "Print expedition, registered, days_overdue, and status \u2014 the variables themselves, not quoted copies of the numbers."
+        "Create the four assignments first so every fact has a name.",
+        "After the assignments, print expedition, registered, days_overdue, and status—not 17, 4, 3, and \"OVERDUE\" directly.",
+        "Use four assignments followed by print(expedition), print(registered), print(days_overdue), and print(status)."
       ],
       "tests": [
         {
           "kind": "globals",
           "name": "expedition",
-          "type_name": "int",
-          "expected": 17
+          "expected": 17,
+          "type_name": "int"
         },
         {
           "kind": "globals",
           "name": "registered",
-          "type_name": "int",
-          "expected": 4
+          "expected": 4,
+          "type_name": "int"
         },
         {
           "kind": "globals",
           "name": "days_overdue",
-          "type_name": "int",
-          "expected": 3
+          "expected": 3,
+          "type_name": "int"
         },
         {
           "kind": "globals",
           "name": "status",
-          "type_name": "str",
-          "expected": "OVERDUE"
+          "expected": "OVERDUE",
+          "type_name": "str"
         },
         {
           "kind": "source_uses",
@@ -158,14 +211,21 @@
             "days_overdue",
             "status"
           ],
-          "message": "Print the variable names themselves, not hardcoded literal values."
+          "message": "Print the stored variables rather than copying the literal values."
         },
         {
           "kind": "stdout_equals",
           "expected": "17\n4\n3\nOVERDUE\n"
         }
       ],
-      "success_message": "Record stored. The overdue counter and party count are now named values your program can reuse."
+      "success_message": "The record now stores its facts separately from how they are displayed.",
+      "integration": [
+        "variables",
+        "assignment",
+        "print"
+      ]
     }
-  ]
+  ],
+  "lesson_number": 2,
+  "production_contract_version": 1
 }

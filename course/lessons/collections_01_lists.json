@@ -1,105 +1,212 @@
 {
+  "curriculum_revision": "3.2",
   "id": "collections_01_lists",
   "section": "Collections",
   "section_order": 3,
   "order": 1,
   "title": "Organize the Expedition",
-  "topics": ["collections"],
-  "content": "What problem does this solve?\nOne variable holding one value is not enough for a party roster. A list stores several related values in order under a single name. Expedition 17's registered roster is Aria, Rook, Mira, and Selene.\n\nBasic syntax\n  party = [\"Aria\", \"Rook\", \"Mira\", \"Selene\"]\n  party[0]\n\nWhat actually happens\nSquare brackets create the list. Indexing walks to a position. The first item is at index 0, not 1. party[0] is Aria; party[1] is Rook; party[2] is Mira; party[3] is Selene.\n\nWhen this is useful\nUse a list when you have several related values and you care about their order. Later you will learn how to add items and visit every entry. For now, creating the list and reading positions is enough.",
+  "topics": [
+    "lists",
+    "indexing"
+  ],
+  "concept_ids": [
+    "lists",
+    "indexing",
+    "zero_based_indexing"
+  ],
+  "content": "What problem does this solve?\nSeveral related values are easier to manage as one collection than as many separate variable names. A list stores values in a specific order.\n\nStart with the behavior\n  items = [\"a\", \"b\", \"c\"]\n  print(items[0])\nThe list keeps three values in order. Python numbers their positions starting at 0, so [0] means the first item.\n\nKeep count and position separate\nA three-item list has three items, but its valid indexes are 0, 1, and 2. The last index is one less than the number of items.\n\nVocabulary after the behavior\nThe list is an ordered collection. The number inside square brackets is an index. Python's list indexes are zero-based.",
   "concepts": [
-    "A list holds several values in order under one name",
-    "Indexing starts at 0",
-    "party[0] is the first item; party[2] is the third"
+    "A list stores several values in order",
+    "Index 0 is the first item",
+    "A three-item list has valid indexes 0, 1, and 2",
+    "Square brackets retrieve the value at one position"
   ],
   "examples": [
     {
-      "title": "Roster lookup",
+      "title": "Three values",
+      "code": "items = [\"a\", \"b\", \"c\"]\nprint(items[0])\nprint(items[2])",
+      "explanation": "Indexes 0 and 2 retrieve the first and third values."
+    },
+    {
+      "title": "Expedition roster",
       "code": "party = [\"Aria\", \"Rook\", \"Mira\", \"Selene\"]\nprint(party[0])\nprint(party[2])",
-      "explanation": "Index 0 is Aria. Index 2 is Mira — the third name, because counting starts at zero."
+      "explanation": "The roster is one ordered value rather than four unrelated variables."
     }
   ],
   "common_mistakes": [
-    "Using index 1 when you meant the first item (that is index 0)",
-    "Using parentheses instead of square brackets: party(0) tries to call party like a function",
-    "Assuming the example's indexes are the only ones that matter — every position has meaning"
+    "Expecting the first item to be index 1",
+    "Using an index equal to the number of items",
+    "Confusing the list itself with one value inside the list"
   ],
   "exercises": [
     {
       "id": "collections_01_ex1",
       "type": "predict_output",
-      "title": "Predict the roster lookup",
-      "prompt": "What does this print?",
-      "code_to_predict": "party = [\"Aria\", \"Rook\", \"Mira\", \"Selene\"]\nprint(party[3])",
-      "expected_answer": "Selene",
-      "topics": ["collections"],
+      "title": "First index",
+      "prompt": "What prints?",
+      "code_to_predict": "items = [\"a\", \"b\", \"c\"]\nprint(items[0])",
+      "expected_answer": "a",
+      "topics": [
+        "lists",
+        "indexing"
+      ],
       "hints": [
-        "The number in square brackets is a position, starting at 0.",
-        "Count carefully: 0 Aria, 1 Rook, 2 Mira, 3 …",
-        "Index 3 is the fourth name: Selene."
+        "List positions start at 0.",
+        "items[0] means the first value in the list.",
+        "The first value is a."
       ]
     },
     {
       "id": "collections_01_ex2",
-      "type": "debug",
-      "title": "Fix the wrong member",
-      "prompt": "This program is supposed to print Rook, but it uses the wrong index. Fix the index — retrieve the name from party, do not print a quoted string.",
-      "starter_code": "party = [\"Aria\", \"Rook\", \"Mira\", \"Selene\"]\nprint(party[0])  # should show Rook\n",
-      "topics": ["collections"],
+      "type": "fill_blank",
+      "title": "Read the second item",
+      "prompt": "Change the index so the program prints exactly blue.",
+      "starter_code": "colors = [\"red\", \"blue\", \"green\"]\nprint(colors[0])\n",
+      "reference_solution": "colors = [\"red\", \"blue\", \"green\"]\nprint(colors[1])\n",
+      "topics": [
+        "lists",
+        "indexing"
+      ],
       "hints": [
-        "Which index holds the second name?",
-        "Lists are zero-based, so the second item is at index 1.",
-        "Print party[1] instead of party[0]."
+        "The first item is index 0, so the second item is the next index.",
+        "blue is at position 1.",
+        "Use colors[1]."
       ],
       "tests": [
         {
           "kind": "source_uses",
           "feature": "subscript",
-          "name": "party",
-          "message": "Print an item from party using square-bracket indexing."
+          "message": "Retrieve a list item with an index."
         },
         {
           "kind": "stdout_equals",
-          "expected": "Rook\n"
+          "expected": "blue\n"
         }
       ]
     },
     {
       "id": "collections_01_ex3",
       "type": "write_code",
-      "title": "Build the roster card",
-      "prompt": "Create a list named party containing \"Aria\", \"Rook\", \"Mira\", and \"Selene\" in that order.\n\nThen print exactly these two lines:\nLeader: Aria\nScout: Mira\n\nBoth names must come from indexing into party and be formatted with f-strings — do not hardcode the names in the printed strings.",
-      "starter_code": "# Create party, then print Leader and Scout lines\n",
-      "topics": ["collections", "strings"],
+      "title": "Read the third item",
+      "prompt": "The names list is supplied. Print Sam by indexing the list. Do not print the literal string \"Sam\" directly.",
+      "starter_code": "names = [\"Ada\", \"Lin\", \"Sam\"]\n\n# Print the third item by indexing names\n",
+      "reference_solution": "names = [\"Ada\", \"Lin\", \"Sam\"]\nprint(names[2])\n",
+      "topics": [
+        "lists",
+        "indexing"
+      ],
       "hints": [
-        "Use square brackets and commas between the four string items.",
-        "Aria is at index 0; Mira is at index 2.",
-        "Print two f-strings that insert party[0] and party[2]."
+        "There are three items, but their indexes are 0, 1, and 2.",
+        "Sam is the third item, so use index 2.",
+        "Use print(names[2])."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "subscript",
+          "message": "Use list indexing rather than printing the literal name."
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "Sam\n"
+        }
+      ]
+    },
+    {
+      "id": "collections_01_ex4",
+      "type": "predict_output",
+      "title": "Two lookups",
+      "prompt": "What are the two output lines?",
+      "code_to_predict": "values = [10, 20, 30]\nprint(values[2])\nprint(values[1])",
+      "expected_answer": "30\n20",
+      "topics": [
+        "lists",
+        "indexing"
+      ],
+      "hints": [
+        "Map each index to its position before thinking about output order.",
+        "values[2] is 30 and values[1] is 20.",
+        "The output is 30 on the first line and 20 on the second."
+      ]
+    },
+    {
+      "id": "collections_01_ex5",
+      "type": "debug",
+      "title": "Off by one",
+      "prompt": "The program intends to print c but raises an error. Repair only the index.",
+      "starter_code": "letters = [\"a\", \"b\", \"c\"]\nprint(letters[3])\n",
+      "reference_solution": "letters = [\"a\", \"b\", \"c\"]\nprint(letters[2])\n",
+      "topics": [
+        "lists",
+        "indexing"
+      ],
+      "hints": [
+        "Count how many items are present, then list their valid indexes.",
+        "Three items means the valid indexes are 0, 1, and 2.",
+        "Change letters[3] to letters[2]."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "subscript"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "c\n"
+        }
+      ]
+    },
+    {
+      "id": "collections_01_ex6",
+      "type": "write_code",
+      "title": "Roster card",
+      "prompt": "Create exactly this list:\nparty = [\"Aria\", \"Rook\", \"Mira\", \"Selene\"]\n\nThen print exactly:\nLeader: Aria\nScout: Mira\n\nRetrieve both names by indexing party inside f-strings.",
+      "starter_code": "# Create party, then build the two roster lines\n",
+      "reference_solution": "party = [\"Aria\", \"Rook\", \"Mira\", \"Selene\"]\nprint(f\"Leader: {party[0]}\")\nprint(f\"Scout: {party[2]}\")\n",
+      "topics": [
+        "lists",
+        "indexing",
+        "f_strings"
+      ],
+      "hints": [
+        "First create the four-item party list in the required order.",
+        "Aria is index 0 and Mira is index 2. Put those lookups inside f-strings.",
+        "Use print(f\"Leader: {party[0]}\") and print(f\"Scout: {party[2]}\")."
       ],
       "tests": [
         {
           "kind": "globals",
           "name": "party",
-          "type_name": "list",
-          "expected": ["Aria", "Rook", "Mira", "Selene"]
+          "expected": [
+            "Aria",
+            "Rook",
+            "Mira",
+            "Selene"
+          ],
+          "type_name": "list"
         },
         {
           "kind": "source_uses",
-          "feature": "fstring",
-          "names": ["party"],
-          "message": "Use f-strings so the printed lines are built from party indexes."
+          "feature": "subscript"
         },
         {
           "kind": "source_uses",
-          "feature": "subscript",
-          "name": "party",
-          "message": "Read names with party[...], not quoted copies of Aria or Mira."
+          "feature": "fstring"
         },
         {
           "kind": "stdout_equals",
           "expected": "Leader: Aria\nScout: Mira\n"
         }
       ],
-      "success_message": "Roster card ready. Aria leads; Mira scouts — both retrieved by position."
+      "success_message": "You used positions in one collection to build two readable roster fields.",
+      "integration": [
+        "lists",
+        "indexing",
+        "f_strings",
+        "print"
+      ]
     }
-  ]
+  ],
+  "lesson_number": 5,
+  "production_contract_version": 1
 }

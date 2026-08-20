@@ -1,302 +1,284 @@
 {
+  "curriculum_revision": "3.2",
   "id": "decisions_10_boolean_logic",
-  "section": "Expedition Intake \u2014 Decisions",
+  "section": "Expedition Intake",
   "section_order": 5,
-  "order": 3,
+  "order": 2,
   "title": "Decisions With More Than One Condition",
   "topics": [
     "conditionals",
-    "debugging"
+    "boolean_logic"
   ],
-  "content": "What problem does this solve?\nClearance for the abandoned route once used by Captain Ilyra Venn depends on supplies, a guide, and active warnings. Real decisions often ask whether several conditions are true together\u2014or whether any one danger is enough to stop the plan.\n\nPreviously in your program\nYour intake desk already classifies supplies with if / elif / else: Cleared for 10+, Review for 5\u20139, Denied below 5. If supplies is 7, the Review branch runs because 7 fails >= 10 and then matches >= 5.\n\nBasic syntax\n  if has_guide and supplies >= 10 and not storm_warning:\n      print(\"Departure approved\")\n  else:\n      print(\"Hold at camp\")\n\nWhat actually happens\nBoolean expressions evaluate to True or False. and requires both sides true. or requires at least one side true. not reverses a Boolean value. Parentheses make grouping clear when and and or appear together.\n\nWhen this is useful\nTranslate the English rule first, then choose and, or, and not to match it.",
+  "content": "What problem does this solve?\nMany decisions depend on several facts at once. and, or, and not let you combine True-or-False conditions into one rule.\n\nBuild the rule in plain language first\nand means every connected requirement must be True. or means at least one connected condition must be True. not reverses one Boolean value.\n\nSmall examples\n  True and False  -> False\n  False or True   -> True\n  not True        -> False\n\nTranslate before typing\nIf the rule says 'a guide AND enough supplies AND no warning,' write those three facts separately first. Then connect them. Parentheses are useful when a rule mixes and/or and you want the grouping to be obvious.\n\nVocabulary after the behavior\nA Boolean value is True or False. Boolean logic combines or reverses these values.",
   "concepts": [
-    "and is true only when every part is true",
-    "or is true when at least one part is true",
-    "not reverses True and False",
-    "Parentheses make mixed and/or rules readable"
+    "and requires all connected conditions to be True",
+    "or requires at least one connected condition to be True",
+    "not reverses a Boolean value",
+    "Translate the English rule into separate conditions before combining them"
   ],
   "examples": [
     {
+      "title": "Both required",
+      "code": "has_key = True\ncode_correct = False\nprint(has_key and code_correct)",
+      "explanation": "One requirement is False, so the combined result is False."
+    },
+    {
+      "title": "Either route",
+      "code": "north_open = False\nsouth_open = True\nprint(north_open or south_open)",
+      "explanation": "One open route is enough, so the result is True."
+    },
+    {
       "title": "Departure rule",
-      "code": "has_guide = True\nsupplies = 11\nstorm_warning = False\n\nif has_guide and supplies >= 10 and not storm_warning:\n    print(\"Departure approved\")\nelse:\n    print(\"Hold at camp\")",
-      "explanation": "All three requirements pass, so Departure approved prints."
+      "code": "has_guide = True\nsupplies = 12\nwarning_active = False\nprint(has_guide and supplies >= 10 and not warning_active)",
+      "explanation": "All three requirements pass, including the reversed warning flag."
     }
   ],
   "common_mistakes": [
-    "Replacing and with or because both words feel interchangeable",
-    "Writing if supplies >= 10 and <= 20: without repeating the variable",
-    "Confusing Boolean True/False with the strings \"True\" and \"False\"",
-    "Forgetting parentheses when mixing and and or"
+    "Using or when every requirement must pass",
+    "Using and when any one danger should be enough",
+    "Comparing Boolean variables to the strings \"True\" or \"False\"",
+    "Writing a chained comparison such as supplies >= 10 and <= 20 instead of repeating the value",
+    "Ignoring grouping when and/or are mixed"
   ],
   "exercises": [
     {
       "id": "decisions_10_ex1",
       "type": "predict_output",
-      "title": "The warning flag",
-      "prompt": "What does this print? Evaluate each part of the condition, including not.",
-      "code_to_predict": "has_guide = True\nsupplies = 12\nwarning_active = True\n\nif has_guide and supplies >= 10 and not warning_active:\n    print(\"Depart\")\nelse:\n    print(\"Wait\")",
-      "expected_answer": "Wait",
+      "title": "Both must be true",
+      "prompt": "What prints?",
+      "code_to_predict": "a = True\nb = False\nprint(a and b)",
+      "expected_answer": "False",
       "topics": [
-        "conditionals"
+        "boolean_logic"
       ],
-      "failure_message": "Evaluate each part separately, including what not does to warning_active.",
       "hints": [
-        "has_guide is True and supplies >= 10 is True \u2014 what about the warning?",
-        "not warning_active flips True to False.",
-        "and needs every part true, so the else path runs and prints Wait."
+        "and checks whether both sides are True.",
+        "b is False, so the pair cannot be True.",
+        "The output is False."
       ]
     },
     {
       "id": "decisions_10_ex2",
       "type": "architecture",
-      "title": "and or or?",
-      "prompt": "Any one of these should trigger a route warning: flooding is reported, the bridge is broken, or visibility is poor. Which operator belongs between the conditions?",
+      "title": "Choose and",
+      "prompt": "A door opens only when the key is present AND the code is correct. Which operator expresses that rule?",
       "choices": [
         "and",
         "or",
         "not"
       ],
-      "expected_answer": "or",
+      "expected_answer": "1",
       "topics": [
-        "conditionals"
+        "boolean_logic"
       ],
-      "success_message": "Right. A single danger is enough, so at least one condition must be true.",
-      "failure_message": "Think about whether every danger must be present, or whether one danger alone should warn the party.",
       "hints": [
-        "The English rule says any one of the dangers is enough.",
-        "and would require every listed danger at once.",
-        "Choose or so one true condition triggers the warning."
-      ]
+        "The word only means both requirements must pass.",
+        "Choose the operator that requires every connected condition to be True.",
+        "The operator is and."
+      ],
+      "success_message": "Correct. Both requirements must pass together."
     },
     {
       "id": "decisions_10_ex3",
-      "type": "debug",
-      "title": "The false clearance",
-      "prompt": "Both a guide and at least 10 supplies are required. The current code clears an expedition with no guide. Change only the Boolean operator so can_depart returns the correct result for every case.",
-      "starter_code": "def can_depart(has_guide, supplies):\n    return has_guide or supplies >= 10\n",
+      "type": "predict_output",
+      "title": "Either one is enough",
+      "prompt": "What prints?",
+      "code_to_predict": "north_open = False\nsouth_open = True\nprint(north_open or south_open)",
+      "expected_answer": "True",
       "topics": [
-        "conditionals",
-        "debugging"
+        "boolean_logic"
       ],
       "hints": [
-        "Both requirements must pass together \u2014 one alone is not enough.",
-        "or is true when either side is true; that clears a guide-less party with enough supplies.",
-        "Replace or with and so both the guide and the supply check must succeed."
-      ],
-      "tests": [
-        {
-          "kind": "source_uses",
-          "feature": "boolean_and",
-          "in_function": "can_depart",
-          "message": "Inside can_depart, combine the requirements with and (not or)."
-        },
-        {
-          "kind": "function",
-          "function": "can_depart",
-          "args": [
-            false,
-            12
-          ],
-          "expected": false
-        },
-        {
-          "kind": "function",
-          "function": "can_depart",
-          "args": [
-            true,
-            12
-          ],
-          "expected": true
-        },
-        {
-          "kind": "function",
-          "function": "can_depart",
-          "args": [
-            true,
-            9
-          ],
-          "expected": false
-        },
-        {
-          "kind": "function",
-          "function": "can_depart",
-          "args": [
-            false,
-            9
-          ],
-          "expected": false
-        }
+        "or asks whether at least one side is True.",
+        "south_open is True even though north_open is False.",
+        "The output is True."
       ]
     },
     {
       "id": "decisions_10_ex4",
-      "type": "write_code",
-      "title": "Departure clearance",
-      "prompt": "Write can_depart(has_guide, supplies, warning_active). Return True only when there is a guide, supplies are at least 10, and no warning is active. Otherwise return False.",
-      "starter_code": "def can_depart(has_guide, supplies, warning_active):\n    # Return True only when all safety requirements pass.\n    pass\n",
+      "type": "architecture",
+      "title": "Choose or",
+      "prompt": "Any one danger should trigger a warning: flooding, a broken bridge, or poor visibility. Which operator belongs between the danger checks?",
+      "choices": [
+        "and",
+        "or",
+        "not"
+      ],
+      "expected_answer": "2",
       "topics": [
-        "conditionals",
-        "functions"
+        "boolean_logic"
       ],
       "hints": [
-        "All three safety requirements must pass together.",
-        "Use and between the requirements. The warning requirement needs to be reversed.",
-        "Combine has_guide, supplies >= 10, and not warning_active."
+        "A single danger is enough.",
+        "Choose the operator that becomes True when at least one condition is True.",
+        "The operator is or."
+      ],
+      "success_message": "Right. One active danger is enough to trigger the warning."
+    },
+    {
+      "id": "decisions_10_ex5",
+      "type": "predict_output",
+      "title": "Reverse a flag",
+      "prompt": "What prints?",
+      "code_to_predict": "warning_active = True\nprint(not warning_active)",
+      "expected_answer": "False",
+      "topics": [
+        "boolean_logic"
+      ],
+      "hints": [
+        "Start with warning_active = True.",
+        "not reverses the Boolean value.",
+        "not True becomes False."
+      ]
+    },
+    {
+      "id": "decisions_10_ex6",
+      "type": "predict_output",
+      "title": "Trace the full rule",
+      "prompt": "What prints? Evaluate each requirement separately first.",
+      "code_to_predict": "has_guide = True\nsupplies = 12\nwarning_active = True\nif has_guide and supplies >= 10 and not warning_active:\n    print(\"Depart\")\nelse:\n    print(\"Wait\")",
+      "expected_answer": "Wait",
+      "topics": [
+        "boolean_logic",
+        "conditionals"
+      ],
+      "hints": [
+        "Evaluate has_guide, supplies >= 10, and not warning_active separately.",
+        "The first two are True, but warning_active is True, so not warning_active is False.",
+        "and needs every part True, so the else branch prints Wait."
+      ]
+    },
+    {
+      "id": "decisions_10_ex7",
+      "type": "debug",
+      "title": "False clearance",
+      "prompt": "Both a guide and at least 10 supplies are required. Change only the Boolean operator so the starter values produce False.",
+      "starter_code": "has_guide = False\nsupplies = 12\ncan_depart = has_guide or supplies >= 10\nprint(can_depart)\n",
+      "reference_solution": "has_guide = False\nsupplies = 12\ncan_depart = has_guide and supplies >= 10\nprint(can_depart)\n",
+      "topics": [
+        "boolean_logic",
+        "variables"
+      ],
+      "hints": [
+        "The current rule becomes True when either requirement passes.",
+        "The policy says both facts are required at the same time.",
+        "Replace or with and."
       ],
       "tests": [
         {
           "kind": "source_uses",
           "feature": "boolean_and",
-          "in_function": "can_depart",
-          "message": "Inside can_depart, combine the safety requirements with and."
+          "message": "Use and because both requirements are required."
         },
         {
-          "kind": "source_uses",
-          "feature": "unary_not",
-          "in_function": "can_depart",
-          "message": "Inside can_depart, use not so an active warning blocks departure."
-        },
-        {
-          "kind": "function",
-          "function": "can_depart",
-          "args": [
-            true,
-            10,
-            false
-          ],
-          "expected": true
-        },
-        {
-          "kind": "function",
-          "function": "can_depart",
-          "args": [
-            true,
-            15,
-            false
-          ],
-          "expected": true
-        },
-        {
-          "kind": "function",
-          "function": "can_depart",
-          "args": [
-            false,
-            15,
-            false
-          ],
-          "expected": false
-        },
-        {
-          "kind": "function",
-          "function": "can_depart",
-          "args": [
-            true,
-            9,
-            false
-          ],
-          "expected": false
-        },
-        {
-          "kind": "function",
-          "function": "can_depart",
-          "args": [
-            true,
-            15,
-            true
-          ],
-          "expected": false
-        },
-        {
-          "kind": "function",
-          "function": "can_depart",
-          "args": [
-            false,
-            0,
-            true
-          ],
-          "expected": false
-        },
-        {
-          "kind": "function",
-          "function": "can_depart",
-          "args": [
-            true,
-            0,
-            false
-          ],
-          "expected": false
-        },
-        {
-          "kind": "function",
-          "function": "can_depart",
-          "args": [
-            true,
-            8,
-            false
-          ],
-          "expected": false
+          "kind": "stdout_equals",
+          "expected": "False\n"
         }
       ]
     },
     {
-      "id": "decisions_10_ex5",
+      "id": "decisions_10_ex8",
       "type": "write_code",
-      "title": "Either route is usable",
-      "prompt": "Write has_escape_route(north_open, south_open) that returns True if either route is open.",
-      "starter_code": "def has_escape_route(north_open, south_open):\n    # Return True if at least one route is open.\n    pass\n",
+      "title": "Departure clearance",
+      "prompt": "Using the supplied variables, assign a Boolean variable named can_depart. It must be True only when a guide is present, supplies are at least 10, and no warning is active. Then print can_depart.",
+      "starter_code": "has_guide = True\nsupplies = 12\nwarning_active = False\n\n# Assign can_depart, then print it\n",
+      "reference_solution": "has_guide = True\nsupplies = 12\nwarning_active = False\ncan_depart = has_guide and supplies >= 10 and not warning_active\nprint(can_depart)\n",
       "topics": [
-        "conditionals",
-        "functions"
+        "boolean_logic",
+        "variables"
       ],
       "hints": [
-        "Either route being open is enough.",
-        "The operator for \"at least one\" is or.",
-        "Return north_open or south_open."
+        "Write the three requirements separately in your head first.",
+        "Connect the guide and supply requirements with and. Reverse warning_active with not.",
+        "Use can_depart = has_guide and supplies >= 10 and not warning_active."
       ],
       "tests": [
         {
           "kind": "source_uses",
-          "feature": "boolean_or",
-          "in_function": "has_escape_route",
-          "message": "Inside has_escape_route, combine the routes with or."
+          "feature": "boolean_and"
         },
         {
-          "kind": "function",
-          "function": "has_escape_route",
-          "args": [
-            true,
-            false
-          ],
-          "expected": true
+          "kind": "source_uses",
+          "feature": "unary_not"
         },
         {
-          "kind": "function",
-          "function": "has_escape_route",
-          "args": [
-            false,
-            true
-          ],
-          "expected": true
+          "kind": "globals",
+          "name": "can_depart",
+          "expected": true,
+          "type_name": "bool"
         },
         {
-          "kind": "function",
-          "function": "has_escape_route",
-          "args": [
-            true,
-            true
-          ],
-          "expected": true
-        },
-        {
-          "kind": "function",
-          "function": "has_escape_route",
-          "args": [
-            false,
-            false
-          ],
-          "expected": false
+          "kind": "stdout_equals",
+          "expected": "True\n"
         }
+      ],
+      "success_message": "The Boolean value now represents the whole departure rule in one reusable result.",
+      "integration": [
+        "variables",
+        "comparisons",
+        "boolean_logic",
+        "print"
+      ]
+    },
+    {
+      "id": "decisions_10_ex9",
+      "type": "mini_project",
+      "title": "Route Clearance Board",
+      "prompt": "Use the supplied variables to choose exactly one status.\n\nRules in order:\n1. Denied if warning_active OR route_damaged.\n2. Otherwise Cleared if has_guide AND supplies >= 10.\n3. Otherwise Review.\n\nPrint exactly: Status: <status> using an f-string. After it passes, manually try these scenarios: supply boundary 10, no guide, active warning, and damaged route.",
+      "starter_code": "has_guide = True\nsupplies = 10\nwarning_active = False\nroute_damaged = False\n\n# Choose status, then print one formatted line\n",
+      "reference_solution": "has_guide = True\nsupplies = 10\nwarning_active = False\nroute_damaged = False\n\nif warning_active or route_damaged:\n    status = \"Denied\"\nelif has_guide and supplies >= 10:\n    status = \"Cleared\"\nelse:\n    status = \"Review\"\n\nprint(f\"Status: {status}\")\n",
+      "topics": [
+        "boolean_logic",
+        "conditionals",
+        "f_strings"
+      ],
+      "hints": [
+        "Handle blockers first because either danger should deny the route regardless of supplies.",
+        "Use or for the two blockers, then elif with and for guide plus supply clearance.",
+        "Shape: if warning_active or route_damaged -> Denied; elif has_guide and supplies >= 10 -> Cleared; else -> Review; then print status with an f-string."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "boolean_or"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "boolean_and"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "elif_branch"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "fstring"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "Status: Cleared\n"
+        }
+      ],
+      "success_message": "The board now combines blockers, requirements, an ordered branch chain, and formatted output.",
+      "integration": [
+        "variables",
+        "comparisons",
+        "elif",
+        "boolean_logic",
+        "f_strings"
+      ],
+      "reasoning_targets": [
+        "boundaries"
+      ],
+      "project_role": "bridge_project",
+      "criteria": [
+        "block_any_active_danger",
+        "require_all_clearance_facts",
+        "choose_exactly_one_status",
+        "check_supply_boundary"
       ]
     }
-  ]
+  ],
+  "lesson_number": 10,
+  "production_contract_version": 1
 }

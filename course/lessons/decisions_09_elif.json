@@ -1,146 +1,148 @@
 {
+  "curriculum_revision": "3.2",
   "id": "decisions_09_elif",
-  "section": "Expedition Intake \u2014 Decisions",
+  "section": "Expedition Intake",
   "section_order": 5,
-  "order": 2,
+  "order": 1,
   "title": "More Than Two Paths",
   "topics": [
     "conditionals"
   ],
-  "content": "What problem does this solve?\nA single if can answer one yes-or-no question. The intake desk for the Gloamfen route has three possible outcomes, but the expedition must receive exactly one of them.\n\nBasic syntax\n  if supplies >= 10:\n      status = \"Cleared\"\n  elif supplies >= 5:\n      status = \"Review\"\n  else:\n      status = \"Denied\"\n\nWhat actually happens\nelif means \"otherwise, test this next.\" Python checks conditions top to bottom. The first true branch runs, then the rest of the chain is skipped. With supplies equal to 8, both \"not enough for clearance\" and \"at least 5\" feel relevant, but Python stops at the first matching branch.\n\nOrder matters\nIf you put a broad threshold before a stricter one, the stricter branch may never run. Separate if statements can all fire; an if/elif/else chain picks exactly one outcome.\n\nWhen this is useful\nUse elif when several tiers are possible and the program must assign exactly one result.",
+  "content": "What problem does this solve?\nif/else chooses between two paths. Some rules need three or more mutually exclusive outcomes. elif means: if the earlier condition was false, test this next condition.\n\nStart with the behavior\n  if points >= 10:\n      print(\"gold\")\n  elif points >= 5:\n      print(\"silver\")\n  else:\n      print(\"bronze\")\nPython checks from top to bottom and stops after the first true branch in this chain.\n\nOrder matters\nIf a broad condition such as >= 5 comes before a stricter >= 10 condition, a value like 14 will match the broad branch first and never reach the stricter one. Put narrower or higher thresholds before broader ones when they overlap.\n\nVocabulary after the behavior\nelif is an additional conditional branch. An if/elif/else chain is mutually exclusive: exactly one branch runs.",
   "concepts": [
-    "elif adds another test after if fails",
-    "Only the first true branch in an if/elif/else chain runs",
-    "Put stricter thresholds before broader ones"
+    "elif adds another test between if and else",
+    "Python checks the chain from top to bottom",
+    "Only the first true branch runs",
+    "Overlapping thresholds must be ordered carefully"
   ],
   "examples": [
     {
-      "title": "Supply readiness",
-      "code": "supplies = 8\nif supplies >= 10:\n    status = \"Cleared\"\nelif supplies >= 5:\n    status = \"Review\"\nelse:\n    status = \"Denied\"\nprint(status)",
-      "explanation": "8 fails >= 10, then matches >= 5, so Review is chosen and the else is skipped."
+      "title": "Three outcomes",
+      "code": "score = 6\nif score >= 10:\n    print(\"high\")\nelif score >= 5:\n    print(\"medium\")\nelse:\n    print(\"low\")",
+      "explanation": "6 fails the first condition, passes the second, and stops there."
+    },
+    {
+      "title": "Boundary order",
+      "code": "rations = 14\nif rations >= 12:\n    print(\"Cleared\")\nelif rations >= 5:\n    print(\"Review\")\nelse:\n    print(\"Denied\")",
+      "explanation": "The stricter threshold is checked first so 14 reaches Cleared."
     }
   ],
   "common_mistakes": [
-    "Writing else supplies < 5: instead of a bare else:",
-    "Using = instead of == in a comparison",
-    "Placing a broad threshold before a narrower one",
-    "Assuming every true-looking branch in an if/elif chain runs",
-    "Using separate if statements when exactly one result is required"
+    "Using several separate if statements when only one result should be chosen",
+    "Putting a broad threshold before a stricter overlapping threshold",
+    "Writing a condition after else",
+    "Forgetting that Python stops after the first true branch"
   ],
   "exercises": [
     {
       "id": "decisions_09_ex1",
       "type": "predict_output",
-      "title": "The first matching route",
-      "prompt": "What does this print? Trace from the top of the chain.",
-      "code_to_predict": "torch_count = 12\n\nif torch_count >= 12:\n    print(\"Long route\")\nelif torch_count >= 6:\n    print(\"Short route\")\nelse:\n    print(\"Remain at camp\")",
-      "expected_answer": "Long route",
+      "title": "First matching branch",
+      "prompt": "What prints?",
+      "code_to_predict": "points = 12\nif points >= 10:\n    print(\"gold\")\nelif points >= 5:\n    print(\"silver\")\nelse:\n    print(\"bronze\")",
+      "expected_answer": "gold",
       "topics": [
         "conditionals"
       ],
-      "failure_message": "Trace from the top. Once one condition is true, Python skips the rest of this chain.",
       "hints": [
-        "Start at the first if. Is torch_count >= 12 true when torch_count is 12?",
-        "When the first condition is true, elif and else are not checked.",
-        "12 meets the first threshold, so Long route prints."
+        "Check the if condition first.",
+        "12 >= 10 is True, so Python enters the first branch and skips the rest.",
+        "The output is gold."
       ]
     },
     {
       "id": "decisions_09_ex2",
-      "type": "debug",
-      "title": "Put the thresholds in order",
-      "prompt": "classify_rations(rations) should return Cleared for 12 or more rations, Review for 5 through 11, and Denied below 5. The thresholds are out of order, so 14 incorrectly becomes Review. Repair the decision without changing the status text strings.",
-      "starter_code": "def classify_rations(rations):\n    if rations >= 5:\n        status = \"Review\"\n    elif rations >= 12:\n        status = \"Cleared\"\n    else:\n        status = \"Denied\"\n    return status\n",
+      "type": "fill_blank",
+      "title": "Add the middle path",
+      "prompt": "Replace the placeholder keyword so a score of 6 prints medium.",
+      "starter_code": "score = 6\nif score >= 10:\n    print(\"high\")\nif score >= 5:  # replace this keyword\n    print(\"medium\")\nelse:\n    print(\"low\")\n",
+      "reference_solution": "score = 6\nif score >= 10:\n    print(\"high\")\nelif score >= 5:\n    print(\"medium\")\nelse:\n    print(\"low\")\n",
       "topics": [
         "conditionals"
       ],
       "hints": [
-        "The comparisons are valid. The problem is which one Python reaches first.",
-        "A value of 14 also satisfies rations >= 5.",
-        "Test the stricter >= 12 threshold before the broader >= 5 threshold."
+        "The middle condition should belong to the same decision chain as the first if.",
+        "Use the keyword that means 'otherwise, test this next.'",
+        "Change the second if to elif."
       ],
       "tests": [
         {
           "kind": "source_uses",
           "feature": "elif_branch",
-          "message": "Use elif so the chain can test another condition after if fails."
+          "message": "Use elif for the middle path."
         },
         {
-          "kind": "function",
-          "function": "classify_rations",
-          "args": [
-            14
-          ],
-          "expected": "Cleared"
-        },
-        {
-          "kind": "function",
-          "function": "classify_rations",
-          "args": [
-            12
-          ],
-          "expected": "Cleared"
-        },
-        {
-          "kind": "function",
-          "function": "classify_rations",
-          "args": [
-            11
-          ],
-          "expected": "Review"
-        },
-        {
-          "kind": "function",
-          "function": "classify_rations",
-          "args": [
-            5
-          ],
-          "expected": "Review"
-        },
-        {
-          "kind": "function",
-          "function": "classify_rations",
-          "args": [
-            4
-          ],
-          "expected": "Denied"
-        },
-        {
-          "kind": "function",
-          "function": "classify_rations",
-          "args": [
-            0
-          ],
-          "expected": "Denied"
+          "kind": "stdout_equals",
+          "expected": "medium\n"
         }
       ]
     },
     {
       "id": "decisions_09_ex3",
+      "type": "predict_output",
+      "title": "Check the boundary",
+      "prompt": "What prints when score is exactly 5?",
+      "code_to_predict": "score = 5\nif score >= 10:\n    print(\"high\")\nelif score >= 5:\n    print(\"medium\")\nelse:\n    print(\"low\")",
+      "expected_answer": "medium",
+      "topics": [
+        "conditionals"
+      ],
+      "hints": [
+        "The first condition fails for 5.",
+        "The second condition uses >=, so it includes 5 itself.",
+        "The output is medium."
+      ]
+    },
+    {
+      "id": "decisions_09_ex4",
+      "type": "debug",
+      "title": "Put thresholds in order",
+      "prompt": "A value of 14 should be Cleared, but this prints Review. Repair only the decision order; keep the threshold values and status text unchanged.",
+      "starter_code": "rations = 14\nif rations >= 5:\n    status = \"Review\"\nelif rations >= 12:\n    status = \"Cleared\"\nelse:\n    status = \"Denied\"\nprint(status)\n",
+      "reference_solution": "rations = 14\nif rations >= 12:\n    status = \"Cleared\"\nelif rations >= 5:\n    status = \"Review\"\nelse:\n    status = \"Denied\"\nprint(status)\n",
+      "topics": [
+        "conditionals"
+      ],
+      "hints": [
+        "Both comparisons are individually reasonable; focus on which one Python sees first.",
+        "14 also satisfies >= 5, so the broad condition catches it too early.",
+        "Move the >= 12 branch before the >= 5 branch."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "elif_branch"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "Cleared\n"
+        }
+      ],
+      "reasoning_targets": [
+        "boundaries"
+      ]
+    },
+    {
+      "id": "decisions_09_ex5",
       "type": "write_code",
-      "title": "Expedition status",
-      "prompt": "Create a function readiness_status(supplies) that returns:\n- \"Cleared\" for 10 or more supplies\n- \"Review\" for 5 through 9 supplies\n- \"Denied\" for fewer than 5 supplies\n\nUse one if / elif / else chain. Return the string; do not print it.",
-      "starter_code": "def readiness_status(supplies):\n    # Write one if / elif / else chain.\n    pass\n",
+      "title": "Readiness status",
+      "prompt": "Write readiness_status(supplies). Return \"Cleared\" for 10 or more, \"Review\" for 5 through 9, and \"Denied\" below 5. Use one if/elif/else chain.",
+      "starter_code": "def readiness_status(supplies):\n    pass\n",
+      "reference_solution": "def readiness_status(supplies):\n    if supplies >= 10:\n        return \"Cleared\"\n    elif supplies >= 5:\n        return \"Review\"\n    else:\n        return \"Denied\"\n",
       "topics": [
         "conditionals",
         "functions"
       ],
-      "success_message": "The desk can now make one clear decision from several possibilities.",
       "hints": [
-        "Begin with the highest threshold.",
-        "After the first condition fails, elif supplies >= 5 handles the middle group.",
-        "Use if supplies >= 10, then elif supplies >= 5, then else."
+        "Start with the highest threshold so smaller rules cannot catch large values first.",
+        "After supplies >= 10 fails, supplies >= 5 identifies the middle band; everything else is Denied.",
+        "Use if supplies >= 10, elif supplies >= 5, else, returning one status from each branch."
       ],
       "tests": [
         {
           "kind": "source_uses",
           "feature": "elif_branch",
-          "message": "Use elif so the chain can test another condition after if fails."
-        },
-        {
-          "kind": "source_uses",
-          "feature": "if_statement",
-          "message": "Use an if / elif / else chain to choose the status."
+          "in_function": "readiness_status"
         },
         {
           "kind": "function",
@@ -190,57 +192,40 @@
           ],
           "expected": "Denied"
         }
+      ],
+      "success_message": "Your function handles both threshold boundaries and values on either side.",
+      "integration": [
+        "functions",
+        "parameters",
+        "return",
+        "elif",
+        "comparisons"
+      ],
+      "reasoning_targets": [
+        "boundaries"
       ]
     },
     {
-      "id": "decisions_09_ex4",
+      "id": "decisions_09_ex6",
       "type": "write_code",
       "title": "Threat labels",
-      "prompt": "Write threat_label(level) returning \"Severe\" for 8 or more, \"Elevated\" for 4 through 7, and \"Low\" otherwise.\n\nReturn the label; do not print it. Use if / elif / else.",
-      "starter_code": "def threat_label(level):\n    # Return Severe, Elevated, or Low\n    pass\n",
+      "prompt": "Write threat_label(level). Return \"Severe\" for 8 or more, \"Elevated\" for 4 through 7, and \"Low\" below 4.",
+      "starter_code": "def threat_label(level):\n    pass\n",
+      "reference_solution": "def threat_label(level):\n    if level >= 8:\n        return \"Severe\"\n    elif level >= 4:\n        return \"Elevated\"\n    else:\n        return \"Low\"\n",
       "topics": [
         "conditionals",
         "functions"
       ],
       "hints": [
-        "Start with the highest severity threshold.",
-        "The middle band is level >= 4 after the severe check fails.",
-        "Use if level >= 8, elif level >= 4, else for Low."
+        "Again, begin with the higher threshold.",
+        "The middle branch only needs >= 4 because reaching it already means the >= 8 test failed.",
+        "Use if level >= 8, elif level >= 4, else."
       ],
       "tests": [
         {
           "kind": "source_uses",
           "feature": "elif_branch",
-          "message": "Use elif so the chain can test another condition after if fails."
-        },
-        {
-          "kind": "source_uses",
-          "feature": "if_statement",
-          "message": "Use an if / elif / else chain."
-        },
-        {
-          "kind": "function",
-          "function": "threat_label",
-          "args": [
-            3
-          ],
-          "expected": "Low"
-        },
-        {
-          "kind": "function",
-          "function": "threat_label",
-          "args": [
-            4
-          ],
-          "expected": "Elevated"
-        },
-        {
-          "kind": "function",
-          "function": "threat_label",
-          "args": [
-            7
-          ],
-          "expected": "Elevated"
+          "in_function": "threat_label"
         },
         {
           "kind": "function",
@@ -254,19 +239,49 @@
           "kind": "function",
           "function": "threat_label",
           "args": [
-            12
+            7
           ],
-          "expected": "Severe"
+          "expected": "Elevated"
         },
         {
           "kind": "function",
           "function": "threat_label",
           "args": [
-            0
+            4
+          ],
+          "expected": "Elevated"
+        },
+        {
+          "kind": "function",
+          "function": "threat_label",
+          "args": [
+            3
           ],
           "expected": "Low"
+        },
+        {
+          "kind": "function",
+          "function": "threat_label",
+          "args": [
+            12
+          ],
+          "expected": "Severe"
         }
+      ],
+      "success_message": "You transferred the same ordered-threshold idea to a different rule set.",
+      "integration": [
+        "functions",
+        "parameters",
+        "return",
+        "elif",
+        "comparisons"
+      ],
+      "reasoning_targets": [
+        "boundaries",
+        "transfer"
       ]
     }
-  ]
+  ],
+  "lesson_number": 9,
+  "production_contract_version": 1
 }
