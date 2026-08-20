@@ -25,7 +25,6 @@ sys.path.insert(0, str(ROOT))
 
 from app.course_app import CourseApp
 from main import build_controller
-from tests.exercise_solutions import SOLUTIONS
 
 
 RESULTS: list[tuple[str, bool, str]] = []

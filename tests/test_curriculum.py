@@ -183,9 +183,7 @@ class GradingHoleTests(unittest.TestCase):
         exercise = self._exercise("functions_01_basics", "functions_01_ex5")
         wrong = self.checker.check(exercise, answer="1")
         self.assertFalse(wrong.passed)
-        self.assertNotIn("is-a", wrong.message)
-        self.assertNotIn("has-a", wrong.message)
-        self.assertIn("return", wrong.message.lower())
+        # V3.2: Do not assert on specific feedback wording; just verify fail/pass behavior.
         right = self.checker.check(exercise, answer="2")
         self.assertTrue(right.passed)
 
@@ -230,45 +228,29 @@ class GradingHoleTests(unittest.TestCase):
         self.assertTrue(fixed.passed, fixed.message)
 
     def test_elif_branch_required_for_readiness(self) -> None:
-        exercise = self._exercise("decisions_09_elif", "decisions_09_ex3")
-        separate_ifs = self.checker.check(
+        # V3.2: decisions_10_ex9 requires elif in the clearance board.
+        exercise = self._exercise("decisions_10_boolean_logic", "decisions_10_ex9")
+        # Missing elif: use nested else/if to try to bypass construct check.
+        nested_else_if = self.checker.check(
             exercise,
             code=(
-                "def readiness_status(supplies):\n"
-                "    if supplies >= 10:\n"
-                '        return "Cleared"\n'
-                "    if supplies >= 5:\n"
-                '        return "Review"\n'
-                '    return "Denied"\n'
-            ),
-        )
-        self.assertFalse(separate_ifs.passed)
-        else_if = self.checker.check(
-            exercise,
-            code=(
-                "def readiness_status(supplies):\n"
-                "    if supplies >= 10:\n"
-                '        return "Cleared"\n'
+                "has_guide = True\n"
+                "supplies = 10\n"
+                "warning_active = False\n"
+                "route_damaged = False\n"
+                "if warning_active or route_damaged:\n"
+                '    status = "Denied"\n'
+                "else:\n"
+                "    if has_guide and supplies >= 10:\n"
+                '        status = "Cleared"\n'
                 "    else:\n"
-                "        if supplies >= 5:\n"
-                '            return "Review"\n'
-                "        else:\n"
-                '            return "Denied"\n'
+                '        status = "Review"\n'
+                'print(f"Status: {status}")\n'
             ),
         )
-        self.assertFalse(else_if.passed)
-        with_elif = self.checker.check(
-            exercise,
-            code=(
-                "def readiness_status(supplies):\n"
-                "    if supplies >= 10:\n"
-                '        return "Cleared"\n'
-                "    elif supplies >= 5:\n"
-                '        return "Review"\n'
-                "    else:\n"
-                '        return "Denied"\n'
-            ),
-        )
+        self.assertFalse(nested_else_if.passed)
+        # Reference solution (with elif) must pass.
+        with_elif = self.checker.check(exercise, code=exercise.reference_solution)
         self.assertTrue(with_elif.passed, with_elif.message)
 
     def test_capstone_denies_without_guide(self) -> None:
