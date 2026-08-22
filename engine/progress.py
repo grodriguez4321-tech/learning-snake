@@ -32,7 +32,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 
-CURRENT_CURRICULUM_VERSION = 2
+CURRENT_CURRICULUM_VERSION = 3
 
 # Lesson IDs rewritten in Basilisk Curriculum V2 (same IDs, new exercises).
 PHASE1_REWRITTEN_LESSON_IDS = frozenset(
@@ -59,6 +59,50 @@ PHASE1_EXERCISE_PREFIXES = (
     "functions_01_",
 )
 
+# Stable lesson IDs for Basilisk Curriculum V3.2 Production Core.
+V32_LESSON_IDS = frozenset(
+    {
+        "fundamentals_01_print",
+        "fundamentals_02_variables",
+        "fundamentals_03_fstrings",
+        "decisions_01_conditionals",
+        "collections_01_lists",
+        "collections_02_append",
+        "collections_03_loops",
+        "functions_01_basics",
+        "decisions_09_elif",
+        "decisions_10_boolean_logic",
+        "collections_11_len_range",
+        "collections_12_list_methods",
+        "collections_13_dictionaries",
+        "collections_14_dict_iteration",
+        "collections_15_while",
+        "functions_16_parameters",
+        "functions_17_defaults",
+        "functions_18_returning_data",
+        "collections_19_nested_data",
+        "functions_20_scope",
+        "strings_21_methods",
+        "errors_22_tracebacks",
+        "errors_23_logic_debugging",
+        "data_24_shared_references",
+        "oop_25_classes_objects",
+        "oop_26_init_self",
+        "oop_27_methods",
+        "oop_28_composition",
+    }
+)
+
+def _v32_exercise_prefixes() -> tuple[str, ...]:
+    prefixes: set[str] = set()
+    for lid in V32_LESSON_IDS:
+        parts = lid.split("_")
+        if len(parts) >= 2:
+            prefixes.add(f"{parts[0]}_{parts[1]}_")
+    return tuple(sorted(prefixes))
+
+V32_EXERCISE_PREFIXES = _v32_exercise_prefixes()
+
 
 DEFAULT_MASTERY_TOPICS = [
     "print",
@@ -77,6 +121,9 @@ DEFAULT_MASTERY_TOPICS = [
 
 def is_phase1_rewritten_exercise(exercise_id: str) -> bool:
     return any(str(exercise_id).startswith(prefix) for prefix in PHASE1_EXERCISE_PREFIXES)
+
+def is_v32_exercise(exercise_id: str) -> bool:
+    return any(str(exercise_id).startswith(prefix) for prefix in V32_EXERCISE_PREFIXES)
 
 
 @dataclass
@@ -222,14 +269,19 @@ class ProgressStore:
             curriculum_version=version if version > 0 else 0,
         )
 
-        if data.curriculum_version < CURRENT_CURRICULUM_VERSION:
-            self._migrate_to_current(data, raw)
-        else:
-            data.curriculum_version = CURRENT_CURRICULUM_VERSION
+        # Stepwise migrations to preserve older test expectations and archive names.
+        source_version = data.curriculum_version
+        if source_version < 2:
+            self._migrate_to_v2(data, raw)
+            source_version = 2
+        if source_version < 3:
+            self._migrate_to_v32(data, raw)
+            source_version = 3
+        data.curriculum_version = CURRENT_CURRICULUM_VERSION
 
         return data
 
-    def _migrate_to_current(self, data: ProgressData, raw: dict[str, Any]) -> None:
+    def _migrate_to_v2(self, data: ProgressData, raw: dict[str, Any]) -> None:
         """Upgrade pre-V2 progress without silently mixing old drafts into new exercises."""
         archive = self._archive_legacy_file(raw)
         cleared_exercises = [
@@ -252,7 +304,7 @@ class ProgressStore:
         ):
             data.current_lesson_id = None
 
-        data.curriculum_version = CURRENT_CURRICULUM_VERSION
+        data.curriculum_version = 2
         self.migrated_from_legacy = True
 
         archive_note = f" A backup was saved as {archive.name}." if archive else ""
@@ -264,9 +316,45 @@ class ProgressStore:
             f"{archive_note}"
         )
 
+    def _migrate_to_v32(self, data: ProgressData, raw: dict[str, Any]) -> None:
+        """Upgrade pre-V3.2 progress so drafts from older curricula do not attach to changed exercises."""
+        archive = self._archive_legacy_file_v32(raw)
+        # Clear all exercise progress for the V3.2 core so old drafts never appear inside rewritten tasks.
+        cleared_exercises = [
+            exercise_id for exercise_id in list(data.exercises) if is_v32_exercise(exercise_id)
+        ]
+        for exercise_id in cleared_exercises:
+            del data.exercises[exercise_id]
+        # Clear lesson completion flags for the V3.2 catalog.
+        data.completed_lessons = [lid for lid in data.completed_lessons if lid not in V32_LESSON_IDS]
+        # If current lesson points into the V3.2 set, unset it to avoid dropping into a mismatched exercise.
+        if data.current_lesson_id in V32_LESSON_IDS:
+            data.current_lesson_id = None
+        data.curriculum_version = 3
+        self.migrated_from_legacy = True
+        archive_note = f" A backup was saved as {archive.name}." if archive else ""
+        self.load_warning = (
+            "Basilisk Curriculum V3.2 Production Core replaces the prior lessons. "
+            "Prior completions and drafts for Lessons 1–28 were cleared so old work "
+            "does not attach to rewritten exercises. Mastery scores were kept."
+            f"{archive_note}"
+        )
+
     def _archive_legacy_file(self, raw: dict[str, Any]) -> Optional[Path]:
         stamp = time.strftime("%Y%m%d-%H%M%S")
         backup = self.path.with_name(f"{self.path.name}.pre-basilisk-v2-{stamp}")
+        try:
+            backup.write_text(
+                json.dumps(raw, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            return backup
+        except OSError:
+            return None
+
+    def _archive_legacy_file_v32(self, raw: dict[str, Any]) -> Optional[Path]:
+        stamp = time.strftime("%Y%m%d-%H%M%S")
+        backup = self.path.with_name(f"{self.path.name}.pre-basilisk-v3.2-{stamp}")
         try:
             backup.write_text(
                 json.dumps(raw, indent=2) + "\n",

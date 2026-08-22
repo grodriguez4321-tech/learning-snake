@@ -1,0 +1,501 @@
+{
+  "curriculum_revision": "3.2",
+  "id": "errors_23_logic_debugging",
+  "section": "Realistic Data & Debugging",
+  "section_order": 7,
+  "order": 5,
+  "title": "When the Program Runs but Is Wrong",
+  "topics": [
+    "debugging",
+    "logic"
+  ],
+  "content": "What problem does this solve?\nA logic bug is different from a crash: Python successfully follows the instructions, but those instructions produce the wrong result. No traceback does not mean the program is correct.\n\nUse a repeatable routine\n1. State one concrete expected result.\n2. Run and record the actual result.\n3. Trace the small number of values controlling that result.\n4. Find the first place the observed value stops matching your expectation.\n5. Change one likely cause.\n6. Rerun the failing case and a nearby boundary case.\n\nTrace only useful state\nTemporary output is most useful when it exposes the value you are actually reasoning about: the branch condition, loop counter, or running total.\n\nVocabulary after the behavior\nA logic error produces incorrect behavior without necessarily crashing. A boundary case sits exactly at or beside a rule transition. A hypothesis is one focused explanation you can test.",
+  "concepts": [
+    "A program can run successfully and still be wrong",
+    "State expected and actual behavior before editing",
+    "Trace the controlling values rather than unrelated state",
+    "Change one cause at a time",
+    "Boundary values are especially useful for comparison bugs",
+    "After a repair, rerun the original failure and a nearby case"
+  ],
+  "examples": [
+    {
+      "title": "Wrong branch order",
+      "code": "def level(score):\n    if score >= 50:\n        return \"Ready\"\n    elif score >= 80:\n        return \"Elite\"",
+      "explanation": "80 satisfies >= 50 first, so the more specific Elite branch is unreachable."
+    },
+    {
+      "title": "Accumulator overwritten",
+      "code": "total = 0\nfor value in [2, 3]:\n    total = value\nprint(total)",
+      "explanation": "Tracing total after each pass shows it is replaced rather than accumulated."
+    },
+    {
+      "title": "Boundary check",
+      "code": "health = 5\nif health < 5:\n    print(\"rest\")\nelse:\n    print(\"steady\")",
+      "explanation": "Testing 4, 5, and 6 quickly distinguishes < from <=."
+    }
+  ],
+  "common_mistakes": [
+    "Assuming no traceback means correct behavior",
+    "Editing before stating what should happen",
+    "Changing several things at once",
+    "Printing everything instead of tracing the few controlling values",
+    "Testing only an example that already passes",
+    "Forgetting the exact boundary value"
+  ],
+  "exercises": [
+    {
+      "id": "errors_23_ex1",
+      "type": "architecture",
+      "title": "Crash or logic bug?",
+      "prompt": "A program finishes normally but labels score 80 as Ready instead of Elite. What kind of problem is this?",
+      "choices": [
+        "Syntax error",
+        "Runtime error",
+        "Logic error"
+      ],
+      "expected_answer": "3",
+      "topics": [
+        "debugging"
+      ],
+      "hints": [
+        "The program parsed and finished without an exception.",
+        "The problem is that its result violates the specification.",
+        "That is a logic error."
+      ],
+      "reasoning_targets": [
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "errors_23_ex2",
+      "type": "predict_output",
+      "title": "Trace the branch before later changes",
+      "prompt": "What prints?",
+      "code_to_predict": "health = 40\nif health < 20:\n    label = \"critical\"\nelif health < 50:\n    label = \"wounded\"\nelse:\n    label = \"steady\"\nhealth = health + 10\nprint(label)",
+      "expected_answer": "wounded",
+      "topics": [
+        "debugging",
+        "conditionals"
+      ],
+      "hints": [
+        "The label is chosen before health changes later.",
+        "At the decision point health is 40: it is not <20 but it is <50.",
+        "label becomes wounded and is not recalculated after health changes."
+      ]
+    },
+    {
+      "id": "errors_23_ex3",
+      "type": "architecture",
+      "title": "Pick the useful trace",
+      "prompt": "A running total is wrong inside a loop. Which temporary observation is most useful first?",
+      "choices": [
+        "Print the running total on each iteration.",
+        "Print a decorative heading.",
+        "Print an unrelated global variable."
+      ],
+      "expected_answer": "1",
+      "topics": [
+        "debugging"
+      ],
+      "hints": [
+        "Trace the state directly involved in the wrong result.",
+        "A running-total bug is controlled by the total and current value each pass.",
+        "Observe the running total during the loop."
+      ],
+      "reasoning_targets": [
+        "diagnosis",
+        "accumulator_tracking"
+      ]
+    },
+    {
+      "id": "errors_23_ex4",
+      "type": "architecture",
+      "title": "Choose the boundary cases",
+      "prompt": "For a rule `score >= 80`, which three values give the most informative quick boundary check?",
+      "choices": [
+        "1, 40, 100",
+        "79, 80, 81",
+        "80, 180, 280"
+      ],
+      "expected_answer": "2",
+      "topics": [
+        "debugging"
+      ],
+      "hints": [
+        "Use the transition value itself plus its nearest neighbors.",
+        "The rule changes behavior at 80.",
+        "Test 79, 80, and 81."
+      ],
+      "reasoning_targets": [
+        "boundaries"
+      ]
+    },
+    {
+      "id": "errors_23_ex5",
+      "type": "debug",
+      "title": "Specific branch first",
+      "prompt": "Repair the branch order so 80+ is Elite, 50–79 is Ready, and below 50 is Hold. Keep one if/elif structure.",
+      "starter_code": "def signal_level(score):\n    if score >= 50:\n        return \"Ready\"\n    elif score >= 80:\n        return \"Elite\"\n    return \"Hold\"\n",
+      "reference_solution": "def signal_level(score):\n    if score >= 80:\n        return \"Elite\"\n    elif score >= 50:\n        return \"Ready\"\n    return \"Hold\"\n",
+      "topics": [
+        "debugging",
+        "conditionals"
+      ],
+      "hints": [
+        "Both conditions can be true for a high score, so order decides which one wins.",
+        "Put the stricter >=80 threshold before the broader >=50 threshold.",
+        "Check >=80 first, then elif >=50."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "elif_branch",
+          "in_function": "signal_level"
+        },
+        {
+          "kind": "function",
+          "function": "signal_level",
+          "args": [
+            80
+          ],
+          "expected": "Elite"
+        },
+        {
+          "kind": "function",
+          "function": "signal_level",
+          "args": [
+            81
+          ],
+          "expected": "Elite"
+        },
+        {
+          "kind": "function",
+          "function": "signal_level",
+          "args": [
+            79
+          ],
+          "expected": "Ready"
+        },
+        {
+          "kind": "function",
+          "function": "signal_level",
+          "args": [
+            50
+          ],
+          "expected": "Ready"
+        },
+        {
+          "kind": "function",
+          "function": "signal_level",
+          "args": [
+            49
+          ],
+          "expected": "Hold"
+        }
+      ],
+      "integration": [
+        "logic_debugging",
+        "elif",
+        "comparisons",
+        "return"
+      ],
+      "reasoning_targets": [
+        "diagnosis",
+        "boundaries"
+      ]
+    },
+    {
+      "id": "errors_23_ex6",
+      "type": "debug",
+      "title": "Off by one in a while loop",
+      "prompt": "Repair `countdown` so `countdown(3)` returns `[3, 2, 1]`, not `[2, 1, 0]`. Keep the while loop and leave start at 0 when finished.",
+      "starter_code": "def countdown(start):\n    values = []\n    while start > 0:\n        start = start - 1\n        values.append(start)\n    return values\n",
+      "reference_solution": "def countdown(start):\n    values = []\n    while start > 0:\n        values.append(start)\n        start = start - 1\n    return values\n",
+      "topics": [
+        "debugging",
+        "loops",
+        "lists"
+      ],
+      "hints": [
+        "Trace the first pass with start=3 and notice which value is appended.",
+        "The current value should be recorded before it changes.",
+        "Move `values.append(start)` before `start = start - 1`."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "while_loop",
+          "in_function": "countdown",
+          "nonconstant": true
+        },
+        {
+          "kind": "source_uses",
+          "feature": "append_call",
+          "in_function": "countdown"
+        },
+        {
+          "kind": "function",
+          "function": "countdown",
+          "args": [
+            3
+          ],
+          "expected": [
+            3,
+            2,
+            1
+          ]
+        },
+        {
+          "kind": "function",
+          "function": "countdown",
+          "args": [
+            1
+          ],
+          "expected": [
+            1
+          ]
+        },
+        {
+          "kind": "function",
+          "function": "countdown",
+          "args": [
+            0
+          ],
+          "expected": []
+        }
+      ],
+      "integration": [
+        "logic_debugging",
+        "while_loop",
+        "lists",
+        "append",
+        "return"
+      ],
+      "reasoning_targets": [
+        "diagnosis",
+        "boundaries",
+        "termination"
+      ]
+    },
+    {
+      "id": "errors_23_ex7",
+      "type": "debug",
+      "title": "Accumulator overwritten",
+      "prompt": "Repair the update so `total_values(values)` adds every value instead of replacing the running total.",
+      "starter_code": "def total_values(values):\n    total = 0\n    for value in values:\n        total = value\n    return total\n",
+      "reference_solution": "def total_values(values):\n    total = 0\n    for value in values:\n        total = total + value\n    return total\n",
+      "topics": [
+        "debugging",
+        "loops"
+      ],
+      "hints": [
+        "Trace total after each pass and ask whether the previous total is still part of the new value.",
+        "The update must combine the old total with the current value.",
+        "Use `total = total + value`."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "in_function": "total_values"
+        },
+        {
+          "kind": "function",
+          "function": "total_values",
+          "args": [
+            [
+              2,
+              3
+            ]
+          ],
+          "expected": 5
+        },
+        {
+          "kind": "function",
+          "function": "total_values",
+          "args": [
+            []
+          ],
+          "expected": 0
+        },
+        {
+          "kind": "function",
+          "function": "total_values",
+          "args": [
+            [
+              -2,
+              5,
+              1
+            ]
+          ],
+          "expected": 4
+        }
+      ],
+      "integration": [
+        "logic_debugging",
+        "for_loop",
+        "arithmetic",
+        "return"
+      ],
+      "reasoning_targets": [
+        "diagnosis",
+        "accumulator_tracking",
+        "boundaries"
+      ]
+    },
+    {
+      "id": "errors_23_ex8",
+      "type": "mini_project",
+      "title": "Repair the Expedition Report",
+      "prompt": "Repair the supplied function. `total_health` must sum every member health. `needs_rest` must become True when any member has health below 5; health exactly 5 does not require rest. Return the same three keys. Verify empty, exact-boundary, and multi-member cases; do not add exception handling.",
+      "starter_code": "def expedition_report(party):\n    total_health = 0\n    needs_rest = False\n    for member in party:\n        total_health = member[\"health\"]\n        if member[\"health\"] > 5:\n            needs_rest = True\n    return {\"member_count\": len(party), \"total_health\": total_health, \"needs_rest\": needs_rest}\n",
+      "reference_solution": "def expedition_report(party):\n    total_health = 0\n    needs_rest = False\n    for member in party:\n        total_health = total_health + member[\"health\"]\n        if member[\"health\"] < 5:\n            needs_rest = True\n    return {\"member_count\": len(party), \"total_health\": total_health, \"needs_rest\": needs_rest}\n",
+      "topics": [
+        "debugging",
+        "functions",
+        "collections"
+      ],
+      "hints": [
+        "State two failing expectations first: the total should accumulate, and the rest flag should be controlled by health below 5.",
+        "Repair the total independently, then repair the comparison independently. Test health 5 specifically.",
+        "Use `total_health = total_health + member[\"health\"]` and `if member[\"health\"] < 5:`; keep needs_rest True once any member triggers it."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "in_function": "expedition_report"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "if_statement",
+          "in_function": "expedition_report"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "len_call",
+          "in_function": "expedition_report"
+        },
+        {
+          "kind": "function",
+          "function": "expedition_report",
+          "args": [
+            []
+          ],
+          "expected": {
+            "member_count": 0,
+            "total_health": 0,
+            "needs_rest": false
+          }
+        },
+        {
+          "kind": "function",
+          "function": "expedition_report",
+          "args": [
+            [
+              {
+                "name": "A",
+                "health": 5
+              }
+            ]
+          ],
+          "expected": {
+            "member_count": 1,
+            "total_health": 5,
+            "needs_rest": false
+          }
+        },
+        {
+          "kind": "function",
+          "function": "expedition_report",
+          "args": [
+            [
+              {
+                "name": "A",
+                "health": 4
+              }
+            ]
+          ],
+          "expected": {
+            "member_count": 1,
+            "total_health": 4,
+            "needs_rest": true
+          }
+        },
+        {
+          "kind": "function",
+          "function": "expedition_report",
+          "args": [
+            [
+              {
+                "name": "A",
+                "health": 8
+              },
+              {
+                "name": "B",
+                "health": 3
+              },
+              {
+                "name": "C",
+                "health": 7
+              }
+            ]
+          ],
+          "expected": {
+            "member_count": 3,
+            "total_health": 18,
+            "needs_rest": true
+          }
+        },
+        {
+          "kind": "function",
+          "function": "expedition_report",
+          "args": [
+            [
+              {
+                "name": "A",
+                "health": 8
+              },
+              {
+                "name": "B",
+                "health": 9
+              }
+            ]
+          ],
+          "expected": {
+            "member_count": 2,
+            "total_health": 17,
+            "needs_rest": false
+          }
+        }
+      ],
+      "integration": [
+        "logic_debugging",
+        "nested_data",
+        "for_loop",
+        "comparisons",
+        "if_else",
+        "len",
+        "dictionaries",
+        "structured_returns",
+        "arithmetic"
+      ],
+      "reasoning_targets": [
+        "diagnosis",
+        "boundaries",
+        "accumulator_tracking"
+      ],
+      "project_role": "checkpoint",
+      "criteria": [
+        "state_expected_behavior",
+        "locate_first_wrong_value",
+        "repair_one_cause",
+        "verify_boundary_case"
+      ],
+      "success_message": "The repaired report passes empty, boundary, mixed-party, and all-healthy cases. The same evidence-first routine now applies to later object-state bugs."
+    }
+  ],
+  "lesson_number": 23,
+  "production_contract_version": 1
+}

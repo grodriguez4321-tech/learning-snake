@@ -1,0 +1,489 @@
+{
+  "curriculum_revision": "3.2",
+  "id": "oop_28_composition",
+  "section": "Data & Objects",
+  "section_order": 8,
+  "order": 5,
+  "title": "Build Larger Systems From Smaller Objects",
+  "topics": [
+    "oop",
+    "composition"
+  ],
+  "content": "What problem does this solve?\nA useful program eventually becomes too large for one object to own every detail. Composition builds a larger object from smaller objects with clearer responsibilities. A Character can have Equipment. A Party can have Character objects.\n\nModel has-a relationships\nIf one concept naturally contains or collaborates with another, storing the smaller object as an attribute often keeps related state and behavior together.\n\nDo not duplicate component state\nIf Equipment already owns weapon and armor, Character can store an Equipment object rather than copying weapon and armor fields onto itself. The larger object can ask its component for information.\n\nKeep reference choices explicit\nA Party may copy the outer member list so later changes to the caller's list do not change membership accidentally, while still intentionally containing references to the Character objects themselves. Separate characters should receive separate Equipment objects when independence is required.\n\nVocabulary after the behavior\nComposition is building one object from other objects. A component is an object contained by a larger object. Responsibility describes which object should own a piece of state or behavior.",
+  "concepts": [
+    "Composition models has-a relationships by storing objects inside other objects",
+    "Components keep their own related state/behavior instead of duplicating fields on the parent",
+    "A collection object can contain several existing objects",
+    "Responsibility decisions matter more than simply creating more classes",
+    "Reference independence still matters when composing mutable components"
+  ],
+  "examples": [
+    {
+      "title": "One object has another",
+      "code": "class Engine:\n    def __init__(self, power):\n        self.power = power\n\nclass Car:\n    def __init__(self, engine):\n        self.engine = engine\n\ncar = Car(Engine(100))\nprint(car.engine.power)",
+      "explanation": "Car contains an Engine object and reads state through that component."
+    },
+    {
+      "title": "Collection of objects",
+      "code": "class Team:\n    def __init__(self, members):\n        self.members = list(members)",
+      "explanation": "The Team stores a separate outer list that contains references to the member objects."
+    }
+  ],
+  "common_mistakes": [
+    "Duplicating component fields directly on a parent instead of storing the component object",
+    "Putting all state and behavior in one giant Character class",
+    "Accidentally giving independent owners the same mutable component",
+    "Creating classes without a meaningful responsibility boundary",
+    "Introducing inheritance or other new syntax in the integration capstone"
+  ],
+  "exercises": [
+    {
+      "id": "oop_28_ex1",
+      "type": "architecture",
+      "title": "Spot the has-a relationship",
+      "prompt": "A Car has an Engine. Is composition a natural model for this relationship?",
+      "choices": [
+        "Yes; Car can contain an Engine component.",
+        "No; every engine field must be copied directly onto Car."
+      ],
+      "expected_answer": "1",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "Say the relationship aloud: a Car has an Engine.",
+        "That language suggests one object can contain another object with its own responsibility.",
+        "Composition is a natural fit."
+      ],
+      "reasoning_targets": [
+        "responsibility_design"
+      ]
+    },
+    {
+      "id": "oop_28_ex2",
+      "type": "predict_output",
+      "title": "Read through a component",
+      "prompt": "What prints?",
+      "code_to_predict": "class Engine:\n    def __init__(self, power):\n        self.power = power\nclass Car:\n    def __init__(self, engine):\n        self.engine = engine\ncar = Car(Engine(100))\nprint(car.engine.power)",
+      "expected_answer": "100",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "car.engine first retrieves the contained Engine object.",
+        "The next `.power` reads the attribute from that component.",
+        "The output is 100."
+      ]
+    },
+    {
+      "id": "oop_28_ex3",
+      "type": "write_code",
+      "title": "Store a component",
+      "prompt": "Complete Character so its constructor stores the supplied equipment object in `self.equipment`.",
+      "starter_code": "class Character:\n    def __init__(self, name, equipment):\n        self.name = name\n        pass\n",
+      "reference_solution": "class Character:\n    def __init__(self, name, equipment):\n        self.name = name\n        self.equipment = equipment\n",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "The equipment object is already provided as a constructor parameter.",
+        "Composition here only requires storing that object on this Character.",
+        "Assign `self.equipment = equipment`."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Character"
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda e: Character(\"A\", e).equipment is e)(object())",
+          "expected": true
+        },
+        {
+          "kind": "expression",
+          "expression": "Character(\"A\", 7).equipment",
+          "expected": 7
+        }
+      ],
+      "integration": [
+        "classes",
+        "init",
+        "self",
+        "attributes",
+        "composition"
+      ]
+    },
+    {
+      "id": "oop_28_ex4",
+      "type": "architecture",
+      "title": "Two separate components",
+      "prompt": "Aria receives one `Equipment(\"spear\")` instance and Rook receives a separate `Equipment(\"axe\")` instance. If `aria.equipment.weapon` changes to `\"bow\"`, who should be affected?",
+      "choices": [
+        "Aria only",
+        "Rook only",
+        "Both characters"
+      ],
+      "expected_answer": "1",
+      "topics": [
+        "oop",
+        "references"
+      ],
+      "hints": [
+        "The two Equipment objects were constructed separately.",
+        "Changing an attribute on one component changes that component only.",
+        "Only Aria is affected."
+      ],
+      "reasoning_targets": [
+        "reference_independence"
+      ]
+    },
+    {
+      "id": "oop_28_ex5",
+      "type": "architecture",
+      "title": "Contain a component?",
+      "prompt": "Character has equipment with several related fields/behaviors. Which design keeps responsibility clearer?",
+      "choices": [
+        "Store an Equipment object on Character and let Equipment manage equipment-related state.",
+        "Duplicate every equipment field directly on Character."
+      ],
+      "expected_answer": "1",
+      "topics": [
+        "oop"
+      ],
+      "hints": [
+        "Avoid duplicating one concept's state in two places.",
+        "The equipment data belongs together as its own component.",
+        "Store the Equipment object on Character."
+      ],
+      "reasoning_targets": [
+        "responsibility_design"
+      ]
+    },
+    {
+      "id": "oop_28_ex6",
+      "type": "debug",
+      "title": "Shared component by accident",
+      "prompt": "Both heroes were given the same Equipment instance, but the requirement says independent equipment. Repair only the construction code so each receives its own Equipment object.",
+      "starter_code": "class Equipment:\n    def __init__(self, weapon):\n        self.weapon = weapon\nclass Character:\n    def __init__(self, name, equipment):\n        self.name = name\n        self.equipment = equipment\n\ngear = Equipment(\"sword\")\naria = Character(\"Aria\", gear)\nrook = Character(\"Rook\", gear)\n",
+      "reference_solution": "class Equipment:\n    def __init__(self, weapon):\n        self.weapon = weapon\nclass Character:\n    def __init__(self, name, equipment):\n        self.name = name\n        self.equipment = equipment\n\naria = Character(\"Aria\", Equipment(\"sword\"))\nrook = Character(\"Rook\", Equipment(\"sword\"))\n",
+      "topics": [
+        "oop",
+        "references"
+      ],
+      "hints": [
+        "The class definitions are already fine; inspect which object is passed to both Character calls.",
+        "One `gear` object is currently reused twice. Construct a new Equipment for each character.",
+        "Call `Equipment(\"sword\")` separately for Aria and Rook."
+      ],
+      "tests": [
+        {
+          "kind": "expression",
+          "expression": "aria.equipment is rook.equipment",
+          "expected": false
+        },
+        {
+          "kind": "attribute",
+          "expression": "aria.equipment.weapon",
+          "expected": "sword"
+        },
+        {
+          "kind": "attribute",
+          "expression": "rook.equipment.weapon",
+          "expected": "sword"
+        }
+      ],
+      "integration": [
+        "composition",
+        "shared_references",
+        "classes",
+        "init",
+        "attributes"
+      ],
+      "reasoning_targets": [
+        "diagnosis",
+        "reference_independence"
+      ]
+    },
+    {
+      "id": "oop_28_ex7",
+      "type": "write_code",
+      "title": "Equipment component",
+      "prompt": "Define `Equipment(weapon, armor)` and a `summary()` method returning exactly `{\"weapon\": ..., \"armor\": ...}`.",
+      "starter_code": "class Equipment:\n    pass\n",
+      "reference_solution": "class Equipment:\n    def __init__(self, weapon, armor):\n        self.weapon = weapon\n        self.armor = armor\n    def summary(self):\n        return {\"weapon\": self.weapon, \"armor\": self.armor}\n",
+      "topics": [
+        "oop",
+        "dictionaries"
+      ],
+      "hints": [
+        "Use __init__ to store both constructor inputs on the instance.",
+        "summary reads those attributes and returns one dictionary; it does not need to mutate anything.",
+        "Store self.weapon/self.armor, then return both named fields from summary."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Equipment"
+        },
+        {
+          "kind": "expression",
+          "expression": "Equipment(\"spear\",\"leather\").summary()",
+          "expected": {
+            "weapon": "spear",
+            "armor": "leather"
+          }
+        },
+        {
+          "kind": "expression",
+          "expression": "Equipment(\"axe\",\"mail\").summary()",
+          "expected": {
+            "weapon": "axe",
+            "armor": "mail"
+          }
+        }
+      ],
+      "integration": [
+        "classes",
+        "init",
+        "self",
+        "methods",
+        "dictionaries",
+        "structured_returns"
+      ]
+    },
+    {
+      "id": "oop_28_ex8",
+      "type": "write_code",
+      "title": "Character contains equipment",
+      "prompt": "Define `Character(name, health, equipment)` storing the supplied Equipment object. Add `summary()` returning exactly `name`, `health`, and `equipment`, where the equipment value is `self.equipment.summary()`. Include or reuse a working Equipment class in your solution.",
+      "starter_code": "class Equipment:\n    def __init__(self, weapon, armor):\n        self.weapon = weapon\n        self.armor = armor\n    def summary(self):\n        return {\"weapon\": self.weapon, \"armor\": self.armor}\n\nclass Character:\n    pass\n",
+      "reference_solution": "class Equipment:\n    def __init__(self, weapon, armor):\n        self.weapon = weapon\n        self.armor = armor\n    def summary(self):\n        return {\"weapon\": self.weapon, \"armor\": self.armor}\n\nclass Character:\n    def __init__(self, name, health, equipment):\n        self.name = name\n        self.health = health\n        self.equipment = equipment\n    def summary(self):\n        return {\n            \"name\": self.name,\n            \"health\": self.health,\n            \"equipment\": self.equipment.summary(),\n        }\n",
+      "topics": [
+        "oop",
+        "dictionaries"
+      ],
+      "hints": [
+        "Character should store the Equipment object itself, not duplicate weapon/armor fields.",
+        "In summary, delegate equipment formatting to the component's summary method.",
+        "Return name, health, and `self.equipment.summary()` in one dictionary."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Equipment"
+        },
+        {
+          "kind": "class_defined",
+          "name": "Character"
+        },
+        {
+          "kind": "expression",
+          "expression": "Character(\"Aria\",10,Equipment(\"spear\",\"leather\")).summary()",
+          "expected": {
+            "name": "Aria",
+            "health": 10,
+            "equipment": {
+              "weapon": "spear",
+              "armor": "leather"
+            }
+          }
+        }
+      ],
+      "integration": [
+        "classes",
+        "init",
+        "self",
+        "methods",
+        "composition",
+        "dictionaries",
+        "structured_returns"
+      ],
+      "reasoning_targets": [
+        "responsibility_design"
+      ]
+    },
+    {
+      "id": "oop_28_ex9",
+      "type": "write_code",
+      "title": "Party contains characters",
+      "prompt": "A small Character class is supplied for testing. Define `Party(members)` so it stores `list(members)` as a separate outer list. Add `total_health()` summing every `member.health` without `sum()`, and `names()` returning a list of every `member.name`. Do not copy the Character objects themselves.",
+      "starter_code": "class Character:\n    def __init__(self, name, health):\n        self.name = name\n        self.health = health\n\nclass Party:\n    pass\n",
+      "reference_solution": "class Character:\n    def __init__(self, name, health):\n        self.name = name\n        self.health = health\n\nclass Party:\n    def __init__(self, members):\n        self.members = list(members)\n    def total_health(self):\n        total = 0\n        for member in self.members:\n            total = total + member.health\n        return total\n    def names(self):\n        result = []\n        for member in self.members:\n            result.append(member.name)\n        return result\n",
+      "topics": [
+        "oop",
+        "lists",
+        "loops"
+      ],
+      "hints": [
+        "Copy only the outer members list in __init__; the contained Character objects remain the members.",
+        "total_health needs a normal accumulator loop. names needs a result list and append loop.",
+        "Use `self.members = list(members)`, then two methods that iterate self.members and return their accumulated results."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Party"
+        },
+        {
+          "kind": "expression",
+          "expression": "Party([Character(\"A\",3), Character(\"B\",4)]).total_health()",
+          "expected": 7
+        },
+        {
+          "kind": "expression",
+          "expression": "Party([Character(\"A\",3), Character(\"B\",4)]).names()",
+          "expected": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda members: (lambda party: (members.append(Character(\"C\",1)), len(party.members))[1])(Party(members)))([Character(\"A\",3)])",
+          "expected": 1,
+          "message": "Party must store a separate outer list so later caller-list changes do not alter party.members."
+        }
+      ],
+      "integration": [
+        "classes",
+        "init",
+        "self",
+        "composition",
+        "lists",
+        "list_copy",
+        "for_loop",
+        "attributes",
+        "methods",
+        "append",
+        "arithmetic",
+        "return"
+      ],
+      "reasoning_targets": [
+        "responsibility_design",
+        "reference_independence"
+      ]
+    },
+    {
+      "id": "oop_28_ex10",
+      "type": "mini_project",
+      "title": "Expedition Model v1",
+      "prompt": "Build `Equipment`, `Character`, and `Party` using composition. The supplied `build_expedition()` contains a deliberate shared-component bug: both heroes are constructed with the same Equipment object. After implementing the classes, repair the builder so it returns Aria (health 10, spear/leather) and Rook (health 14, axe/mail) with separate Equipment objects. Equipment has weapon/armor and summary(). Character has name/health/equipment and summary(). Party stores a separate outer members list; total_health(), names(), and summary() aggregate the characters. `Party.summary()` returns exactly `member_count`, `total_health`, `names`, and `equipment` (a list of each character's equipment summary). No inheritance or comprehensions.",
+      "starter_code": "class Equipment:\n    pass\n\nclass Character:\n    pass\n\nclass Party:\n    pass\n\ndef build_expedition():\n    gear = Equipment(\"spear\", \"leather\")\n    aria = Character(\"Aria\", 10, gear)\n    rook = Character(\"Rook\", 14, gear)  # BUG: shared component\n    return Party([aria, rook])\n",
+      "reference_solution": "class Equipment:\n    def __init__(self, weapon, armor):\n        self.weapon = weapon\n        self.armor = armor\n    def summary(self):\n        return {\"weapon\": self.weapon, \"armor\": self.armor}\n\nclass Character:\n    def __init__(self, name, health, equipment):\n        self.name = name\n        self.health = health\n        self.equipment = equipment\n    def summary(self):\n        return {\"name\": self.name, \"health\": self.health, \"equipment\": self.equipment.summary()}\n\nclass Party:\n    def __init__(self, members):\n        self.members = list(members)\n    def total_health(self):\n        total = 0\n        for member in self.members:\n            total = total + member.health\n        return total\n    def names(self):\n        result = []\n        for member in self.members:\n            result.append(member.name)\n        return result\n    def summary(self):\n        equipment = []\n        for member in self.members:\n            equipment.append(member.equipment.summary())\n        return {\n            \"member_count\": len(self.members),\n            \"total_health\": self.total_health(),\n            \"names\": self.names(),\n            \"equipment\": equipment,\n        }\n\ndef build_expedition():\n    aria = Character(\"Aria\", 10, Equipment(\"spear\", \"leather\"))\n    rook = Character(\"Rook\", 14, Equipment(\"axe\", \"mail\"))\n    return Party([aria, rook])\n",
+      "topics": [
+        "oop",
+        "composition",
+        "references",
+        "collections",
+        "debugging"
+      ],
+      "hints": [
+        "Build and verify each layer separately: Equipment first, then Character storing Equipment, then Party storing Characters.",
+        "Party aggregation should delegate/read through its contained Character objects rather than duplicate their state. Use ordinary loops, not comprehensions.",
+        "Repair the supplied shared `gear` construction: create spear/leather equipment for Aria and axe/mail equipment for Rook as separate objects. Hidden checks verify identity, aggregation, caller-list isolation, and an empty Party."
+      ],
+      "tests": [
+        {
+          "kind": "class_defined",
+          "name": "Equipment"
+        },
+        {
+          "kind": "class_defined",
+          "name": "Character"
+        },
+        {
+          "kind": "class_defined",
+          "name": "Party"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "in_function": "total_health"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "in_function": "names"
+        },
+        {
+          "kind": "expression",
+          "expression": "build_expedition().summary()",
+          "expected": {
+            "member_count": 2,
+            "total_health": 24,
+            "names": [
+              "Aria",
+              "Rook"
+            ],
+            "equipment": [
+              {
+                "weapon": "spear",
+                "armor": "leather"
+              },
+              {
+                "weapon": "axe",
+                "armor": "mail"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda p: p.members[0].equipment is not p.members[1].equipment)(build_expedition())",
+          "expected": true
+        },
+        {
+          "kind": "expression",
+          "expression": "(lambda members: (lambda party: (members.append(Character(\"Extra\",1,Equipment(\"club\",\"cloth\"))), len(party.members))[1])(Party(members)))([Character(\"Solo\",2,Equipment(\"knife\",\"cloth\"))])",
+          "expected": 1,
+          "message": "Party must copy only the outer members list so caller-list appends do not change the party."
+        },
+        {
+          "kind": "expression",
+          "expression": "Party([]).summary()",
+          "expected": {
+            "member_count": 0,
+            "total_health": 0,
+            "names": [],
+            "equipment": []
+          }
+        }
+      ],
+      "integration": [
+        "classes",
+        "init",
+        "self",
+        "methods",
+        "composition",
+        "lists",
+        "list_copy",
+        "for_loop",
+        "append",
+        "len",
+        "structured_returns",
+        "shared_references",
+        "logic_debugging",
+        "attributes",
+        "dictionaries",
+        "arithmetic",
+        "return"
+      ],
+      "reasoning_targets": [
+        "responsibility_design",
+        "reference_independence",
+        "diagnosis"
+      ],
+      "project_role": "capstone",
+      "criteria": [
+        "equipment_component",
+        "character_composition",
+        "party_aggregation",
+        "shared_component_repair"
+      ],
+      "success_message": "Beginner-core capstone complete: smaller objects own coherent responsibilities, the Party aggregates them, and mutable components are independent where the model requires independence."
+    }
+  ],
+  "lesson_number": 28,
+  "production_contract_version": 1
+}

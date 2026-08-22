@@ -30,6 +30,8 @@ class TestCase:
 
     kind: str  # stdout_equals | stdout_contains | function | globals | expression | source_uses
     expected: Any = None
+    # script_fixtures: hidden scenarios with initial values and expected outputs
+    fixtures: list[dict[str, Any]] = field(default_factory=list)
     function: Optional[str] = None
     args: list[Any] = field(default_factory=list)
     kwargs: dict[str, Any] = field(default_factory=dict)
@@ -125,6 +127,7 @@ def test_case_from_dict(data: dict[str, Any]) -> TestCase:
     return TestCase(
         kind=str(kind),
         expected=data.get("expected"),
+        fixtures=list(data.get("fixtures", []) or []),
         function=data.get("function"),
         args=list(data.get("args", [])),
         kwargs=dict(data.get("kwargs", {})),

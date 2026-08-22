@@ -157,6 +157,97 @@ def apply_test(
 ) -> tuple[bool, str]:
     kind = test.get("kind", "stdout_equals")
 
+    if kind == "script_fixtures":
+        # Run the student's script against multiple hidden initial states without requiring functions.
+        fixtures = list(test.get("fixtures") or [])
+        if not fixtures:
+            return False, test.get("message") or "No fixtures were provided for this check."
+        # Optionally protect fixture names from being overwritten by top-level assignments.
+        protect_names: set[str] = set()
+        # Per-fixture override list may be provided; otherwise default to keys except reserved.
+        reserved = {"expected_stdout", "protect"}
+        for case in fixtures:
+            provided = set(str(k) for k in case.keys() if k not in reserved)
+            protect = set(str(n) for n in (case.get("protect") or []) if isinstance(case, dict))
+            protect_names |= (protect or provided)
+        try:
+            tree = ast.parse(source)
+        except Exception:  # noqa: BLE001
+            return False, test.get("message") or "Your code could not be parsed."
+        if protect_names and isinstance(tree, ast.Module):
+            # Restrict stripping to the initial contiguous block of top-level assignments
+            # (baseline initializers) only. Preserve later/inner assignments.
+            new_body: list[ast.stmt] = []
+            scanning = True
+            for stmt in list(tree.body):
+                if scanning and isinstance(stmt, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
+                    # Filter targets that bind protected names.
+                    if isinstance(stmt, ast.Assign):
+                        remaining_targets: list[ast.expr] = []
+                        for t in stmt.targets:
+                            if isinstance(t, ast.Name) and t.id in protect_names:
+                                continue
+                            remaining_targets.append(t)
+                        if remaining_targets:
+                            new_node = ast.Assign(targets=remaining_targets, value=stmt.value, type_comment=getattr(stmt, "type_comment", None))
+                            ast.copy_location(new_node, stmt)
+                            new_body.append(new_node)
+                        # else: drop this statement entirely
+                        continue
+                    if isinstance(stmt, ast.AnnAssign):
+                        target = stmt.target
+                        if isinstance(target, ast.Name) and target.id in protect_names:
+                            # drop
+                            continue
+                        new_body.append(stmt)
+                        continue
+                    if isinstance(stmt, ast.AugAssign):
+                        if isinstance(stmt.target, ast.Name) and stmt.target.id in protect_names:
+                            continue
+                        new_body.append(stmt)
+                        continue
+                # Any non-assignment ends the baseline-initializer strip phase.
+                if scanning and not isinstance(stmt, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
+                    scanning = False
+                new_body.append(stmt)
+            tree.body = new_body
+            ast.fix_missing_locations(tree)
+        try:
+            compiled = compile(tree, "<student>", "exec")
+        except Exception:  # noqa: BLE001
+            return False, test.get("message") or "Your code could not be compiled."
+        for index, case in enumerate(fixtures, start=1):
+            # Fresh namespace for each scenario; preserve the guarded import policy.
+            scenario_ns: dict[str, Any] = {
+                "__name__": "__student__",
+                "__builtins__": namespace.get("__builtins__", {}),
+            }
+            # Inject initial values (kept invisible to the learner).
+            for key, value in dict(case).items():
+                if key in reserved:
+                    continue
+                scenario_ns[str(key)] = value
+            buffer = io.StringIO()
+            try:
+                with redirect_stdout(buffer), redirect_stderr(io.StringIO()):
+                    exec(compiled, scenario_ns, scenario_ns)
+            except Exception:  # noqa: BLE001
+                return False, test.get("message") or "Your program did not run for a hidden scenario."
+            expected = case.get("expected_stdout")
+            actual = buffer.getvalue()
+            if isinstance(expected, str):
+                if actual.rstrip("\n") != expected.rstrip("\n"):
+                    return False, test.get("message") or (
+                        "The printed lines did not match for one of our hidden scenarios."
+                    )
+            elif expected is not None:
+                # Support simple equality for non-string expected values if provided.
+                if str(actual).rstrip("\n") != str(expected).rstrip("\n"):
+                    return False, test.get("message") or (
+                        "The printed lines did not match for one of our hidden scenarios."
+                    )
+        return True, "Output matched for all hidden scenarios."
+
     if kind == "stdout_equals":
         expected = test.get("expected", "")
         expected_text = expected if isinstance(expected, str) else str(expected)
@@ -1564,16 +1655,44 @@ def run_payload(payload: dict[str, Any]) -> dict[str, Any]:
     stderr_buffer = io.StringIO()
     success = True
     error = None
-    try:
-        with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
-            compiled = compile(source, filename, "exec")
-            exec(compiled, namespace, namespace)
-    except Exception as exc:  # noqa: BLE001
-        success = False
-        error = student_traceback(exc)
+    tests_list = list(payload.get("tests", []))
+    has_script_fixtures = any(
+        (t.get("kind") or "").lower() == "script_fixtures" for t in tests_list
+    )
+    has_other_checks = any((t.get("kind") or "").lower() != "script_fixtures" for t in tests_list)
+    if (not has_script_fixtures) or has_other_checks:
+        try:
+            with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
+                compiled = compile(source, filename, "exec")
+                # Seed namespace with first fixture values to avoid NameError in mixed sets.
+                if has_script_fixtures and has_other_checks:
+                    reserved = {"expected_stdout", "protect"}
+                    for t in tests_list:
+                        if (t.get("kind") or "").lower() != "script_fixtures":
+                            continue
+                        fixtures = list(t.get("fixtures") or [])
+                        if not fixtures:
+                            continue
+                        seed = dict(fixtures[0])
+                        for key, value in seed.items():
+                            if key in reserved:
+                                continue
+                            # Do not overwrite preexisting names set by prior runs.
+                            if key not in namespace:
+                                namespace[str(key)] = value
+                        break
+                exec(compiled, namespace, namespace)
+        except Exception as exc:  # noqa: BLE001
+            success = False
+            error = student_traceback(exc)
 
     stdout = stdout_buffer.getvalue()
     stderr = stderr_buffer.getvalue()
+    # When only script-fixture checks are present, the authoritative runs happen inside the test itself;
+    # skip the initial run outcome entirely.
+    if has_script_fixtures and not has_other_checks:
+        success = True
+        error = None
     result: dict[str, Any] = {
         "success": success,
         "stdout": stdout,

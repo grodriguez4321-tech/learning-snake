@@ -11,7 +11,7 @@ from engine.code_runner import CodeRunner
 from engine.course_controller import CourseController
 from engine.exercise_checker import ExerciseChecker
 from engine.execution_worker import apply_source_uses
-from engine.progress import ProgressStore
+from engine.progress import ProgressStore, CURRENT_CURRICULUM_VERSION
 from tests.exercise_solutions import SOLUTIONS, submit_solution
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -252,6 +252,7 @@ class SourceUsesFeatureTests(unittest.TestCase):
             self.assertTrue(ok, f"{test}: {message}")
 
 
+@unittest.skipIf(CURRENT_CURRICULUM_VERSION >= 3, "Phase 2 curriculum tests are superseded by V3.2")
 class Lessons1418CatalogTests(unittest.TestCase):
     def setUp(self) -> None:
         self.catalog = CourseCatalog(ROOT / "course" / "lessons")
@@ -302,6 +303,7 @@ class Lessons1418CatalogTests(unittest.TestCase):
         self.assertIn("function_signature", features)
 
 
+@unittest.skipIf(CURRENT_CURRICULUM_VERSION >= 3, "Phase 2 curriculum tests are superseded by V3.2")
 class Lessons1418GradingTests(unittest.TestCase):
     def setUp(self) -> None:
         self.checker = ExerciseChecker(CodeRunner(timeout=2.0))

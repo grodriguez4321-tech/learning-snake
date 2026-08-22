@@ -1,0 +1,354 @@
+{
+  "curriculum_revision": "3.2",
+  "id": "strings_21_methods",
+  "section": "Realistic Data & Debugging",
+  "section_order": 7,
+  "order": 3,
+  "title": "Clean and Split Text",
+  "topics": [
+    "strings"
+  ],
+  "content": "What problem does this solve?\nReal text often arrives with extra spaces, inconsistent capitalization, or separators between fields. String methods let you clean and divide that text.\n\nOne method at a time\nstrip() returns a string without surrounding whitespace. lower() returns a lowercase string. split(separator) returns a list of pieces.\n\nSave the returned value\nThese methods do not rewrite the original string in place. If you need the cleaned value later, assign it or return it.\n\nChaining after understanding the steps\n  clean = text.strip().lower()\nmeans: first call strip(), receive the returned string, then call lower() on that returned string.\n\nVocabulary after the behavior\nA method is a function called through a value with dot syntax. Strings are immutable here: methods return new string values instead of changing the original string object.",
+  "concepts": [
+    "strip returns a string without surrounding whitespace",
+    "lower returns a lowercase string",
+    "split returns a list of pieces",
+    "String-cleaning methods return new values rather than changing the original string in place",
+    "Method chaining feeds one returned value into the next method call"
+  ],
+  "examples": [
+    {
+      "title": "Strip",
+      "code": "text = \"  Hello  \"\nclean = text.strip()\nprint(clean)",
+      "explanation": "clean stores the new string without outside spaces."
+    },
+    {
+      "title": "Lowercase",
+      "code": "text = \"HELLO\"\nprint(text.lower())",
+      "explanation": "lower returns hello."
+    },
+    {
+      "title": "Split",
+      "code": "entry = \"Ada|Scout\"\nparts = entry.split(\"|\")\nprint(parts)",
+      "explanation": "split returns a list containing the two fields."
+    },
+    {
+      "title": "Chain after understanding",
+      "code": "clean = \"  HELLO  \".strip().lower()\nprint(clean)",
+      "explanation": "strip returns a string, then lower is called on that returned value."
+    }
+  ],
+  "common_mistakes": [
+    "Calling strip/lower but discarding the returned value",
+    "Thinking split returns a string instead of a list",
+    "Using the wrong separator",
+    "Chaining many methods before being able to explain each intermediate result",
+    "Calling this NLP tokenization instead of ordinary Python text processing"
+  ],
+  "exercises": [
+    {
+      "id": "strings_21_ex1",
+      "type": "predict_output",
+      "title": "Strip outside spaces",
+      "prompt": "What prints?",
+      "code_to_predict": "text = \"  hello  \"\nprint(f\"[{text.strip()}]\")",
+      "expected_answer": "[hello]",
+      "topics": [
+        "strings"
+      ],
+      "hints": [
+        "strip removes whitespace only from the outside edges.",
+        "The brackets are added by the f-string after strip returns hello.",
+        "The exact output is [hello]."
+      ]
+    },
+    {
+      "id": "strings_21_ex2",
+      "type": "predict_output",
+      "title": "Lowercase a value",
+      "prompt": "What prints?",
+      "code_to_predict": "text = \"PyThOn\"\nprint(text.lower())",
+      "expected_answer": "python",
+      "topics": [
+        "strings"
+      ],
+      "hints": [
+        "lower returns a new lowercase string.",
+        "Every letter is converted to lowercase in the returned value.",
+        "The output is python."
+      ]
+    },
+    {
+      "id": "strings_21_ex3",
+      "type": "predict_output",
+      "title": "Split into pieces",
+      "prompt": "What does this program print?",
+      "code_to_predict": "parts = \"Ada|Scout\".split(\"|\")\nprint(parts)",
+      "expected_answer": "['Ada', 'Scout']",
+      "topics": [
+        "strings"
+      ],
+      "hints": [
+        "split uses | as the boundary between pieces.",
+        "The returned value is a list, so printing it shows list brackets and quoted strings.",
+        "The output is ['Ada', 'Scout']."
+      ]
+    },
+    {
+      "id": "strings_21_ex4",
+      "type": "fill_blank",
+      "title": "Chain two simple steps",
+      "prompt": "Complete the expression so `clean` becomes `\"ready\"`.",
+      "starter_code": "text = \"  READY  \"\nclean = text\nprint(clean)\n",
+      "reference_solution": "text = \"  READY  \"\nclean = text.strip().lower()\nprint(clean)\n",
+      "topics": [
+        "strings"
+      ],
+      "hints": [
+        "First remove the outside spaces, then lowercase the returned string.",
+        "Both operations return strings, so the second can be called directly after the first.",
+        "Use `text.strip().lower()`."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "strip"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "lower"
+        },
+        {
+          "kind": "globals",
+          "name": "clean",
+          "expected": "ready",
+          "type_name": "str"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "ready\n"
+        }
+      ]
+    },
+    {
+      "id": "strings_21_ex5",
+      "type": "predict_output",
+      "title": "Original and returned string",
+      "prompt": "What two lines print?",
+      "code_to_predict": "text = \"HELLO\"\nclean = text.lower()\nprint(text)\nprint(clean)",
+      "expected_answer": "HELLO\nhello",
+      "topics": [
+        "strings"
+      ],
+      "hints": [
+        "lower returns a new value assigned to clean.",
+        "The original variable text still refers to HELLO.",
+        "The lines are HELLO, then hello."
+      ]
+    },
+    {
+      "id": "strings_21_ex6",
+      "type": "debug",
+      "title": "Save the returned string",
+      "prompt": "The final output should be `open gate`. Repair the code so the cleaned result is actually kept.",
+      "starter_code": "command = \"  OPEN GATE  \"\ncommand.strip()\ncommand.lower()\nprint(command)\n",
+      "reference_solution": "command = \"  OPEN GATE  \"\ncommand = command.strip().lower()\nprint(command)\n",
+      "topics": [
+        "strings"
+      ],
+      "hints": [
+        "The method calls currently produce values that are immediately discarded.",
+        "Assign the cleaned returned string back to command (or through an intermediate variable).",
+        "Use `command = command.strip().lower()` before printing."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "strip"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "lower"
+        },
+        {
+          "kind": "globals",
+          "name": "command",
+          "expected": "open gate",
+          "type_name": "str"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "open gate\n"
+        }
+      ],
+      "reasoning_targets": [
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "strings_21_ex7",
+      "type": "write_code",
+      "title": "Clean a status",
+      "prompt": "Write `clean_status(text)` that returns the text with surrounding whitespace removed and letters converted to lowercase. Do not print inside the function.",
+      "starter_code": "def clean_status(text):\n    pass\n",
+      "reference_solution": "def clean_status(text):\n    return text.strip().lower()\n",
+      "topics": [
+        "strings",
+        "functions"
+      ],
+      "hints": [
+        "Return the cleaned text rather than printing it.",
+        "Apply strip and lower to the parameter; chaining is fine now that each step is understood.",
+        "Return `text.strip().lower()`."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "strip",
+          "in_function": "clean_status"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "lower",
+          "in_function": "clean_status"
+        },
+        {
+          "kind": "function",
+          "function": "clean_status",
+          "args": [
+            "  READY  "
+          ],
+          "expected": "ready"
+        },
+        {
+          "kind": "function",
+          "function": "clean_status",
+          "args": [
+            "open"
+          ],
+          "expected": "open"
+        },
+        {
+          "kind": "function",
+          "function": "clean_status",
+          "args": [
+            "   "
+          ],
+          "expected": ""
+        }
+      ],
+      "integration": [
+        "functions",
+        "parameters",
+        "string_methods",
+        "return"
+      ],
+      "reasoning_targets": [
+        "boundaries"
+      ]
+    },
+    {
+      "id": "strings_21_ex8",
+      "type": "mini_project",
+      "title": "Parse One Log Line",
+      "prompt": "Write `parse_log_line(line)` for a well-formed `name|status` line. Split on `|`, trim both fields, lowercase only the status, and return exactly `{\"name\": <clean name>, \"status\": <clean lowercase status>}`. Malformed-line validation comes later.",
+      "starter_code": "def parse_log_line(line):\n    pass\n",
+      "reference_solution": "def parse_log_line(line):\n    parts = line.split(\"|\")\n    name = parts[0].strip()\n    status = parts[1].strip().lower()\n    return {\"name\": name, \"status\": status}\n",
+      "topics": [
+        "strings",
+        "functions",
+        "collections"
+      ],
+      "hints": [
+        "Split once conceptually first: the result is a two-item list.",
+        "Clean parts[0] with strip; clean parts[1] with strip then lower.",
+        "Return one dictionary with the two required keys after cleaning the two pieces."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "split",
+          "in_function": "parse_log_line"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "strip",
+          "in_function": "parse_log_line"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "method_call",
+          "method": "lower",
+          "in_function": "parse_log_line"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "subscript",
+          "in_function": "parse_log_line"
+        },
+        {
+          "kind": "function",
+          "function": "parse_log_line",
+          "args": [
+            "  Mira | READY  "
+          ],
+          "expected": {
+            "name": "Mira",
+            "status": "ready"
+          }
+        },
+        {
+          "kind": "function",
+          "function": "parse_log_line",
+          "args": [
+            "Rook|hold"
+          ],
+          "expected": {
+            "name": "Rook",
+            "status": "hold"
+          }
+        },
+        {
+          "kind": "function",
+          "function": "parse_log_line",
+          "args": [
+            " | OPEN "
+          ],
+          "expected": {
+            "name": "",
+            "status": "open"
+          }
+        }
+      ],
+      "integration": [
+        "functions",
+        "parameters",
+        "string_methods",
+        "indexing",
+        "dictionaries",
+        "structured_returns"
+      ],
+      "reasoning_targets": [
+        "transfer"
+      ],
+      "project_role": "lesson_synthesis",
+      "criteria": [
+        "strip_outer_whitespace",
+        "split_expected_fields",
+        "normalize_status",
+        "return_structured_record"
+      ],
+      "success_message": "One messy text line now becomes a clean structured record using only ordinary Python string and collection skills."
+    }
+  ],
+  "lesson_number": 21,
+  "production_contract_version": 1
+}

@@ -1,0 +1,403 @@
+{
+  "curriculum_revision": "3.2",
+  "id": "collections_19_nested_data",
+  "section": "Realistic Data & Debugging",
+  "section_order": 7,
+  "order": 1,
+  "title": "Follow the Path in Nested Data",
+  "topics": [
+    "collections",
+    "nested_data"
+  ],
+  "content": "What problem does this solve?\nReal programs combine the structures you already know. A list can contain dictionaries, and a dictionary can contain a list. Do not try to read a long nested expression all at once. Take one step, identify what value and type you reached, then take the next step.\n\nOne step at a time\n  party[0]\nselects one dictionary from a list. Then\n  party[0][\"health\"]\nreads one field from that dictionary.\n\nDictionary to list\n  record[\"tags\"]\nproduces a list. Adding [1] then selects its second item.\n\nUpdate the path you mean\nA nested assignment changes the inner value reached by the full path. Start from the outside structure and verify each step before writing the update.\n\nVocabulary after the behavior\nNested data means one collection stored inside another. A path is the sequence of indexes/keys used to reach an inner value.",
+  "concepts": [
+    "Trace nested access from left to right one step at a time",
+    "A list index can lead to a dictionary",
+    "A dictionary key can lead to a list",
+    "The final part of a nested path identifies the inner value being read or changed",
+    "Name an intermediate value when a long path is hard to reason about"
+  ],
+  "examples": [
+    {
+      "title": "List of dictionaries",
+      "code": "people = [{\"name\": \"Ada\", \"score\": 4}, {\"name\": \"Bo\", \"score\": 7}]\nfirst = people[0]\nprint(first[\"name\"])",
+      "explanation": "people[0] gives one dictionary; [\"name\"] then reads a field from it."
+    },
+    {
+      "title": "Dictionary containing a list",
+      "code": "record = {\"tags\": [\"new\", \"urgent\"]}\nprint(record[\"tags\"][1])",
+      "explanation": "record[\"tags\"] is a list; [1] chooses its second item."
+    },
+    {
+      "title": "Update an inner value",
+      "code": "people = [{\"name\": \"Ada\", \"score\": 4}]\npeople[0][\"score\"] = people[0][\"score\"] + 1\nprint(people[0][\"score\"])",
+      "explanation": "The complete path ends at the score inside the first record."
+    }
+  ],
+  "common_mistakes": [
+    "Looking for an inner key on the outer structure",
+    "Forgetting to index a list before asking for a key inside one record",
+    "Memorizing a long path instead of checking each intermediate value",
+    "Updating a separate temporary collection instead of the collection stored inside the model",
+    "Introducing a new iteration tool when existing range/indexing is enough"
+  ],
+  "exercises": [
+    {
+      "id": "collections_19_ex1",
+      "type": "predict_output",
+      "title": "One step, then another",
+      "prompt": "What prints?",
+      "code_to_predict": "people = [{\"name\": \"Ada\"}, {\"name\": \"Bo\"}]\nprint(people[1][\"name\"])",
+      "expected_answer": "Bo",
+      "topics": [
+        "collections"
+      ],
+      "hints": [
+        "First evaluate people[1].",
+        "That produces the second dictionary, {\"name\": \"Bo\"}.",
+        "Then [\"name\"] reads Bo."
+      ]
+    },
+    {
+      "id": "collections_19_ex2",
+      "type": "fill_blank",
+      "title": "Read the inner list",
+      "prompt": "Replace the placeholder index so the program prints `urgent`.",
+      "starter_code": "record = {\"tags\": [\"new\", \"urgent\"]}\nprint(record[\"tags\"][0])\n",
+      "reference_solution": "record = {\"tags\": [\"new\", \"urgent\"]}\nprint(record[\"tags\"][1])\n",
+      "topics": [
+        "collections"
+      ],
+      "hints": [
+        "First evaluate record[\"tags\"] and identify the resulting list.",
+        "urgent is the second item, and list indexes begin at 0.",
+        "Use index 1: `record[\"tags\"][1]`."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "subscript"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "urgent\n"
+        }
+      ]
+    },
+    {
+      "id": "collections_19_ex3",
+      "type": "architecture",
+      "title": "Name the intermediate value",
+      "prompt": "After this code runs, what kind of value is stored in `member`?\n\nparty = [{\"name\": \"Mira\", \"health\": 8}]\nmember = party[0]",
+      "choices": [
+        "dictionary",
+        "list",
+        "string"
+      ],
+      "expected_answer": "1",
+      "topics": [
+        "collections"
+      ],
+      "hints": [
+        "Evaluate only party[0].",
+        "The outer value is a list whose first item is a record with keys name and health.",
+        "member is a dictionary."
+      ],
+      "success_message": "Correct. Naming the intermediate dictionary makes the next path step easier to reason about."
+    },
+    {
+      "id": "collections_19_ex4",
+      "type": "write_code",
+      "title": "Update the inner value",
+      "prompt": "Increase the first player's score by 2 using the nested path. Then print the new score.",
+      "starter_code": "players = [{\"name\": \"A\", \"score\": 3}, {\"name\": \"B\", \"score\": 5}]\n\n# Update the first score by 2.\n",
+      "reference_solution": "players = [{\"name\": \"A\", \"score\": 3}, {\"name\": \"B\", \"score\": 5}]\n\nplayers[0][\"score\"] = players[0][\"score\"] + 2\nprint(players[0][\"score\"])\n",
+      "topics": [
+        "collections"
+      ],
+      "hints": [
+        "Start by identifying the first record: players[0].",
+        "Use the same nested path on both sides of the assignment, adding 2 on the right.",
+        "Assign `players[0][\"score\"] = players[0][\"score\"] + 2`, then print that path."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "subscript"
+        },
+        {
+          "kind": "globals",
+          "name": "players",
+          "expected": [
+            {
+              "name": "A",
+              "score": 5
+            },
+            {
+              "name": "B",
+              "score": 5
+            }
+          ],
+          "type_name": "list"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "5\n"
+        }
+      ],
+      "integration": [
+        "nested_data",
+        "indexing",
+        "dictionary_lookup",
+        "dictionary_update",
+        "arithmetic",
+        "assignment",
+        "print"
+      ]
+    },
+    {
+      "id": "collections_19_ex5",
+      "type": "predict_output",
+      "title": "Trace a longer path",
+      "prompt": "What prints?",
+      "code_to_predict": "record = {\"groups\": [{\"items\": [\"a\", \"b\"]}]}\nprint(record[\"groups\"][0][\"items\"][1])",
+      "expected_answer": "b",
+      "topics": [
+        "collections"
+      ],
+      "hints": [
+        "Move left to right and identify the type after every step.",
+        "record[\"groups\"] is a list; [0] is a dictionary; [\"items\"] is another list.",
+        "Index 1 of [\"a\", \"b\"] is b."
+      ]
+    },
+    {
+      "id": "collections_19_ex6",
+      "type": "debug",
+      "title": "Look inside the party",
+      "prompt": "The name is inside the first member dictionary, not directly inside dispatch. Repair the access path so it prints Mira.",
+      "starter_code": "dispatch = {\"party\": [{\"name\": \"Mira\", \"health\": 8}]}\nprint(dispatch[\"name\"])\n",
+      "reference_solution": "dispatch = {\"party\": [{\"name\": \"Mira\", \"health\": 8}]}\nprint(dispatch[\"party\"][0][\"name\"])\n",
+      "topics": [
+        "collections"
+      ],
+      "hints": [
+        "Start with a key that actually exists on dispatch.",
+        "dispatch[\"party\"] gives a list, so choose its first member before asking for name.",
+        "Use `dispatch[\"party\"][0][\"name\"]`."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "subscript"
+        },
+        {
+          "kind": "stdout_equals",
+          "expected": "Mira\n"
+        }
+      ],
+      "reasoning_targets": [
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "collections_19_ex7",
+      "type": "write_code",
+      "title": "Total party health",
+      "prompt": "Write `total_party_health(party)` that loops over a list of member dictionaries and returns the sum of every `member[\"health\"]`. It must return 0 for an empty party.",
+      "starter_code": "def total_party_health(party):\n    pass\n",
+      "reference_solution": "def total_party_health(party):\n    total = 0\n    for member in party:\n        total = total + member[\"health\"]\n    return total\n",
+      "topics": [
+        "functions",
+        "collections"
+      ],
+      "hints": [
+        "Start a running total at 0 and visit every member dictionary.",
+        "On each pass add member[\"health\"] to the running total.",
+        "Return total after the loop, so an empty party naturally returns 0."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "in_function": "total_party_health"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "subscript",
+          "in_function": "total_party_health"
+        },
+        {
+          "kind": "function",
+          "function": "total_party_health",
+          "args": [
+            [
+              {
+                "name": "Mira",
+                "health": 8
+              },
+              {
+                "name": "Rook",
+                "health": 10
+              }
+            ]
+          ],
+          "expected": 18
+        },
+        {
+          "kind": "function",
+          "function": "total_party_health",
+          "args": [
+            []
+          ],
+          "expected": 0
+        },
+        {
+          "kind": "function",
+          "function": "total_party_health",
+          "args": [
+            [
+              {
+                "name": "A",
+                "health": 0
+              },
+              {
+                "name": "B",
+                "health": 4
+              }
+            ]
+          ],
+          "expected": 4
+        }
+      ],
+      "integration": [
+        "functions",
+        "parameters",
+        "nested_data",
+        "for_loop",
+        "dictionary_lookup",
+        "arithmetic",
+        "return"
+      ],
+      "reasoning_targets": [
+        "accumulator_tracking",
+        "boundaries"
+      ]
+    },
+    {
+      "id": "collections_19_ex8",
+      "type": "mini_project",
+      "title": "Numbered Roster",
+      "prompt": "Write `numbered_roster(party)` using `range(len(party))` and indexing. Return a list of lines exactly like `1. Mira — 8 HP`. Visit every nested member record; do not print inside the function.",
+      "starter_code": "def numbered_roster(party):\n    pass\n",
+      "reference_solution": "def numbered_roster(party):\n    lines = []\n    for index in range(len(party)):\n        member = party[index]\n        lines.append(f\"{index + 1}. {member['name']} — {member['health']} HP\")\n    return lines\n",
+      "topics": [
+        "functions",
+        "collections",
+        "loops"
+      ],
+      "hints": [
+        "Build a result list and generate valid party indexes with range(len(party)).",
+        "For each index, first store `member = party[index]`, then read that member dictionary.",
+        "Append the formatted 1-based line to lines and return lines after the loop."
+      ],
+      "tests": [
+        {
+          "kind": "source_uses",
+          "feature": "range_call",
+          "in_function": "numbered_roster"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "len_call",
+          "in_function": "numbered_roster"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "for_loop",
+          "in_function": "numbered_roster"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "append_call",
+          "in_function": "numbered_roster"
+        },
+        {
+          "kind": "source_uses",
+          "feature": "fstring",
+          "in_function": "numbered_roster"
+        },
+        {
+          "kind": "function",
+          "function": "numbered_roster",
+          "args": [
+            [
+              {
+                "name": "Mira",
+                "health": 8
+              },
+              {
+                "name": "Rook",
+                "health": 10
+              }
+            ]
+          ],
+          "expected": [
+            "1. Mira — 8 HP",
+            "2. Rook — 10 HP"
+          ]
+        },
+        {
+          "kind": "function",
+          "function": "numbered_roster",
+          "args": [
+            []
+          ],
+          "expected": []
+        },
+        {
+          "kind": "function",
+          "function": "numbered_roster",
+          "args": [
+            [
+              {
+                "name": "Selene",
+                "health": 5
+              }
+            ]
+          ],
+          "expected": [
+            "1. Selene — 5 HP"
+          ]
+        }
+      ],
+      "integration": [
+        "functions",
+        "parameters",
+        "nested_data",
+        "lists",
+        "indexing",
+        "len",
+        "range",
+        "for_loop",
+        "dictionary_lookup",
+        "f_strings",
+        "append",
+        "structured_returns"
+      ],
+      "reasoning_targets": [
+        "transfer"
+      ],
+      "project_role": "lesson_synthesis",
+      "criteria": [
+        "visit_nested_records_by_index",
+        "retrieve_nested_names",
+        "number_every_member",
+        "format_roster_lines"
+      ],
+      "success_message": "The roster combines old indexing/range skills with nested records and a structured returned result."
+    }
+  ],
+  "lesson_number": 19,
+  "production_contract_version": 1
+}
