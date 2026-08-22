@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QButtonGroup,
     QFrame,
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QTabWidget,
     QPushButton,
     QRadioButton,
     QSizePolicy,
+    QSplitter,
     QVBoxLayout,
     QWidget,
 )
@@ -31,7 +33,7 @@ class IdePanel(QFrame):
     def __init__(self, theme: Theme, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setObjectName("EditorCard")
-        self.setMinimumWidth(380)
+        self.setMinimumWidth(520)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         root = QVBoxLayout(self)
@@ -51,8 +53,19 @@ class IdePanel(QFrame):
 
         body = QWidget()
         body_l = QVBoxLayout(body)
-        body_l.setContentsMargins(12, 10, 12, 12)
-        body_l.setSpacing(10)
+        body_l.setContentsMargins(0, 0, 0, 0)
+        body_l.setSpacing(0)
+
+        # Vertical splitter: top (work area), bottom (drawer tabs)
+        self._vsplitter = QSplitter(Qt.Orientation.Vertical)
+        self._vsplitter.setChildrenCollapsible(False)
+        self._vsplitter.setHandleWidth(10)
+        body_l.addWidget(self._vsplitter, stretch=1)
+
+        work_host = QWidget()
+        work = QVBoxLayout(work_host)
+        work.setContentsMargins(12, 10, 12, 12)
+        work.setSpacing(10)
 
         self.editor = CodeEditorWidget(theme)
         self.editor.setMinimumHeight(180)
@@ -60,17 +73,17 @@ class IdePanel(QFrame):
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
         self.editor.runRequested.connect(self.runClicked.emit)
-        body_l.addWidget(self.editor, stretch=3)
+        work.addWidget(self.editor, stretch=3)
 
         self._answer_label = QLabel("Your answer")
         self._answer_label.setObjectName("MutedLabel")
-        body_l.addWidget(self._answer_label)
+        work.addWidget(self._answer_label)
 
         self._answer = QLineEdit()
         self._answer.setObjectName("AnswerField")
         self._answer.setPlaceholderText("Type predicted output here…")
         self._answer.setFixedHeight(34)
-        body_l.addWidget(self._answer)
+        work.addWidget(self._answer)
 
         self._choice_host = QWidget()
         self._choice_layout = QVBoxLayout(self._choice_host)
@@ -78,7 +91,7 @@ class IdePanel(QFrame):
         self._choice_layout.setSpacing(6)
         self._choice_group = QButtonGroup(self)
         self._choice_buttons: list[QRadioButton] = []
-        body_l.addWidget(self._choice_host)
+        work.addWidget(self._choice_host)
         self._choice_host.hide()
 
         actions = QHBoxLayout()
@@ -103,13 +116,25 @@ class IdePanel(QFrame):
         for btn in (self._run, self._check, self._hint, self._reset):
             actions.addWidget(btn)
         actions.addStretch(1)
-        body_l.addLayout(actions)
+        work.addLayout(actions)
 
+        # Bottom drawer: tabbed Output / Feedback
+        drawer_host = QWidget()
+        drawer_l = QVBoxLayout(drawer_host)
+        drawer_l.setContentsMargins(12, 6, 12, 12)
+        drawer_l.setSpacing(8)
+        self._tabs = QTabWidget()
+        self._tabs.setTabPosition(QTabWidget.TabPosition.North)
         self.output = OutputPanel(theme)
-        body_l.addWidget(self.output, stretch=2)
-
         self.feedback = FeedbackPanel()
-        body_l.addWidget(self.feedback, stretch=0)
+        self._tabs.addTab(self.output, "Output")
+        self._tabs.addTab(self.feedback, "Feedback")
+        drawer_l.addWidget(self._tabs)
+
+        self._vsplitter.addWidget(work_host)
+        self._vsplitter.addWidget(drawer_host)
+        # Target sizes: editor area dominant; drawer ~180 px initially
+        self._vsplitter.setSizes([520, 180])
 
         root.addWidget(body, stretch=1)
         self._starter = ""
@@ -123,6 +148,9 @@ class IdePanel(QFrame):
     def set_busy(self, busy: bool, message: str = "Running…") -> None:
         for btn in (self._run, self._check, self._hint, self._reset):
             btn.setEnabled(not busy)
+        # Show Output tab and enlarge drawer during busy to surface status
+        self._tabs.setCurrentWidget(self.output)
+        self.set_drawer_active() if busy else self.set_drawer_idle()
         self.output.set_busy(busy, message)
 
     def set_hint_label(self, used: int, total: int) -> None:
@@ -206,9 +234,36 @@ class IdePanel(QFrame):
 
     def set_output(self, text: str, *, kind: str = "plain") -> None:
         self.output.set_text(text, kind=kind)
+        self.activate_output()
 
     def output_text(self) -> str:
         return self.output.plain_text
 
     def focus_editor(self) -> None:
         self.editor.setFocus()
+
+    # --- drawer / tabs helpers ----------------------------------------------
+    def set_drawer_collapsed(self) -> None:
+        sizes = self._vsplitter.sizes()
+        total = max(1, sum(sizes))
+        self._vsplitter.setSizes([total - 40, 40])
+
+    def set_drawer_idle(self) -> None:
+        sizes = self._vsplitter.sizes()
+        total = max(1, sum(sizes))
+        idle = 140
+        self._vsplitter.setSizes([max(200, total - idle), idle])
+
+    def set_drawer_active(self) -> None:
+        sizes = self._vsplitter.sizes()
+        total = max(1, sum(sizes))
+        active = 240
+        self._vsplitter.setSizes([max(160, total - active), active])
+
+    def activate_output(self) -> None:
+        self._tabs.setCurrentWidget(self.output)
+        self.set_drawer_active()
+
+    def activate_feedback(self) -> None:
+        self._tabs.setCurrentWidget(self.feedback)
+        self.set_drawer_active()

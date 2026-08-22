@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Callable, Optional, TypeVar
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -22,6 +21,7 @@ from PySide6.QtWidgets import (
 )
 
 from app.branding import WINDOW_TITLE
+from app.menus import build_menubar
 from app.pages import (
     DashboardPage,
     LessonsPage,
@@ -72,13 +72,14 @@ class CourseApp(QMainWindow):
         self._sidebar_visible = self.prefs_store.prefs.sidebar_visible
         self._editor_visible = self.prefs_store.prefs.editor_visible
         self._jobs = AsyncJobHost(self)
+        self._auto_collapsed = False
 
         self.setWindowTitle(WINDOW_TITLE)
         self.resize(1400, 900)
-        self.setMinimumSize(1100, 700)
+        # Allow widths below 900 to exercise the Prompt/Code single-pane policy.
+        self.setMinimumSize(800, 600)
 
         self._build_ui()
-        self._bind_shortcuts()
         self.apply_theme(self._theme)
         self._sync_panel_visibility()
         self._load_initial_lesson()
@@ -98,6 +99,18 @@ class CourseApp(QMainWindow):
         return self.playground_page
 
     def _build_ui(self) -> None:
+        # Menubar (File/Edit/View/Help) with QAction-owned shortcuts
+        bar = build_menubar(
+            self,
+            on_save=self._save_progress,
+            on_exit=self.close,
+            on_toggle_sidebar=self.toggle_sidebar,
+            on_toggle_editor=self.toggle_editor,
+            on_toggle_theme=self.toggle_theme,
+        )
+        self.setMenuBar(bar)
+        self._menubar = bar  # type: ignore[assignment]
+
         central = QWidget()
         self.setCentralWidget(central)
         root = QHBoxLayout(central)
@@ -107,6 +120,7 @@ class CourseApp(QMainWindow):
         self.sidebar = Sidebar(self.controller.catalog, self.controller)
         self.sidebar.navChanged.connect(self._on_nav)
         self.sidebar.lessonSelected.connect(self._on_sidebar_select)
+        self.sidebar.collapsedChanged.connect(lambda _: None)
         root.addWidget(self.sidebar)
 
         right = QWidget()
@@ -129,6 +143,8 @@ class CourseApp(QMainWindow):
         self.dashboard_page.playgroundClicked.connect(lambda: self._on_nav("playground"))
 
         self.lessons_page = LessonsPage(self._theme)
+        # When temporary hiding policy applies, disable editor toggle routes
+        self.lessons_page.editorToggleAllowed.connect(self._on_editor_toggle_allowed)
         # smoke: lesson_view.lesson
         self.lessons_page.lesson = None  # type: ignore[attr-defined]
         content = self.lessons_page.content
@@ -170,13 +186,6 @@ class CourseApp(QMainWindow):
         right_l.addWidget(self.stack, stretch=1)
         root.addWidget(right, stretch=1)
 
-    def _bind_shortcuts(self) -> None:
-        QShortcut(QKeySequence("Ctrl+B"), self, self.toggle_sidebar)
-        QShortcut(QKeySequence("Ctrl+J"), self, self.toggle_editor)
-        QShortcut(QKeySequence("Ctrl+Shift+D"), self, self.toggle_theme)
-        QShortcut(QKeySequence("Ctrl+S"), self, self._save_progress)
-        QShortcut(QKeySequence("Ctrl+Q"), self, self.close)
-
     # --- theme / panels -----------------------------------------------------
 
     def apply_theme(self, theme: Theme) -> None:
@@ -209,15 +218,28 @@ class CourseApp(QMainWindow):
         self._sidebar_visible = True
         self.sidebar.setVisible(True)
         self.top_bar.set_sidebar_visible(True)
+        # sync menubar checkmark
+        if hasattr(self, "_menubar"):
+            self._menubar.sync_view_menu(True, self._editor_visible)  # type: ignore[attr-defined]
         self.prefs_store.update(sidebar_visible=True)
 
     def hide_sidebar(self) -> None:
         self._sidebar_visible = False
         self.sidebar.setVisible(False)
         self.top_bar.set_sidebar_visible(False)
+        if hasattr(self, "_menubar"):
+            self._menubar.sync_view_menu(False, self._editor_visible)  # type: ignore[attr-defined]
         self.prefs_store.update(sidebar_visible=False)
 
     def toggle_editor(self) -> None:
+        # Respect mode/responsive policy: no-op when temporarily disallowed
+        can_toggle = True
+        try:
+            can_toggle = self._editor_toggle_allowed  # type: ignore[attr-defined]
+        except Exception:
+            pass
+        if not can_toggle:
+            return
         if self._editor_visible:
             self.hide_editor()
         else:
@@ -227,6 +249,8 @@ class CourseApp(QMainWindow):
         self._editor_visible = True
         self.lessons_page.set_editor_visible(True)
         self.top_bar.set_editor_visible(True)
+        if hasattr(self, "_menubar"):
+            self._menubar.sync_view_menu(self._sidebar_visible, True)  # type: ignore[attr-defined]
         self.prefs_store.update(editor_visible=True)
         self.lessons_page.ide.focus_editor()
 
@@ -234,6 +258,8 @@ class CourseApp(QMainWindow):
         self._editor_visible = False
         self.lessons_page.set_editor_visible(False)
         self.top_bar.set_editor_visible(False)
+        if hasattr(self, "_menubar"):
+            self._menubar.sync_view_menu(self._sidebar_visible, False)  # type: ignore[attr-defined]
         self.prefs_store.update(editor_visible=False)
 
     def _sync_panel_visibility(self) -> None:
@@ -245,6 +271,8 @@ class CourseApp(QMainWindow):
             self.show_editor()
         else:
             self.hide_editor()
+        if hasattr(self, "_menubar"):
+            self._menubar.sync_view_menu(self._sidebar_visible, self._editor_visible)  # type: ignore[attr-defined]
 
     # --- navigation ---------------------------------------------------------
 
@@ -287,22 +315,27 @@ class CourseApp(QMainWindow):
         self._show_lesson(lesson)
         self._on_nav("lessons")
 
-    def _show_lesson(self, lesson: Lesson, exercise_index: int = 0) -> None:
+    def _show_lesson(self, lesson: Lesson, exercise_index: int | None = None) -> None:
         self._persist_current_draft()
         self._current_lesson = lesson
         self.lessons_page.lesson = lesson  # smoke compat
         self.controller.progress.data.current_lesson_id = lesson.id
         self.controller.progress.save()
-        self._exercise_index = max(0, min(exercise_index, max(0, len(lesson.exercises) - 1)))
+        # Restore saved exercise index for the lesson when not explicitly requested
+        if exercise_index is None:
+            requested_index = self.lessons_page.get_saved_exercise_index(lesson.id, 0)
+        else:
+            requested_index = exercise_index
+        self._exercise_index = max(0, min(requested_index, max(0, len(lesson.exercises) - 1)))
         exercise = lesson.exercises[self._exercise_index] if lesson.exercises else None
 
         prev_ok = self.controller.catalog.previous(lesson.id) is not None
         next_lesson = self.controller.catalog.next(lesson.id)
         next_ok = next_lesson is not None and self.controller.is_unlocked(next_lesson)
 
-        self.lessons_page.content.show_lesson(
-            lesson,
-            exercise,
+        self.lessons_page.present_lesson(
+            lesson=lesson,
+            exercise=exercise,
             exercise_index=self._exercise_index,
             prev_ok=prev_ok,
             next_ok=next_ok,
@@ -390,6 +423,9 @@ class CourseApp(QMainWindow):
         else:
             ide.clear_output()
             ide.feedback.reset()
+        # Remember the active exercise index for this lesson in-session
+        if self._current_lesson is not None:
+            self.lessons_page.remember_exercise_index(self._current_lesson.id, self._exercise_index)
         self._loading_exercise = False
 
     def _persist_current_draft(self) -> None:
@@ -464,6 +500,7 @@ class CourseApp(QMainWindow):
                 self.lessons_page.ide.feedback.set_message(
                     "There was an error. Read the Output panel and try again."
                 )
+            self.lessons_page.ide.activate_output()
 
         self._run_background(work, done, busy_message="Running code…")
 
@@ -496,6 +533,7 @@ class CourseApp(QMainWindow):
                     lines.append(result.run.error)
             kind = "success" if result.passed else "error"
             self.lessons_page.ide.feedback.set_message("\n".join(lines), kind=kind)
+            self.lessons_page.ide.activate_feedback()
             self.sidebar.refresh_lessons(selected_lesson_id=lesson.id)
             self._refresh_progress_pill()
             record = self.controller.progress.exercise(exercise.id)
@@ -537,6 +575,7 @@ class CourseApp(QMainWindow):
             text = f"Hint {used}: {hint}"
         ide.feedback.set_message(text, kind="hint")
         ide.set_hint_label(used, len(self._current_exercise.hints))
+        ide.activate_feedback()
 
     def _run_playground(self, code: str) -> None:
         if self._closing or self._busy:
@@ -620,6 +659,31 @@ class CourseApp(QMainWindow):
         self.controller.progress.save()
         self.prefs_store.save()
         super().closeEvent(event)
+
+    def resizeEvent(self, event) -> None:  # noqa: N802
+        super().resizeEvent(event)
+        # Responsive auto-collapse that does not mutate saved preferences.
+        try:
+            width = self.width()
+            should_collapse = width < 1200
+            if self._sidebar_visible:
+                if should_collapse and not self._auto_collapsed:
+                    self.sidebar.set_collapsed(True)
+                    self._auto_collapsed = True
+                elif not should_collapse and self._auto_collapsed:
+                    self.sidebar.set_collapsed(False)
+                    self._auto_collapsed = False
+        except Exception:
+            pass
+
+    # --- view/menu sync helpers ---------------------------------------------
+    def _on_editor_toggle_allowed(self, allowed: bool) -> None:
+        self._editor_toggle_allowed = allowed
+        self.top_bar._editor_btn.setEnabled(allowed)
+        try:
+            self._menubar._act_editor.setEnabled(allowed)  # type: ignore[attr-defined]
+        except Exception:
+            pass
 
 
 def launch_app(

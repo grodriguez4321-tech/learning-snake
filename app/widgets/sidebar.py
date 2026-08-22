@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QFontMetrics
+from PySide6.QtGui import QFontMetrics, QPixmap
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -44,15 +44,15 @@ class LessonRow(QFrame):
         self._active = False
         self._enabled = True
 
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(10, 0, 10, 0)
-        layout.setSpacing(8)
+        self._layout = QHBoxLayout(self)
+        self._layout.setContentsMargins(10, 0, 10, 0)
+        self._layout.setSpacing(8)
 
         self._icon = QLabel("○")
         self._icon.setObjectName("LessonRowIcon")
         self._icon.setFixedWidth(16)
         self._icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self._icon)
+        self._layout.addWidget(self._icon)
 
         self._label = QLabel()
         self._label.setObjectName("LessonRowLabel")
@@ -62,14 +62,16 @@ class LessonRow(QFrame):
         self._label.setSizePolicy(
             QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred
         )
-        layout.addWidget(self._label, stretch=1)
+        self._layout.addWidget(self._label, stretch=1)
         self._full_title = ""
+        self._compact = False
 
     def set_row(self, *, icon: str, text: str, enabled: bool, active: bool) -> None:
         self._enabled = enabled
         self._active = active
         self._full_title = text
         self._icon.setText(icon)
+        self.setAccessibleName(text if enabled else f"Locked — {text}")
         self.setEnabled(enabled)
         self.setProperty("active", "true" if active else "false")
         self.setProperty("locked", "true" if not enabled else "false")
@@ -98,6 +100,27 @@ class LessonRow(QFrame):
             metrics.elidedText(text, Qt.TextElideMode.ElideRight, width)
         )
 
+    def set_compact(self, compact: bool) -> None:
+        """Collapsed-rail presentation: center icon; hide text label."""
+        self._compact = compact
+        self._label.setVisible(not compact)
+        if compact:
+            # Center the icon within the row
+            try:
+                self._layout.setContentsMargins(0, 0, 0, 0)
+                self._layout.setSpacing(0)
+                self._layout.setAlignment(self._icon, Qt.AlignmentFlag.AlignHCenter)
+            except Exception:
+                pass
+        else:
+            self._layout.setContentsMargins(10, 0, 10, 0)
+            self._layout.setSpacing(8)
+            try:
+                self._layout.setAlignment(self._icon, Qt.AlignmentFlag.AlignLeft)
+            except Exception:
+                pass
+        self.update()
+
     def mousePressEvent(self, event) -> None:  # noqa: N802
         if self._enabled and event.button() == Qt.MouseButton.LeftButton:
             self.clicked.emit(self.lesson_id)
@@ -107,6 +130,7 @@ class LessonRow(QFrame):
 class Sidebar(QFrame):
     navChanged = Signal(str)
     lessonSelected = Signal(str)
+    collapsedChanged = Signal(bool)
 
     def __init__(
         self,
@@ -116,7 +140,10 @@ class Sidebar(QFrame):
     ) -> None:
         super().__init__(parent)
         self.setObjectName("Sidebar")
-        self.setFixedWidth(256)
+        self._collapsed = False
+        self._expanded_width = 232
+        self._collapsed_width = 64
+        self.setFixedWidth(self._expanded_width)
         self._catalog = catalog
         self._controller = controller
         self._nav_buttons: dict[str, QPushButton] = {}
@@ -128,10 +155,41 @@ class Sidebar(QFrame):
         root.setContentsMargins(14, 18, 14, 14)
         root.setSpacing(4)
 
-        brand = QLabel(APP_NAME)
-        brand.setObjectName("BrandTitle")
-        brand.setContentsMargins(6, 0, 0, 8)
-        root.addWidget(brand)
+        brand_row = QHBoxLayout()
+        brand_row.setContentsMargins(6, 0, 6, 8)
+        brand_row.setSpacing(8)
+        self._brand_logo = QLabel()
+        self._brand_logo.setFixedSize(24, 24)
+        self._brand_logo.setToolTip(APP_NAME)
+        # Resolve logo relative to the application module so cwd does not matter.
+        try:
+            from pathlib import Path
+            base = Path(__file__).resolve().parents[2]
+            logo_path = (
+                base
+                / "docs"
+                / "design-handoff"
+                / "basilisk-workspace-v9"
+                / "assets"
+                / "basilisk-app-mark-v2.png"
+            )
+            pix = QPixmap(str(logo_path))
+        except Exception:
+            pix = QPixmap()
+        if not pix.isNull():
+            self._brand_logo.setPixmap(pix.scaled(24, 24, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        brand_row.addWidget(self._brand_logo)
+        self._brand_label = QLabel(APP_NAME)
+        self._brand_label.setObjectName("BrandTitle")
+        brand_row.addWidget(self._brand_label, stretch=1)
+        # Manual collapse control
+        self._collapse_btn = QPushButton("«")
+        self._collapse_btn.setObjectName("ToolButton")
+        self._collapse_btn.setFixedHeight(26)
+        self._collapse_btn.setToolTip("Collapse curriculum rail")
+        self._collapse_btn.clicked.connect(lambda: self.set_collapsed(not self._collapsed))
+        brand_row.addWidget(self._collapse_btn)
+        root.addLayout(brand_row)
 
         for key, label, icon in NAV_ITEMS:
             btn = QPushButton(f"  {icon}   {label}")
@@ -139,14 +197,16 @@ class Sidebar(QFrame):
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.setCheckable(True)
             btn.setFixedHeight(36)
+            btn.setAccessibleName(label)
+            btn.setToolTip(label)
             btn.clicked.connect(lambda checked=False, k=key: self._on_nav(k))
             self._nav_buttons[key] = btn
             root.addWidget(btn)
 
-        heading = QLabel("LESSONS")
-        heading.setObjectName("SectionHeading")
-        heading.setContentsMargins(8, 18, 0, 6)
-        root.addWidget(heading)
+        self._heading = QLabel("LESSONS")
+        self._heading.setObjectName("SectionHeading")
+        self._heading.setContentsMargins(8, 18, 0, 6)
+        root.addWidget(self._heading)
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -162,15 +222,15 @@ class Sidebar(QFrame):
         scroll.setWidget(self._lesson_host)
         root.addWidget(scroll, stretch=1)
 
-        footer = QFrame()
-        footer.setObjectName("SidebarFooter")
-        fl = QVBoxLayout(footer)
+        self._footer = QFrame()
+        self._footer.setObjectName("SidebarFooter")
+        fl = QVBoxLayout(self._footer)
         fl.setContentsMargins(12, 12, 12, 12)
         tip = QLabel("Ready to learn Python?\nWork through lessons at your own pace.")
         tip.setWordWrap(True)
         tip.setObjectName("MutedLabel")
         fl.addWidget(tip)
-        root.addWidget(footer)
+        root.addWidget(self._footer)
 
         self.refresh_lessons()
         self.set_active_nav("lessons")
@@ -183,6 +243,46 @@ class Sidebar(QFrame):
         self._active_nav = key
         for k, btn in self._nav_buttons.items():
             btn.setChecked(k == key)
+
+    # Collapsed/expanded widths ------------------------------------------------
+    def set_collapsed(self, collapsed: bool) -> None:
+        self._collapsed = collapsed
+        self.setFixedWidth(self._collapsed_width if collapsed else self._expanded_width)
+        # Update nav button labels vs icons for accessibility
+        for key, item in zip(self._nav_buttons.keys(), NAV_ITEMS):
+            _nav_key, label, icon = item
+            btn = self._nav_buttons[key]
+            if collapsed:
+                btn.setText(f"  {icon}")
+                try:
+                    btn.setStyleSheet("text-align: center;")
+                except Exception:
+                    pass
+                btn.setToolTip(label)
+            else:
+                btn.setText(f"  {icon}   {label}")
+                try:
+                    btn.setStyleSheet("")
+                except Exception:
+                    pass
+                btn.setToolTip(label)
+        # Brand/label visibility
+        self._brand_label.setVisible(not collapsed)
+        # Hide expanded-only copy and headings when collapsed
+        if hasattr(self, "_heading"):
+            self._heading.setVisible(not collapsed)
+        if hasattr(self, "_footer"):
+            self._footer.setVisible(not collapsed)
+        # Lesson rows: hide text labels, keep state icons centered
+        try:
+            for row in self._lesson_rows.values():
+                row.set_compact(collapsed)
+        except Exception:
+            pass
+        self._collapse_btn.setText("»" if collapsed else "«")
+        self._collapse_btn.setToolTip("Expand curriculum rail" if collapsed else "Collapse curriculum rail")
+        self.collapsedChanged.emit(collapsed)
+        # Expanded rows restore elided labels automatically when width grows
 
     def refresh_lessons(self, selected_lesson_id: str | None = None) -> None:
         if selected_lesson_id is not None:

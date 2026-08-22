@@ -1,0 +1,79 @@
+from __future__ import annotations
+
+import os
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
+from PySide6.QtWidgets import QApplication
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from app.course_app import CourseApp
+from app.theme import DARK, build_stylesheet
+from app.ui_prefs import UiPrefsStore
+from engine.progress import ProgressStore
+from main import build_controller
+
+
+def _qt() -> QApplication:
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
+        app.setStyleSheet(build_stylesheet(DARK))
+    return app
+
+
+class ViewTogglePrefsTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.app = _qt()
+
+    def test_view_menu_checkmarks_sync_with_prefs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            data_dir = Path(tmp)
+            controller, runner, prefs = build_controller(ROOT, data_dir=data_dir)
+
+            course = CourseApp(controller, runner, prefs_store=prefs)
+            self.app.processEvents()
+
+            # Sidebar visible by default per prefs; toggle off
+            course.toggle_sidebar()
+            self.app.processEvents()
+            self.assertFalse(course.sidebar.isVisible())
+            self.assertFalse(course.prefs_store.prefs.sidebar_visible)
+            # Top bar controls mirror the View menu checkmarks
+            self.assertFalse(course.top_bar._sidebar_btn.isChecked())
+
+            # Toggle editor off then on
+            course.lessons_page.mode_bar._practice.click()
+            self.app.processEvents()
+            course.toggle_editor()
+            self.app.processEvents()
+            self.assertFalse(course.prefs_store.prefs.editor_visible)
+            self.assertFalse(course.top_bar._editor_btn.isChecked())
+            course.toggle_editor()
+            self.app.processEvents()
+            self.assertTrue(course.prefs_store.prefs.editor_visible)
+            self.assertTrue(course.top_bar._editor_btn.isChecked())
+
+            # Enter Learn mode: editor toggle becomes a no-op (disabled)
+            course.lessons_page.mode_bar._learn.click()
+            self.app.processEvents()
+            self.assertFalse(course.top_bar._editor_btn.isEnabled())
+            before = course.prefs_store.prefs.editor_visible
+            course.toggle_editor()  # should no-op
+            self.app.processEvents()
+            self.assertEqual(course.prefs_store.prefs.editor_visible, before)
+
+            course.close()
+            self.app.processEvents()
+
+
+if __name__ == "__main__":
+    unittest.main()
+

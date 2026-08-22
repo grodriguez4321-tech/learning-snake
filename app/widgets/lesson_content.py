@@ -398,6 +398,7 @@ class LessonContent(QWidget):
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._scroll = scroll
 
         body = QWidget()
         layout = QVBoxLayout(body)
@@ -456,6 +457,27 @@ class LessonContent(QWidget):
         self._theme = theme
         if self.lesson is not None:
             self._examples.set_examples(list(self.lesson.examples), theme)
+
+    def set_mode(self, mode: str) -> None:
+        """Control which sections are visible per Learn/Examples/Practice."""
+        mode = (mode or "learn").lower()
+        # Title always visible
+        show_learn = mode == "learn"
+        show_examples = mode == "examples"
+        show_practice = mode == "practice"
+        self._intro.setVisible(show_learn and bool(self._intro.text()))
+        self._explanation.setVisible(show_learn)
+        self._concepts.setVisible(show_learn)
+        self._examples.setVisible(show_examples)
+        # In Examples mode, show real worked examples and common mistakes if present
+        self._mistakes.setVisible(show_examples)
+        self._exercise.setVisible(show_practice)
+        # Reset reading scroll on entering Learn/Examples
+        if mode in {"learn", "examples"}:
+            try:
+                self._scroll.verticalScrollBar().setValue(0)
+            except Exception:
+                pass
 
     def show_lesson(
         self,

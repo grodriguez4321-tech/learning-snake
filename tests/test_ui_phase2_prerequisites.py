@@ -225,6 +225,8 @@ class ArchitectureExerciseIntegrationTests(unittest.TestCase):
             self.app.processEvents()
 
             ide = course.lessons_page.ide
+            course.lessons_page.set_mode("practice")
+            self.app.processEvents()
             self.assertTrue(ide._choice_host.isVisible())
             self.assertEqual(len(ide._choice_buttons), 2)
             ide.set_answer("2")
@@ -254,6 +256,7 @@ class OutputPanelLayoutTests(unittest.TestCase):
             controller.progress.load()
             course = CourseApp(controller, runner, prefs_store=prefs)
             course.show()
+            course.lessons_page.set_mode("practice")
             for w, h in ((1920, 1080), (1440, 900), (1200, 700)):
                 course.resize(QSize(w, h))
                 self.app.processEvents()

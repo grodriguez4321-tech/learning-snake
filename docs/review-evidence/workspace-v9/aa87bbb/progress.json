@@ -1,0 +1,147 @@
+{
+  "curriculum_version": 2,
+  "completed_lessons": [],
+  "current_lesson_id": "fundamentals_01_print",
+  "exercises": {
+    "fundamentals_01_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 1,
+      "draft_code": "",
+      "last_answer": ""
+    },
+    "fundamentals_02_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": ""
+    },
+    "fundamentals_03_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": ""
+    },
+    "decisions_01_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": ""
+    },
+    "collections_01_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": ""
+    },
+    "collections_02_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": ""
+    },
+    "collections_03_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": ""
+    },
+    "functions_01_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": ""
+    },
+    "decisions_09_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": ""
+    },
+    "decisions_10_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": ""
+    },
+    "collections_11_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": ""
+    },
+    "collections_12_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": ""
+    },
+    "collections_13_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": ""
+    },
+    "collections_14_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": ""
+    },
+    "collections_15_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": ""
+    },
+    "functions_16_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": ""
+    },
+    "functions_17_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": ""
+    },
+    "functions_18_ex1": {
+      "completed": false,
+      "attempts": 0,
+      "hints_used": 0,
+      "draft_code": "",
+      "last_answer": ""
+    }
+  },
+  "mastery": {
+    "print": 0.0,
+    "variables": 0.0,
+    "strings": 0.0,
+    "conditionals": 0.0,
+    "collections": 0.0,
+    "loops": 0.0,
+    "functions": 0.0,
+    "classes": 0.0,
+    "composition": 0.0,
+    "inheritance": 0.0,
+    "debugging": 0.0
+  },
+  "mistake_topics": {}
+}

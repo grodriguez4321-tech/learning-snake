@@ -1,0 +1,61 @@
+from __future__ import annotations
+
+import os
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
+from PySide6.QtWidgets import QApplication
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from app.course_app import CourseApp
+from app.theme import DARK, build_stylesheet
+from app.ui_prefs import UiPrefsStore
+from engine.progress import ProgressStore
+from main import build_controller
+
+
+def _qt() -> QApplication:
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
+        app.setStyleSheet(build_stylesheet(DARK))
+    return app
+
+
+class BrandAssetLoadTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.app = _qt()
+
+    def test_sidebar_logo_loads_independent_of_cwd(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            data_dir = Path(tmp)
+            controller, runner, prefs = build_controller(ROOT, data_dir=data_dir)
+
+            # Change working directory to a platform-native temp dir (Windows-safe)
+            cwd_before = os.getcwd()
+            with tempfile.TemporaryDirectory() as td:
+                os.chdir(td)
+                try:
+                    course = CourseApp(controller, runner, prefs_store=prefs)
+                    course.show()
+                    self.app.processEvents()
+                    # Access the sidebar brand logo pixmap; it should be non-null
+                    pix = course.sidebar._brand_logo.pixmap()  # type: ignore[attr-defined]
+                    self.assertIsNotNone(pix)
+                    self.assertFalse(pix.isNull())
+                    course.close()
+                    self.app.processEvents()
+                finally:
+                    os.chdir(cwd_before)
+
+
+if __name__ == "__main__":
+    unittest.main()
+
